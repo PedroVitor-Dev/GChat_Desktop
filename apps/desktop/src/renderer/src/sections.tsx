@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { AboutPage } from './pages/AboutPage';
 import { AppearancePage } from './pages/AppearancePage';
+import { GeneralPage } from './pages/GeneralPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PlannedPage } from './pages/PlannedPage';
 import { PrivacyPage } from './pages/PrivacyPage';
@@ -35,11 +36,7 @@ export const sections: Section[] = [
     id: 'geral',
     label: 'Geral',
     icon: Settings,
-    page: planned('Fase 6', [
-      'Iniciar com o Windows',
-      'Iniciar minimizado',
-      'Minimizar para a bandeja ao fechar',
-    ]),
+    page: GeneralPage,
   },
   {
     id: 'notificacoes',

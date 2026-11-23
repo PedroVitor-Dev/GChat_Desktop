@@ -1,4 +1,4 @@
-import { Menu, app } from 'electron';
+import { Menu, Notification, app } from 'electron';
 import { registerIpc } from './ipc';
 import { listenForCaptures } from './notifications/capture-listener';
 import { NotificationManager } from './notifications/manager';
@@ -7,6 +7,10 @@ import { AppShell } from './shell/app-shell';
 import { SoundLibrary } from './sounds/library';
 import { SoundPlayer } from './sounds/player';
 import { SettingsStore } from './store/settings-store';
+import { appIcon } from './system/app-icon';
+import { HIDDEN_ARG, setJumpList, setLaunchAtLogin } from './system/autostart';
+import { WindowStateFile } from './system/window-state';
+import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
 
@@ -22,31 +26,70 @@ if (!app.requestSingleInstanceLock()) {
     const settings = new SettingsStore();
     applySecurityPolicies();
 
-    const shell = new AppShell(settings.get().appearance);
+    // Aberto pelo Windows no login + "iniciar minimizado" → só a bandeja.
+    const startHidden = process.argv.includes(HIDDEN_ARG) && settings.get().general.startMinimized;
+
+    let tray: AppTray | null = null;
+    const shell = new AppShell({
+      appearance: settings.get().appearance,
+      startHidden,
+      windowState: new WindowStateFile(app.getPath('userData')),
+      shouldHideOnClose: () => settings.get().general.closeToTray,
+      onHiddenToTray: () => {
+        if (settings.get().general.trayHintShown || !Notification.isSupported()) return;
+        new Notification({
+          title: 'O GChat Desktop+ continua aberto',
+          body: 'Ele segue na bandeja do sistema para avisar sobre novas mensagens. Para sair, use “Sair” no ícone da bandeja.',
+          icon: appIcon(),
+          silent: true,
+        }).show();
+        settings.updateInternal({ general: { trayHintShown: true } });
+      },
+      onUnreadChange: (count) => tray?.setUnread(count),
+    });
+
     const player = new SoundPlayer();
     const library = new SoundLibrary(settings, (bytes) => player.probe(bytes));
     player.attach(library);
     const notifications = new NotificationManager({ settings, player, shell });
 
+    tray = new AppTray(settings, {
+      openChat: () => shell.focusChat(),
+      openSettings: () => shell.openSettings(),
+      quit: () => app.quit(),
+    });
+
     registerIpc({ settings, notifications, library, player, shell });
     listenForCaptures(notifications);
-    settings.on('change', (next) => shell.applyAppearance(next.appearance));
 
-    // `--settings` abre direto nas configurações (atalhos e, na Fase 6, Jump List).
+    let launchAtLogin = settings.get().general.launchAtLogin;
+    setLaunchAtLogin(launchAtLogin);
+    setJumpList();
+    settings.on('change', (next) => {
+      shell.applyAppearance(next.appearance);
+      if (next.general.launchAtLogin !== launchAtLogin) {
+        launchAtLogin = next.general.launchAtLogin;
+        setLaunchAtLogin(launchAtLogin);
+      }
+    });
+
+    // `--settings` abre direto nas configurações (Jump List e atalhos).
     const route = (argv: string[]) =>
       argv.includes('--settings') ? shell.openSettings() : shell.focusChat();
     app.on('second-instance', (_event, argv) => route(argv));
     if (process.argv.includes('--settings')) shell.openSettings();
 
-    // Fechar a janela encerra o app; a Fase 6 troca isto por "continuar na bandeja".
+    // Com "fechar para a bandeja" desligado, fechar a janela encerra o app.
     shell.window.on('closed', () => app.quit());
 
     // Garante que a última alteração de configuração chegue ao disco.
     let flushed = false;
     app.on('before-quit', (event) => {
+      shell.markQuitting();
       if (flushed) return;
       event.preventDefault();
       flushed = true;
+      tray?.destroy();
       player.destroy();
       void settings.flush().finally(() => app.quit());
     });

@@ -94,6 +94,14 @@ describe('applyPatch', () => {
     expect(s.sounds.library).toEqual([]);
   });
 
+  it('renderer não altera campos internos do geral', () => {
+    const s = applyPatch(DEFAULT_SETTINGS, {
+      general: { trayHintShown: true, closeToTray: false },
+    });
+    expect(s.general.trayHintShown).toBe(false);
+    expect(s.general.closeToTray).toBe(false);
+  });
+
   it('mentionSound null volta para o padrão', () => {
     const withMention = applyPatch(DEFAULT_SETTINGS, { sounds: { mentionSound: 'builtin:sino' } });
     expect(applyPatch(withMention, { sounds: { mentionSound: null } }).sounds.mentionSound).toBe(

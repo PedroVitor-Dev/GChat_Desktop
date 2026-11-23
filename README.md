@@ -21,7 +21,8 @@ conteúdo das mensagens.
 - [x] Fase 4: notificações nativas ([docs/notificacoes.md](docs/notificacoes.md))
 - [x] Fase 5: sons personalizados ([docs/sons.md](docs/sons.md))
 - [x] Visual estilo Discord (shell, trilho, configurações em tela cheia, temas)
-- [ ] Fase 6: bandeja e segundo plano
+- [x] Fase 6: bandeja e segundo plano ([docs/segundo-plano.md](docs/segundo-plano.md))
+- [ ] Fase 7: configurações (contas múltiplas, ajustes finais)
 
 ## Licença
 

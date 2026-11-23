@@ -6,6 +6,7 @@ const TIPS = [
   'Você pode escolher um som diferente para cada conversa em Configurações → Sons.',
   'O botão “Silenciar conversa” na notificação silencia direto, sem abrir o app.',
   'Ctrl + R recarrega o Google Chat.',
+  'Fechar a janela mantém o app na bandeja, avisando sobre novas mensagens. Ctrl + Q sai de vez.',
   'Configure o horário de silêncio para não ser incomodado à noite.',
 ];
 

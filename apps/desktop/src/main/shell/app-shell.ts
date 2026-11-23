@@ -8,6 +8,7 @@ import {
   type NativeImage,
   type WebContents,
   type WebContentsView,
+  screen,
 } from 'electron';
 import { SHELL_LAYOUT, ShellChannel, type ShellState } from '../../shared/shell';
 import type { AppearanceSettings } from '../../shared/settings';
@@ -15,6 +16,25 @@ import chatThemeCss from '../chat/chat-theme.css?raw';
 import { createChatView } from '../chat/chat-view';
 import { diagnosticsEnabled } from '../chat/diagnostics';
 import { appIcon } from '../system/app-icon';
+import {
+  MIN_SIZE,
+  fitToDisplays,
+  type WindowState,
+  type WindowStateFile,
+} from '../system/window-state';
+
+export interface ShellOptions {
+  appearance: AppearanceSettings;
+  /** Abrir sem mostrar a janela (início com o Windows → só bandeja). */
+  startHidden: boolean;
+  windowState: WindowStateFile;
+  /** Consultado ao fechar: true = esconder na bandeja em vez de encerrar. */
+  shouldHideOnClose: () => boolean;
+  /** Chamado na primeira vez que a janela vai para a bandeja ao fechar. */
+  onHiddenToTray: () => void;
+  /** Mudança no número de não lidas (bandeja). */
+  onUnreadChange: (count: number) => void;
+}
 
 /** Cores da barra de título nativa (botões minimizar/maximizar/fechar do Windows). */
 const TITLE_BAR = {
@@ -54,8 +74,10 @@ export class AppShell {
   private chatCssKey: string | null = null;
   private appearance: AppearanceSettings;
   private badge: NativeImage | null = null;
+  private quitting = false;
 
-  constructor(appearance: AppearanceSettings) {
+  constructor(private readonly options: ShellOptions) {
+    const { appearance } = options;
     this.appearance = appearance;
     this.state = {
       settingsOpen: false,
@@ -65,12 +87,18 @@ export class AppShell {
       theme: this.resolveTheme(appearance),
     };
 
+    const bounds = fitToDisplays(
+      options.windowState.load(),
+      [screen.getPrimaryDisplay(), ...screen.getAllDisplays()].map((d) => d.workArea),
+    );
     this.window = new BrowserWindow({
       icon: appIcon(),
-      width: 1280,
-      height: 860,
-      minWidth: 860,
-      minHeight: 540,
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+      minWidth: MIN_SIZE.width,
+      minHeight: MIN_SIZE.height,
       show: false,
       title: 'GChat Desktop+',
       backgroundColor: TITLE_BAR[this.state.theme].color,
@@ -99,7 +127,20 @@ export class AppShell {
     const devUrl = process.env['ELECTRON_RENDERER_URL'];
     if (!app.isPackaged && devUrl) void this.window.loadURL(devUrl);
     else void this.window.loadFile(join(import.meta.dirname, '../renderer/index.html'));
-    this.window.once('ready-to-show', () => this.window.show());
+    this.window.once('ready-to-show', () => {
+      if (bounds.maximized) this.window.maximize();
+      if (!options.startHidden) this.window.show();
+    });
+  }
+
+  /** Chamado em before-quit: a partir daqui, fechar a janela encerra de verdade. */
+  markQuitting(): void {
+    this.quitting = true;
+  }
+
+  /** Esconde a janela (continua rodando na bandeja). */
+  hide(): void {
+    this.window.hide();
   }
 
   getState(): ShellState {
@@ -196,7 +237,20 @@ export class AppShell {
 
   private wireWindow(): void {
     this.layout();
-    this.window.on('resize', () => this.layout());
+    this.window.on('resize', () => {
+      this.layout();
+      this.saveBounds();
+    });
+    this.window.on('move', () => this.saveBounds());
+    this.window.on('maximize', () => this.saveBounds());
+    this.window.on('unmaximize', () => this.saveBounds());
+    this.window.on('close', (event) => {
+      this.saveBounds(0);
+      if (this.quitting || !this.options.shouldHideOnClose()) return;
+      event.preventDefault();
+      this.window.hide();
+      this.options.onHiddenToTray();
+    });
     this.window.on('focus', () => {
       if (!this.state.settingsOpen) this.clearUnread();
     });
@@ -243,6 +297,7 @@ export class AppShell {
       fn();
     };
 
+    if (ctrl && key === 'q') return handled(() => app.quit());
     if (ctrl && key === ',') return handled(() => this.setSettingsOpen(!this.state.settingsOpen));
     if (key === 'escape' && this.state.settingsOpen)
       return handled(() => this.setSettingsOpen(false));
@@ -263,6 +318,15 @@ export class AppShell {
     }
   }
 
+  private saveBounds(delayMs?: number): void {
+    if (this.window.isDestroyed() || this.window.isMinimized()) return;
+    const maximized = this.window.isMaximized();
+    // Maximizada: guarda o tamanho "normal" para quando o usuário restaurar.
+    const b = maximized ? this.window.getNormalBounds() : this.window.getBounds();
+    const state: WindowState = { ...b, maximized };
+    this.options.windowState.save(state, delayMs);
+  }
+
   private zoom(delta: number): void {
     const level = this.chat.webContents.getZoomLevel() + delta;
     this.chat.webContents.setZoomLevel(Math.max(-3, Math.min(3, level)));
@@ -276,6 +340,7 @@ export class AppShell {
   private update(patch: Partial<ShellState>): void {
     this.state = { ...this.state, ...patch };
     if ('unread' in patch) {
+      this.options.onUnreadChange(this.state.unread);
       this.badge ??= badgeImage();
       this.window.setOverlayIcon(
         this.state.unread > 0 ? this.badge : null,

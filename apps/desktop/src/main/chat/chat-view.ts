@@ -94,6 +94,8 @@ export function createChatView(): WebContentsView {
       nodeIntegration: false,
       webviewTag: false,
       spellcheck: true,
+      // Continua processando mensagens com a janela oculta na bandeja.
+      backgroundThrottling: false,
       // O preload também roda em iframes do Chat (ele mesmo ignora outras origens).
       nodeIntegrationInSubFrames: true,
     },

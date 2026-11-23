@@ -1,4 +1,4 @@
-import type { AppInfo } from '../shared/ipc';
+import type { AppInfo, AutostartStatus } from '../shared/ipc';
 import type { Settings, SettingsPatch } from '../shared/settings';
 import type { ShellState } from '../shared/shell';
 import type { CustomSound, SoundId, SoundOption } from '../shared/sounds';
@@ -23,6 +23,7 @@ export interface GChatApi {
   /** Abre o diálogo de arquivo. `null` se o usuário cancelar. */
   importSound(): Promise<ImportSoundResult | null>;
   removeSound(id: SoundId): Promise<boolean>;
+  getAutostartStatus(): Promise<AutostartStatus>;
   /** Janela principal (barra de título, trilho, configurações em tela cheia). */
   shell: {
     getState(): Promise<ShellState>;

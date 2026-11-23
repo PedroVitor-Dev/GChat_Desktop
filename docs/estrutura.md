@@ -22,7 +22,7 @@ GChat_Desktop/
 │     │  │  ├─ ipc/                # canais IPC + validação de remetente/payload
 │     │  │  ├─ notifications/      # Notification Manager (regras, dedup, toasts)
 │     │  │  ├─ sounds/             # biblioteca, validação e player de áudio
-│     │  │  ├─ tray/               # (Fase 6) bandeja, contador, autostart
+│     │  │  ├─ tray/               # bandeja (menu, contador)
 │     │  │  └─ store/              # configurações versionadas (com migração)
 │     │  ├─ preload/
 │     │  │  ├─ index.ts            # janela de configurações (API mínima)

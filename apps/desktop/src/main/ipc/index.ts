@@ -5,6 +5,7 @@ import { ShellChannel, type ShellState } from '../../shared/shell';
 import { isSoundId, type SoundId } from '../../shared/sounds';
 import type { NotificationManager } from '../notifications/manager';
 import type { AppShell } from '../shell/app-shell';
+import { autostartStatus } from '../system/autostart';
 import type { ImportResult, SoundLibrary } from '../sounds/library';
 import type { SoundPlayer } from '../sounds/player';
 import type { SettingsStore } from '../store/settings-store';
@@ -57,6 +58,7 @@ export function registerIpc({ settings, notifications, library, player, shell }:
   handle(IpcChannel.NotificationTest, noArgs, () => notifications.showTest());
   handle(IpcChannel.RecentConversations, noArgs, () => notifications.recentConversations());
 
+  handle(IpcChannel.AutostartStatus, noArgs, () => autostartStatus());
   handle(IpcChannel.SoundOptions, noArgs, () => library.options());
   handle(IpcChannel.SoundPreview, oneSoundId, async (id) => {
     // "Som do Windows" só existe dentro de um toast: a prévia mostra um de teste.

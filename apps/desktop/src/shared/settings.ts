@@ -58,8 +58,20 @@ export interface AppearanceSettings {
   chatTheme: boolean;
 }
 
+export interface GeneralSettings {
+  /** Abrir junto com o Windows (só no app instalado). */
+  launchAtLogin: boolean;
+  /** Ao abrir com o Windows, ficar só na bandeja. */
+  startMinimized: boolean;
+  /** Fechar a janela mantém o app rodando na bandeja. */
+  closeToTray: boolean;
+  /** Aviso "continua rodando na bandeja" já foi mostrado. Só o main altera. */
+  trayHintShown: boolean;
+}
+
 export interface Settings {
   version: typeof SETTINGS_VERSION;
+  general: GeneralSettings;
   notifications: NotificationSettings;
   sounds: SoundSettings;
   appearance: AppearanceSettings;
@@ -67,6 +79,12 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   version: SETTINGS_VERSION,
+  general: {
+    launchAtLogin: false,
+    startMinimized: true,
+    closeToTray: true,
+    trayHintShown: false,
+  },
   notifications: {
     enabled: true,
     showSender: true,
@@ -157,7 +175,7 @@ function migrate(raw: Record<string, unknown>): Record<string, unknown> {
 }
 
 interface NormalizeOptions {
-  /** Só o main pode alterar a biblioteca de sons importados. */
+  /** Só o main pode alterar campos internos (biblioteca de sons, avisos já exibidos). */
   allowLibrary?: boolean;
 }
 
@@ -176,6 +194,8 @@ export function normalizeSettings(
   const m = isObj(n['mentions']) ? n['mentions'] : {};
   const s = isObj(raw['sounds']) ? raw['sounds'] : {};
   const a = isObj(raw['appearance']) ? raw['appearance'] : {};
+  const g = isObj(raw['general']) ? raw['general'] : {};
+  const bg = base.general;
   const bn = base.notifications;
   const bs = base.sounds;
 
@@ -186,6 +206,12 @@ export function normalizeSettings(
 
   return {
     version: SETTINGS_VERSION,
+    general: {
+      launchAtLogin: bool(g['launchAtLogin'], bg.launchAtLogin),
+      startMinimized: bool(g['startMinimized'], bg.startMinimized),
+      closeToTray: bool(g['closeToTray'], bg.closeToTray),
+      trayHintShown: allowLibrary ? bool(g['trayHintShown'], bg.trayHintShown) : bg.trayHintShown,
+    },
     notifications: {
       enabled: bool(n['enabled'], bn.enabled),
       showSender: bool(n['showSender'], bn.showSender),

@@ -11,7 +11,15 @@ export const IpcChannel = {
   SoundPreview: 'sounds:preview',
   SoundImport: 'sounds:import',
   SoundRemove: 'sounds:remove',
+  AutostartStatus: 'system:autostart-status',
 } as const;
+
+export interface AutostartStatus {
+  /** Só o app instalado pode se registrar para abrir com o Windows. */
+  supported: boolean;
+  /** Vai abrir no próximo login. */
+  active: boolean;
+}
 
 export interface AppInfo {
   name: string;

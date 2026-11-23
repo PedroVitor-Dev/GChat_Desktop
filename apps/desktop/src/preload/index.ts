@@ -21,6 +21,7 @@ const api: GChatApi = {
   previewSound: (id) => ipcRenderer.invoke(IpcChannel.SoundPreview, id),
   importSound: () => ipcRenderer.invoke(IpcChannel.SoundImport),
   removeSound: (id) => ipcRenderer.invoke(IpcChannel.SoundRemove, id),
+  getAutostartStatus: () => ipcRenderer.invoke(IpcChannel.AutostartStatus),
   shell: {
     getState: () => ipcRenderer.invoke(ShellChannel.GetState),
     onState: (listener) => {
