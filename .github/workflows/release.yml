@@ -1,4 +1,5 @@
 # Gera o instalador do Windows e publica num Release ao enviar uma tag v*.
+# O latest.yml publicado junto é o que a atualização automática do app consulta.
 #   git tag v0.0.1 && git push origin v0.0.1
 # O arquivo fica em /releases/download/v<versão>/GChat-Desktop-Plus-Setup-<versão>-x64.exe,
 # o endereço usado pelo botão "Baixar" da landing page.
@@ -49,6 +50,8 @@ jobs:
           files: |
             apps/desktop/release/*/GChat-Desktop-Plus-Setup-*.exe
             apps/desktop/release/*/GChat-Desktop-Plus-Setup-*.exe.blockmap
+            # Lido pelo atualizador do app para descobrir a versão nova e conferir o SHA-512
+            apps/desktop/release/*/latest.yml
           body: |
             ## Instalação
             1. Baixe **o arquivo GChat-Desktop-Plus-Setup-…-x64.exe** abaixo.

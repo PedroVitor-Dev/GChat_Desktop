@@ -65,6 +65,14 @@ describe('aparência', () => {
   });
 });
 
+describe('atualizações', () => {
+  it('automático por padrão e aceita desligar', () => {
+    expect(normalizeSettings({}).updates).toEqual({ auto: true });
+    expect(applyPatch(DEFAULT_SETTINGS, { updates: { auto: false } }).updates.auto).toBe(false);
+    expect(applyPatch(DEFAULT_SETTINGS, { updates: { auto: 'x' } }).updates.auto).toBe(true);
+  });
+});
+
 describe('modo streamer', () => {
   it('padrão: automático, protegendo tudo', () => {
     expect(normalizeSettings({}).streamer).toEqual({

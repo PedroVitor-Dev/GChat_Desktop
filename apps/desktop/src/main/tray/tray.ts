@@ -5,6 +5,7 @@ import { appIcon } from '../system/app-icon';
 
 interface TrayActions {
   toggleStreamer(): void;
+  installUpdate(): void;
   openChat(): void;
   openSettings(): void;
   quit(): void;
@@ -53,6 +54,7 @@ export class AppTray {
   private readonly images: { normal: NativeImage; badge: NativeImage };
   private unread = 0;
   private streamer: StreamerStatus = STREAMER_OFF;
+  private updateReady: string | null = null;
 
   constructor(
     private readonly settings: SettingsStore,
@@ -73,6 +75,13 @@ export class AppTray {
 
   setStreamer(status: StreamerStatus): void {
     this.streamer = status;
+    this.refresh();
+  }
+
+  /** Versão baixada e pronta (null = nenhuma). */
+  setUpdateReady(version: string | null): void {
+    if (version === this.updateReady) return;
+    this.updateReady = version;
     this.refresh();
   }
 
@@ -99,6 +108,15 @@ export class AppTray {
 
     this.tray.setContextMenu(
       Menu.buildFromTemplate([
+        ...(this.updateReady
+          ? [
+              {
+                label: `Reiniciar para atualizar (${this.updateReady})`,
+                click: () => this.actions.installUpdate(),
+              },
+              { type: 'separator' as const },
+            ]
+          : []),
         { label: 'Abrir Google Chat', click: () => this.actions.openChat() },
         { label: 'Configurações', click: () => this.actions.openSettings() },
         { type: 'separator' },

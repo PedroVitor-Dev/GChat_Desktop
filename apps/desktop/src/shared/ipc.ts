@@ -13,6 +13,12 @@ export const IpcChannel = {
   SoundRemove: 'sounds:remove',
   AutostartStatus: 'system:autostart-status',
   StreamerToggle: 'streamer:toggle',
+  UpdateStatus: 'updates:status',
+  /** main → renderer: estado da atualização mudou. */
+  UpdateStatusChanged: 'updates:status-changed',
+  UpdateCheck: 'updates:check',
+  UpdateDownload: 'updates:download',
+  UpdateInstall: 'updates:install',
   RoomsCreate: 'rooms:create',
   RoomsAddLink: 'rooms:add-link',
   RoomsRename: 'rooms:rename',

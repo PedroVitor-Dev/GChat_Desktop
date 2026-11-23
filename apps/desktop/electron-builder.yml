@@ -43,5 +43,10 @@ nsis:
   menuCategory: false
   # Configurações e sons importados ficam em %APPDATA% e sobrevivem a atualizações.
   deleteAppDataOnUninstall: false
-# Estrutura pronta para auto-update (electron-updater) — provedor definido na Fase 10.
-publish: null
+# Atualização automática: o electron-updater lê os Releases do GitHub (latest.yml).
+# O upload é feito pelo workflow de release; o build local nunca publica (--publish never).
+publish:
+  provider: github
+  owner: PedroVitor-Dev
+  repo: GChat_Desktop
+  releaseType: release

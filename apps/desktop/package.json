@@ -12,7 +12,7 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.preload.json && tsc -p tsconfig.web.json",
-    "dist": "electron-vite build && electron-builder --win --x64",
+    "dist": "electron-vite build && electron-builder --win --x64 --publish never",
     "icons": "electron scripts/generate-icons.cjs",
     "sounds": "node scripts/generate-sounds.mjs",
     "installer-art": "electron scripts/generate-installer-art.cjs"
@@ -31,5 +31,8 @@
     "tailwindcss": "^4.3.5",
     "vite": "^8.3.8"
   },
-  "productName": "GChat Desktop+"
+  "productName": "GChat Desktop+",
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  }
 }

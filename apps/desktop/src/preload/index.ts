@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 import { IpcChannel } from '../shared/ipc';
 import type { Settings } from '../shared/settings';
 import { ShellChannel, type ShellState } from '../shared/shell';
+import type { UpdateStatus } from '../shared/updates';
 import type { GChatApi } from './api';
 
 /** API mínima e explícita. Nenhum objeto do Electron/Node vaza para o renderer. */
@@ -23,6 +24,17 @@ const api: GChatApi = {
   removeSound: (id) => ipcRenderer.invoke(IpcChannel.SoundRemove, id),
   getAutostartStatus: () => ipcRenderer.invoke(IpcChannel.AutostartStatus),
   toggleStreamer: () => ipcRenderer.invoke(IpcChannel.StreamerToggle),
+  updates: {
+    status: () => ipcRenderer.invoke(IpcChannel.UpdateStatus),
+    check: () => ipcRenderer.invoke(IpcChannel.UpdateCheck),
+    download: () => ipcRenderer.invoke(IpcChannel.UpdateDownload),
+    install: () => ipcRenderer.invoke(IpcChannel.UpdateInstall),
+    onStatus: (listener) => {
+      const wrapped = (_e: IpcRendererEvent, s: UpdateStatus) => listener(s);
+      ipcRenderer.on(IpcChannel.UpdateStatusChanged, wrapped);
+      return () => ipcRenderer.removeListener(IpcChannel.UpdateStatusChanged, wrapped);
+    },
+  },
   rooms: {
     create: (name) => ipcRenderer.invoke(IpcChannel.RoomsCreate, name),
     addFromLink: (name, link) => ipcRenderer.invoke(IpcChannel.RoomsAddLink, name, link),

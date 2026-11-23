@@ -71,6 +71,11 @@ export interface GeneralSettings {
   trayHintShown: boolean;
 }
 
+export interface UpdateSettings {
+  /** Verifica sozinho (ao abrir e a cada 6 h) e baixa em segundo plano. */
+  auto: boolean;
+}
+
 /** Modo streamer: protege a tela enquanto você transmite ou grava. */
 export interface StreamerSettings {
   /** Ligado manualmente (independe da detecção). */
@@ -94,6 +99,7 @@ export interface Settings {
   sounds: SoundSettings;
   appearance: AppearanceSettings;
   streamer: StreamerSettings;
+  updates: UpdateSettings;
   /** Salas do Meet salvas. Só o main altera. */
   rooms: Room[];
 }
@@ -131,6 +137,7 @@ export const DEFAULT_SETTINGS: Settings = {
     hideContent: true,
     muteSounds: true,
   },
+  updates: { auto: true },
   rooms: [],
 };
 
@@ -294,6 +301,9 @@ export function normalizeSettings(
       pauseNotifications: bool(st['pauseNotifications'], base.streamer.pauseNotifications),
       hideContent: bool(st['hideContent'], base.streamer.hideContent),
       muteSounds: bool(st['muteSounds'], base.streamer.muteSounds),
+    },
+    updates: {
+      auto: bool(isObj(raw['updates']) ? raw['updates']['auto'] : undefined, base.updates.auto),
     },
     rooms: allowLibrary ? normalizeRooms(raw['rooms'], base.rooms) : base.rooms,
   };

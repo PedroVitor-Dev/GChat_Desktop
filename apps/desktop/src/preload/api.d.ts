@@ -3,6 +3,7 @@ import type { Settings, SettingsPatch } from '../shared/settings';
 import type { ShellState, ShellView } from '../shared/shell';
 import type { Account } from '../shared/accounts';
 import type { Room } from '../shared/rooms';
+import type { UpdateStatus } from '../shared/updates';
 
 export type RoomResult = { ok: true; room: Room } | { ok: false; error: string };
 
@@ -32,6 +33,17 @@ export interface GChatApi {
   getAutostartStatus(): Promise<AutostartStatus>;
   /** Liga/desliga o modo streamer (desligar numa transmissão vale até o programa fechar). */
   toggleStreamer(): Promise<void>;
+  /** Atualização automática (só no app instalado). */
+  updates: {
+    status(): Promise<UpdateStatus>;
+    /** Busca agora (botão "Buscar atualizações"). */
+    check(): Promise<UpdateStatus>;
+    /** Baixa a versão encontrada (download automático desligado). */
+    download(): Promise<void>;
+    /** Reinicia e instala a versão baixada. */
+    install(): Promise<void>;
+    onStatus(listener: (status: UpdateStatus) => void): () => void;
+  };
   /** Salas do Meet (lista em settings.rooms). */
   rooms: {
     /** Cria uma sala nova (meet.new) na conta ativa. */

@@ -9,6 +9,7 @@ import type { NotificationManager } from '../notifications/manager';
 import type { AppShell } from '../shell/app-shell';
 import type { StreamerMode } from '../system/streamer-mode';
 import type { RoomsService } from '../meet/rooms-service';
+import type { AppUpdater } from '../system/updater';
 import { isRoomId } from '../../shared/rooms';
 import { autostartStatus } from '../system/autostart';
 import type { ImportResult, SoundLibrary } from '../sounds/library';
@@ -25,6 +26,7 @@ interface IpcDeps {
   accounts: AccountsService;
   streamer: StreamerMode;
   rooms: RoomsService;
+  updater: AppUpdater;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -70,7 +72,18 @@ export function registerIpc({
   accounts,
   streamer,
   rooms,
+  updater,
 }: IpcDeps): void {
+  handle(IpcChannel.UpdateStatus, noArgs, () => updater.status());
+  handle(IpcChannel.UpdateCheck, noArgs, () => updater.check());
+  handle(IpcChannel.UpdateDownload, noArgs, () => updater.download());
+  handle(IpcChannel.UpdateInstall, noArgs, () => updater.install());
+  updater.on('status', (status) => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (win.webContents.getURL().startsWith('https://')) continue;
+      win.webContents.send(IpcChannel.UpdateStatusChanged, status);
+    }
+  });
   handle(ShellChannel.SetView, oneArg, (view) => {
     if (view !== 'chat' && view !== 'rooms') throw new TypeError('destino inválido');
     shell.setView(view);

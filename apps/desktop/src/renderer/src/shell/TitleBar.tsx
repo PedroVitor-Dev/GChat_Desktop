@@ -1,4 +1,5 @@
-import { Radio, Signal } from 'lucide-react';
+import { Radio, Rocket, Signal } from 'lucide-react';
+import { useUpdateStatus } from '../hooks/useUpdateStatus';
 import type { CallState } from '../../../shared/rooms';
 import { useElapsed } from '../hooks/useElapsed';
 import logo from '../../../../resources/icon.png';
@@ -22,6 +23,7 @@ export function TitleBar({
   onShowCall: () => void;
 }) {
   const elapsed = useElapsed(call?.startedAt);
+  const update = useUpdateStatus();
   const why =
     streamer.reason === 'auto'
       ? `Ativado automaticamente: ${streamer.apps.join(', ')} aberto. Clique para desligar.`
@@ -46,6 +48,17 @@ export function TitleBar({
           <Signal size={12} aria-hidden />
           <span className="max-w-40 truncate">{call.name}</span>
           <span className="tabular-nums">{elapsed}</span>
+        </button>
+      )}
+      {update?.state === 'downloaded' && (
+        <button
+          type="button"
+          title={`Versão ${update.version} pronta. Clique para reiniciar e atualizar.`}
+          onClick={() => void window.gchat.updates.install()}
+          className="no-drag bg-success hover:bg-success/85 ml-4 flex animate-[fade-in_200ms_ease] items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
+        >
+          <Rocket size={12} aria-hidden />
+          Reiniciar para atualizar
         </button>
       )}
       {streamer.active && (
