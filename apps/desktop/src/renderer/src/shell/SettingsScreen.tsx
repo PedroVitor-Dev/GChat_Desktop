@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { RotateCw, X } from 'lucide-react';
-import type { AppInfo } from '../../../shared/ipc';
 import { sections, type SectionId } from '../sections';
 
 /**
@@ -9,13 +8,8 @@ import { sections, type SectionId } from '../sections';
  */
 export function SettingsScreen({ onClose }: { onClose: () => void }) {
   const [active, setActive] = useState<SectionId>('notificacoes');
-  const [info, setInfo] = useState<AppInfo | null>(null);
   const current = sections.find((s) => s.id === active) ?? sections[0]!;
   const Page = current.page;
-
-  useEffect(() => {
-    void window.gchat.getAppInfo().then(setInfo);
-  }, []);
 
   return (
     <div className="absolute inset-0 z-10 flex animate-[settings-in_180ms_cubic-bezier(0.2,0,0,1)]">
@@ -56,17 +50,6 @@ export function SettingsScreen({ onClose }: { onClose: () => void }) {
             <RotateCw size={16} aria-hidden className="opacity-80" />
             Recarregar Google Chat
           </button>
-          <div className="bg-line mx-2.5 my-2 h-px" />
-
-          {info && (
-            <p className="text-muted px-2.5 py-2 text-xs leading-relaxed">
-              GChat Desktop+ {info.version}
-              <br />
-              Electron {info.electron}
-              <br />
-              {info.platform}
-            </p>
-          )}
         </nav>
       </aside>
 
