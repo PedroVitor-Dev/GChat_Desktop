@@ -93,6 +93,7 @@ export class AppShell {
   private badge: NativeImage | null = null;
   private quitting = false;
   private lastTotalUnread = 0;
+  private relayoutTimers: NodeJS.Timeout[] = [];
 
   constructor(private readonly options: ShellOptions) {
     this.appearance = options.appearance;
@@ -332,6 +333,14 @@ export class AppShell {
       if (diagnosticsEnabled) void this.logThemeTokens(contents);
     });
     contents.on('before-input-event', (e, input) => this.onKey(e, input));
+    // Se a página do Chat travar ou o processo dela cair, recarrega sozinho.
+    contents.on('render-process-gone', (_e, details) => {
+      console.error(
+        `[chat] processo da conta ${account.id} encerrou (${details.reason}); recarregando`,
+      );
+      if (details.reason !== 'clean-exit' && !contents.isDestroyed()) contents.reload();
+    });
+    contents.on('unresponsive', () => console.error(`[chat] conta ${account.id} sem resposta`));
     return slot;
   }
 
@@ -418,27 +427,89 @@ export class AppShell {
     this.window.focus();
   }
 
-  private layout(): void {
+  /**
+   * Posiciona as views do Chat na área de conteúdo. Ignora tamanhos degenerados
+   * (janela minimizada ou no meio de uma troca de monitor): aplicar 0×0 deixaria
+   * o Chat invisível até o próximo redimensionamento.
+   * @returns false se o tamanho atual não era válido
+   */
+  private layout(): boolean {
+    if (this.window.isDestroyed()) return true;
     const { width, height } = this.window.getContentBounds();
     const { railWidth, titleBarHeight } = SHELL_LAYOUT;
     const bounds = {
       x: railWidth,
       y: titleBarHeight,
-      width: Math.max(0, width - railWidth),
-      height: Math.max(0, height - titleBarHeight),
+      width: width - railWidth,
+      height: height - titleBarHeight,
     };
+    if (bounds.width < 100 || bounds.height < 100) return false;
     for (const slot of this.slots.values()) slot.view.setBounds(bounds);
+    return true;
+  }
+
+  /**
+   * Refaz o layout e força a repintura em várias passadas. Mudanças de monitor
+   * (desconectar, trocar escala/DPI, mover entre telas) chegam em etapas e nem
+   * sempre com um evento final de resize. Sem isso, a área do Chat podia ficar
+   * vazia até reiniciar o app.
+   */
+  private scheduleRelayout(): void {
+    for (const t of this.relayoutTimers) clearTimeout(t);
+    this.relayoutTimers = [0, 150, 600, 1500].map((delay) =>
+      setTimeout(() => this.relayoutNow(), delay),
+    );
+  }
+
+  private relayoutNow(): void {
+    if (this.window.isDestroyed() || this.window.isMinimized()) return;
+    if (!this.layout()) return;
+    this.refreshVisibility();
+    const slot = this.activeSlot();
+    if (slot && !slot.view.webContents.isDestroyed()) slot.view.webContents.invalidate();
+    if (!this.window.webContents.isDestroyed()) this.window.webContents.invalidate();
   }
 
   private wireWindow(): void {
     this.layout();
     this.window.on('resize', () => {
-      this.layout();
+      this.scheduleRelayout();
       this.saveBounds();
     });
     this.window.on('move', () => this.saveBounds());
-    this.window.on('maximize', () => this.saveBounds());
-    this.window.on('unmaximize', () => this.saveBounds());
+    this.window.on('maximize', () => {
+      this.scheduleRelayout();
+      this.saveBounds();
+    });
+    this.window.on('unmaximize', () => {
+      this.scheduleRelayout();
+      this.saveBounds();
+    });
+    // Eventos em que o tamanho real pode mudar sem um 'resize' confiável.
+    for (const event of [
+      'moved',
+      'restore',
+      'show',
+      'enter-full-screen',
+      'leave-full-screen',
+    ] as const) {
+      this.window.on(event as 'show', () => this.scheduleRelayout());
+    }
+    // Monitores conectados/desconectados ou com escala alterada.
+    const onDisplays = () => this.scheduleRelayout();
+    screen.on('display-added', onDisplays);
+    screen.on('display-removed', onDisplays);
+    screen.on('display-metrics-changed', onDisplays);
+    this.window.once('closed', () => {
+      screen.off('display-added', onDisplays);
+      screen.off('display-removed', onDisplays);
+      screen.off('display-metrics-changed', onDisplays);
+      for (const t of this.relayoutTimers) clearTimeout(t);
+    });
+    // Se o processo de vídeo reiniciar, repinta as views.
+    app.on('child-process-gone', (_e, details) => {
+      if (details.type === 'GPU') this.scheduleRelayout();
+    });
     this.window.on('close', (event) => {
       this.saveBounds(0);
       if (this.quitting || !this.options.shouldHideOnClose()) return;
@@ -448,6 +519,8 @@ export class AppShell {
     });
     this.window.on('focus', () => {
       this.window.flashFrame(false);
+      // Rede de segurança: ao voltar para a janela, garante o Chat no lugar.
+      this.scheduleRelayout();
       const slot = this.activeSlot();
       if (slot && slot.unread > 0 && !this.overlayOpen()) {
         slot.unread = 0;
