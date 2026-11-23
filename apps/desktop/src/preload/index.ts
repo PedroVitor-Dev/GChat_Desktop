@@ -32,7 +32,6 @@ const api: GChatApi = {
   },
   call: {
     join: (roomId) => ipcRenderer.invoke(IpcChannel.CallJoin, roomId),
-    show: (visible) => ipcRenderer.invoke(IpcChannel.CallShow, visible),
     leave: () => ipcRenderer.invoke(IpcChannel.CallLeave),
   },
   accounts: {
@@ -50,7 +49,7 @@ const api: GChatApi = {
     },
     setSettingsOpen: (open) => ipcRenderer.invoke(ShellChannel.SetSettingsOpen, open),
     setModalOpen: (open) => ipcRenderer.invoke(ShellChannel.SetModalOpen, open),
-    setRoomsPanelOpen: (open) => ipcRenderer.invoke(ShellChannel.SetRoomsPanel, open),
+    setView: (view) => ipcRenderer.invoke(ShellChannel.SetView, view),
     selectAccount: (id) => ipcRenderer.invoke(ShellChannel.SelectAccount, id),
     reloadChat: () => ipcRenderer.invoke(ShellChannel.ReloadChat),
   },

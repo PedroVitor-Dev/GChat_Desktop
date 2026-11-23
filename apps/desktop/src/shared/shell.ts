@@ -20,8 +20,8 @@ export const ShellChannel = {
   SetModalOpen: 'shell:set-modal-open',
   /** renderer → main (invoke): mostrar o Chat de uma conta (clique no trilho). */
   SelectAccount: 'shell:select-account',
-  /** renderer → main (invoke): abrir/fechar o painel de salas. */
-  SetRoomsPanel: 'shell:set-rooms-panel',
+  /** renderer → main (invoke): trocar de destino (Chat ou Salas). */
+  SetView: 'shell:set-view',
   /** renderer → main (invoke): recarregar o Chat da conta ativa. */
   ReloadChat: 'shell:reload-chat',
   /** renderer → main (invoke): estado atual (na montagem). */
@@ -29,6 +29,8 @@ export const ShellChannel = {
   /** main → renderer: estado mudou. */
   State: 'shell:state',
 } as const;
+
+export type ShellView = 'chat' | 'rooms';
 
 export interface AccountView {
   id: string;
@@ -52,7 +54,12 @@ export interface ShellState {
   /** Tema efetivo (já resolvido quando a escolha é "sistema"). */
   theme: 'dark' | 'light';
   streamer: StreamerStatus;
-  roomsPanelOpen: boolean;
+  /**
+   * Destino na área principal (um por vez, como no trilho do Discord):
+   * - chat: o Google Chat da conta ativa, em tela inteira;
+   * - rooms: lista de salas + chamada (ou saguão, sem chamada).
+   */
+  view: ShellView;
   /** Chamada em andamento (null = nenhuma). */
   call: CallState | null;
 }

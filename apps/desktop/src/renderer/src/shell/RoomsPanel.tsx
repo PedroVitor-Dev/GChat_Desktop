@@ -1,16 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import {
-  Check,
-  Copy,
-  MessageSquare,
-  Pencil,
-  PhoneOff,
-  Plus,
-  Signal,
-  Trash2,
-  Video,
-  Volume2,
-} from 'lucide-react';
+import { Check, Copy, Pencil, PhoneOff, Plus, Signal, Trash2, Volume2 } from 'lucide-react';
 import type { Room } from '../../../shared/rooms';
 import { SHELL_LAYOUT, type ShellState } from '../../../shared/shell';
 import { inputClass } from '../components/controls';
@@ -215,21 +204,7 @@ function CallCard({ state }: { state: ShellState }) {
         </CallButton>
       </div>
       {/* Microfone, câmera e tela ficam nos controles do próprio Meet. */}
-      <button
-        type="button"
-        onClick={() => void api.show(!call.visible)}
-        className="bg-selected text-header hover:bg-switch-off/60 mt-2 flex h-8 w-full items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors"
-      >
-        {call.visible ? (
-          <>
-            <MessageSquare size={15} aria-hidden /> Voltar ao Chat
-          </>
-        ) : (
-          <>
-            <Video size={15} aria-hidden className="text-success" /> Ver chamada
-          </>
-        )}
-      </button>
+      <CopyLinkButton roomId={call.roomId} />
     </div>
   );
 }
@@ -260,5 +235,28 @@ function CallButton({
         {children}
       </button>
     </Tooltip>
+  );
+}
+
+function CopyLinkButton({ roomId }: { roomId: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void window.gchat.rooms.copyLink(roomId).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        });
+      }}
+      className="bg-selected text-header hover:bg-switch-off/60 mt-2 flex h-8 w-full items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors"
+    >
+      {copied ? (
+        <Check size={15} className="text-success" aria-hidden />
+      ) : (
+        <Copy size={15} aria-hidden />
+      )}
+      {copied ? 'Link copiado' : 'Convidar: copiar link'}
+    </button>
   );
 }

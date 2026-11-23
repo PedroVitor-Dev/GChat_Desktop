@@ -15,7 +15,13 @@ import type { AppearanceSettings } from '../../shared/settings';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
 import { meetCodeFromUrl, meetUrl, type CallState, type Room } from '../../shared/rooms';
 import { createMeetView } from '../meet/meet-view';
-import { SHELL_LAYOUT, ShellChannel, type AccountView, type ShellState } from '../../shared/shell';
+import {
+  SHELL_LAYOUT,
+  ShellChannel,
+  type AccountView,
+  type ShellState,
+  type ShellView,
+} from '../../shared/shell';
 import chatThemeCss from '../chat/chat-theme.css?raw';
 import { createChatView } from '../chat/chat-view';
 import { diagnosticsEnabled } from '../chat/diagnostics';
@@ -98,7 +104,7 @@ export class AppShell {
   private lastTotalUnread = 0;
   private streamer: StreamerStatus = STREAMER_OFF;
   private relayoutTimers: NodeJS.Timeout[] = [];
-  private roomsPanelOpen = false;
+  private view: ShellView = 'chat';
   /** Chamada do Meet em andamento: view própria, continua tocando em segundo plano. */
   private call: { view: WebContentsView; state: CallState } | null = null;
 
@@ -166,7 +172,7 @@ export class AppShell {
       unread: accounts.reduce((sum, a) => sum + a.unread, 0),
       theme: this.theme,
       streamer: this.streamer,
-      roomsPanelOpen: this.roomsPanelOpen,
+      view: this.view,
       call: this.call?.state ?? null,
     };
   }
@@ -218,7 +224,7 @@ export class AppShell {
   selectAccount(id: string): void {
     const slot = this.slots.get(id);
     if (!slot) return;
-    if (this.call) this.call.state = { ...this.call.state, visible: false };
+    this.view = 'chat'; // a chamada, se houver, continua em segundo plano
     if (this.active !== id) {
       this.active = id;
       this.options.onActiveAccountChange(id);
@@ -249,9 +255,14 @@ export class AppShell {
     this.emitState();
   }
 
-  setRoomsPanelOpen(open: boolean): void {
-    this.roomsPanelOpen = open;
+  /** Troca o destino da área principal. Abrir as Salas fecha as configurações. */
+  setView(view: ShellView): void {
+    this.view = view;
+    this.settingsOpen = false;
     this.layout();
+    this.refreshVisibility();
+    const target = view === 'rooms' ? this.call?.view : this.activeSlot()?.view;
+    (target?.webContents ?? this.window.webContents).focus();
     this.emitState();
   }
 
@@ -259,7 +270,7 @@ export class AppShell {
 
   /** Entra numa sala. Se já estiver em outra, sai dela antes. */
   startCall(room: Room): void {
-    if (this.call?.state.roomId === room.id) return this.showCall(true);
+    if (this.call?.state.roomId === room.id) return this.setView('rooms');
     this.endCall();
     const view = createMeetView(partitionOf(room.accountId));
     view.setBorderRadius(SHELL_LAYOUT.contentRadius);
@@ -273,7 +284,6 @@ export class AppShell {
         code: room.code,
         accountId: room.accountId,
         startedAt: Date.now(),
-        visible: true,
       },
     };
     const contents = view.webContents;
@@ -285,21 +295,7 @@ export class AppShell {
     contents.on('before-input-event', (e, input) => this.onKey(e, input));
     void contents.loadURL(meetUrl(room.code));
     this.reveal();
-    this.settingsOpen = false;
-    this.layout();
-    this.refreshVisibility();
-    contents.focus();
-    this.emitState();
-  }
-
-  /** Mostra a chamada na área principal (true) ou volta ao Chat mantendo-a (false). */
-  showCall(visible: boolean): void {
-    if (!this.call) return;
-    this.call.state = { ...this.call.state, visible };
-    if (visible) this.settingsOpen = false;
-    this.refreshVisibility();
-    (visible ? this.call.view : this.activeSlot()?.view)?.webContents.focus();
-    this.emitState();
+    this.setView('rooms');
   }
 
   /** Sai da chamada (fecha a página do Meet). */
@@ -449,10 +445,10 @@ export class AppShell {
 
   /** Só a view da conta ativa aparece, e só sem configurações/modal por cima. */
   private refreshVisibility(): void {
-    const callShown = !!this.call?.state.visible;
+    const callShown = this.view === 'rooms' && !!this.call;
     for (const [id, slot] of this.slots) {
       slot.view.setVisible(
-        id === this.active && !slot.loading && !this.overlayOpen() && !callShown,
+        this.view === 'chat' && id === this.active && !slot.loading && !this.overlayOpen(),
       );
     }
     this.call?.view.setVisible(callShown && !this.overlayOpen());
@@ -530,7 +526,7 @@ export class AppShell {
     if (this.window.isDestroyed()) return true;
     const { width, height } = this.window.getContentBounds();
     const { railWidth, titleBarHeight, roomsPanelWidth } = SHELL_LAYOUT;
-    const left = railWidth + (this.roomsPanelOpen ? roomsPanelWidth : 0);
+    const left = railWidth + (this.view === 'rooms' ? roomsPanelWidth : 0);
     const bounds = {
       x: left,
       y: titleBarHeight,

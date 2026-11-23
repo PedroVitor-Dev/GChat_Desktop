@@ -6,21 +6,21 @@ credenciais extras.
 
 ## Uso
 
-- **Ícone de fone no trilho:** abre o painel "Salas", ao lado do Chat.
+O trilho tem destinos, e só um fica ativo por vez (como servidores no Discord):
+
+- **Ícone da conta:** o Google Chat em tela inteira.
+- **Ícone de fone:** a área **Salas**, com a lista à esquerda (como os canais de
+  voz) e, à direita, a chamada ou, sem chamada, o saguão com os cartões das salas
+  ("Entrar" e copiar o link).
+- **Em chamada e no Chat:** a chamada continua. O selo verde com o tempo na
+  barra de título e a bolinha verde no fone mostram isso, e o clique no selo volta
+  para a chamada.
 - **Criar sala (+):** o app abre `meet.new` numa página oculta da conta ativa,
-  captura o código da reunião criada (ex.: `abc-defg-hij`) e salva com o nome
-  escolhido. O link é copiado para a área de transferência e você entra na sala.
-- **"Já tenho um link":** salva a sala de outra pessoa a partir do link.
-- **Clique na sala:** entra. O Meet abre na área principal, na tela de entrada
-  ("Pronto para participar?").
-- **Card "Em chamada"** (embaixo do painel): cronômetro, alternar entre a chamada e o
-  Chat (a chamada continua) e sair. Microfone, câmera e tela ficam nos controles do
-  próprio Meet.
-- **Barra de título:** selo verde com a sala e o tempo. O clique volta para a
-  chamada.
-- **Na sala:** passe o mouse para copiar o link, renomear ou excluir.
-- **Compartilhar tela** no Meet: compartilha a tela principal, com o áudio do
-  sistema.
+  captura o código da reunião e salva com o nome escolhido. O link é copiado e
+  você entra na sala. Em "Já tenho um link", salva a sala de outra pessoa.
+- **Card "Em chamada"** (embaixo da lista): cronômetro, "Convidar: copiar link" e
+  sair. Microfone, câmera e tela ficam nos controles do próprio Meet.
+- **Na lista:** passe o mouse para copiar o link, renomear ou excluir.
 
 ## Como funciona
 

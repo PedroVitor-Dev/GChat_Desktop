@@ -71,7 +71,10 @@ export function registerIpc({
   streamer,
   rooms,
 }: IpcDeps): void {
-  handle(ShellChannel.SetRoomsPanel, oneBoolean, (open) => shell.setRoomsPanelOpen(open));
+  handle(ShellChannel.SetView, oneArg, (view) => {
+    if (view !== 'chat' && view !== 'rooms') throw new TypeError('destino inválido');
+    shell.setView(view);
+  });
   const activeAccount = () => shell.getState().activeAccount;
   /** Id de sala válido + argumento opcional. */
   const roomArgs = (args: unknown[]): [string, unknown] => {
@@ -99,7 +102,6 @@ export function registerIpc({
     shell.startCall(room);
     return true;
   });
-  handle(IpcChannel.CallShow, oneBoolean, (visible) => shell.showCall(visible));
   handle(IpcChannel.CallLeave, noArgs, () => shell.endCall());
   handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
   handle(ShellChannel.GetState, noArgs, (): ShellState => shell.getState());

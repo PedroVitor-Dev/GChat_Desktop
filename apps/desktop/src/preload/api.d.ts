@@ -1,6 +1,6 @@
 import type { AppInfo, AutostartStatus } from '../shared/ipc';
 import type { Settings, SettingsPatch } from '../shared/settings';
-import type { ShellState } from '../shared/shell';
+import type { ShellState, ShellView } from '../shared/shell';
 import type { Account } from '../shared/accounts';
 import type { Room } from '../shared/rooms';
 
@@ -44,8 +44,6 @@ export interface GChatApi {
   };
   call: {
     join(roomId: string): Promise<boolean>;
-    /** Mostra a chamada (true) ou volta ao Chat mantendo-a (false). */
-    show(visible: boolean): Promise<void>;
     leave(): Promise<void>;
   };
   accounts: {
@@ -62,7 +60,8 @@ export interface GChatApi {
     onState(listener: (state: ShellState) => void): () => void;
     setSettingsOpen(open: boolean): Promise<void>;
     setModalOpen(open: boolean): Promise<void>;
-    setRoomsPanelOpen(open: boolean): Promise<void>;
+    /** Destino da área principal: Chat ou Salas. */
+    setView(view: ShellView): Promise<void>;
     /** Mostra o Chat de uma conta (fecha configurações/modal). */
     selectAccount(id: string): Promise<void>;
     reloadChat(): Promise<void>;

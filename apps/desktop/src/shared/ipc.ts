@@ -19,7 +19,6 @@ export const IpcChannel = {
   RoomsRemove: 'rooms:remove',
   RoomsCopyLink: 'rooms:copy-link',
   CallJoin: 'call:join',
-  CallShow: 'call:show',
   CallLeave: 'call:leave',
   AccountAdd: 'accounts:add',
   AccountRename: 'accounts:rename',

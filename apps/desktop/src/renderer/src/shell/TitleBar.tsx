@@ -39,7 +39,7 @@ export function TitleBar({
       {call && (
         <button
           type="button"
-          title={call.visible ? call.name : 'Voltar para a chamada'}
+          title={`Ir para a chamada: ${call.name}`}
           onClick={onShowCall}
           className="no-drag bg-success/15 text-success hover:bg-success/25 ml-4 flex animate-[fade-in_200ms_ease] items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold"
         >

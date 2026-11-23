@@ -2,35 +2,34 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Headphones, Plus, Settings } from 'lucide-react';
 import logo from '../../../../resources/icon.png';
 import { ACCOUNT_COLORS, ACCOUNT_LIMITS, accountInitials } from '../../../shared/accounts';
-import { SHELL_LAYOUT, type AccountView } from '../../../shared/shell';
+import { SHELL_LAYOUT, type AccountView, type ShellView } from '../../../shared/shell';
 import { Tooltip } from '../components/Tooltip';
 
 /**
- * Trilho de ícones à esquerda (como a lista de servidores do Discord):
- * uma entrada por conta, "+" para adicionar e configurações embaixo.
+ * Trilho de ícones à esquerda (como a lista de servidores do Discord). Cada
+ * ícone é um destino e só um fica ativo por vez:
+ *   [contas do Google Chat] [+ conta] ── [Salas de vídeo] ··· [Configurações]
  */
 export function Rail({
   accounts,
   activeAccount,
-  overlay,
-  settingsActive,
+  view,
+  settingsOpen,
+  inCall,
   onSelect,
   onAdd,
-  onSettings,
-  roomsOpen,
-  inCall,
   onRooms,
+  onSettings,
 }: {
   accounts: AccountView[];
   activeAccount: string;
-  overlay: boolean;
-  settingsActive: boolean;
+  view: ShellView;
+  settingsOpen: boolean;
+  inCall: boolean;
   onSelect: (id: string) => void;
   onAdd: () => void;
-  onSettings: () => void;
-  roomsOpen: boolean;
-  inCall: boolean;
   onRooms: () => void;
+  onSettings: () => void;
 }) {
   const single = accounts.length === 1;
   const canAdd = accounts.length < ACCOUNT_LIMITS.max;
@@ -42,7 +41,7 @@ export function Rail({
       style={{ width: SHELL_LAYOUT.railWidth }}
     >
       {accounts.map((a, i) => {
-        const active = !overlay && a.id === activeAccount;
+        const active = !settingsOpen && view === 'chat' && a.id === activeAccount;
         // Com uma conta só, o ícone é o logo do app; com várias, as iniciais da conta.
         return (
           <RailItem
@@ -62,11 +61,20 @@ export function Rail({
         );
       })}
 
+      <RailItem
+        label={canAdd ? 'Adicionar conta' : `Limite de ${ACCOUNT_LIMITS.max} contas`}
+        disabled={!canAdd}
+        variant="action"
+        onClick={onAdd}
+      >
+        <Plus size={22} />
+      </RailItem>
+
       <div className="bg-line h-0.5 w-8 shrink-0 rounded-full" aria-hidden />
 
       <RailItem
-        label={inCall ? 'Salas (em chamada)' : 'Salas de vídeo'}
-        active={roomsOpen}
+        label={inCall ? 'Salas de vídeo · em chamada' : 'Salas de vídeo'}
+        active={!settingsOpen && view === 'rooms'}
         badge={0}
         variant="action"
         onClick={onRooms}
@@ -80,20 +88,11 @@ export function Rail({
         )}
       </RailItem>
 
-      <RailItem
-        label={canAdd ? 'Adicionar conta' : `Limite de ${ACCOUNT_LIMITS.max} contas`}
-        disabled={!canAdd}
-        variant="action"
-        onClick={onAdd}
-      >
-        <Plus size={22} />
-      </RailItem>
-
       <div className="flex-1" />
 
       <RailItem
         label="Configurações (Ctrl+,)"
-        active={settingsActive}
+        active={settingsOpen}
         variant="action"
         onClick={onSettings}
       >

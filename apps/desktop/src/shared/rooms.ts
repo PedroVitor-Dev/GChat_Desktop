@@ -70,6 +70,4 @@ export interface CallState {
   accountId: string;
   /** Epoch ms de quando entrou na sala (cronômetro). */
   startedAt: number;
-  /** A chamada está na área principal (true) ou em segundo plano, com o Chat aberto. */
-  visible: boolean;
 }

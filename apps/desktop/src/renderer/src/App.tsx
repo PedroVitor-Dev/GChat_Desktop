@@ -3,6 +3,7 @@ import { ShellActionsContext } from './hooks/shellActions';
 import { useSettings } from './hooks/useSettings';
 import { useShellState } from './hooks/useShellState';
 import { CreateRoomModal } from './shell/CreateRoomModal';
+import { RoomsLobby } from './shell/RoomsLobby';
 import { RoomsPanel } from './shell/RoomsPanel';
 import { AddAccountModal } from './shell/AddAccountModal';
 import { ChatPlaceholder } from './shell/ChatPlaceholder';
@@ -51,11 +52,16 @@ export function App() {
 
   if (!state) return <div className="bg-rail h-full" />;
   const active = state.accounts.find((a) => a.id === state.activeAccount);
+  const inRooms = state.view === 'rooms';
   const title = state.settingsOpen
     ? 'Configurações'
-    : state.accounts.length > 1 && active
-      ? `${active.title} · ${active.name}`
-      : (active?.title ?? 'Google Chat');
+    : inRooms
+      ? state.call
+        ? `Em chamada · ${state.call.name}`
+        : 'Salas de vídeo'
+      : state.accounts.length > 1 && active
+        ? `${active.title} · ${active.name}`
+        : (active?.title ?? 'Google Chat');
 
   return (
     <ShellActionsContext.Provider value={actions}>
@@ -64,25 +70,37 @@ export function App() {
           title={title}
           streamer={state.streamer}
           call={state.call}
-          onShowCall={() => void window.gchat.call.show(true)}
+          onShowCall={() => void shell.setView('rooms')}
         />
         <div className="relative flex min-h-0 flex-1">
           <Rail
             accounts={state.accounts}
             activeAccount={state.activeAccount}
-            overlay={state.settingsOpen}
-            settingsActive={state.settingsOpen}
+            view={state.view}
+            settingsOpen={state.settingsOpen}
+            inCall={!!state.call}
             onSelect={(id) => void shell.selectAccount(id)}
             onAdd={openAdd}
+            onRooms={() => void shell.setView('rooms')}
             onSettings={() => void shell.setSettingsOpen(!state.settingsOpen)}
-            roomsOpen={state.roomsPanelOpen}
-            inCall={!!state.call}
-            onRooms={() => void shell.setRoomsPanelOpen(!state.roomsPanelOpen)}
           />
-          {state.roomsPanelOpen && (
-            <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
+          {inRooms ? (
+            <>
+              <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
+              {/* Com chamada, o main posiciona a view do Meet aqui; sem chamada, o saguão. */}
+              {state.call ? (
+                <div className="bg-surface flex-1" />
+              ) : (
+                <RoomsLobby
+                  rooms={settings?.rooms ?? []}
+                  accounts={state.accounts}
+                  onCreate={openCreateRoom}
+                />
+              )}
+            </>
+          ) : (
+            <ChatPlaceholder loading={active?.loading ?? true} />
           )}
-          <ChatPlaceholder loading={active?.loading ?? true} />
           {state.settingsOpen && (
             <SettingsScreen onClose={() => void shell.setSettingsOpen(false)} />
           )}
