@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto';
 import type { CapturedNotification } from '../../shared/notifications';
-import type { ClockTime, NotificationSettings, QuietHours } from '../../shared/settings';
+import type {
+  ClockTime,
+  NotificationSettings,
+  QuietHours,
+  SoundSettings,
+} from '../../shared/settings';
+import type { SoundId } from '../../shared/sounds';
 
 const minutes = (t: ClockTime): number => {
   const [h, m] = t.split(':').map(Number);
@@ -25,6 +31,34 @@ export const conversationKey = (n: CapturedNotification): string => n.title.trim
 
 export function isMuted(n: CapturedNotification, settings: NotificationSettings): boolean {
   return settings.mutedConversations.includes(conversationKey(n));
+}
+
+/** Minúsculas e sem acentos, para comparar "@João" com "@joao". */
+const fold = (s: string): string =>
+  s
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+
+/**
+ * É uma menção? O Chat não marca menções na notificação, então usamos as
+ * palavras configuradas pelo usuário (ex.: "@Pedro"), procuradas no texto.
+ */
+export function isMention(n: CapturedNotification, keywords: readonly string[]): boolean {
+  if (keywords.length === 0 || !n.body) return false;
+  const text = fold(n.body);
+  return keywords.some((k) => text.includes(fold(k)));
+}
+
+/** Escolhe o som: menção > som da conversa > som padrão. */
+export function chooseSound(
+  n: CapturedNotification,
+  sounds: Pick<SoundSettings, 'enabled' | 'defaultSound' | 'mentionSound' | 'conversationSounds'>,
+  mention: boolean,
+): SoundId {
+  if (!sounds.enabled) return 'none';
+  if (mention && sounds.mentionSound) return sounds.mentionSound;
+  return sounds.conversationSounds[conversationKey(n)] ?? sounds.defaultSound;
 }
 
 /** Título e corpo do toast conforme as opções de privacidade. */

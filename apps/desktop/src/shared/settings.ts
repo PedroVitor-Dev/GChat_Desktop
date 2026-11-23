@@ -1,9 +1,11 @@
 /**
- * Configurações do app: tipos, padrões e validação. Compartilhado entre main e
- * renderer. O main é a única fonte de verdade; o renderer só propõe alterações.
+ * Configurações do app: tipos, padrões, validação e migração. Compartilhado entre
+ * main e renderer. O main é a única fonte de verdade; o renderer só propõe alterações.
  */
+import { SOUND_EXTENSIONS, SOUND_LIMITS, isCustomSoundId, isSoundId } from './sounds';
+import type { CustomSound, SoundExtension, SoundId } from './sounds';
 
-export const SETTINGS_VERSION = 1;
+export const SETTINGS_VERSION = 2;
 
 /** Horário no formato "HH:MM" (24 h). */
 export type ClockTime = `${number}:${number}`;
@@ -14,22 +16,43 @@ export interface QuietHours {
   end: ClockTime;
 }
 
+export interface MentionSettings {
+  /** Palavras que caracterizam uma menção (ex.: "@Pedro"). Vazio = desligado. */
+  keywords: string[];
+  /** Menções avisam mesmo no horário de silêncio. */
+  bypassQuietHours: boolean;
+}
+
 export interface NotificationSettings {
   enabled: boolean;
   /** Mostrar o nome do remetente/conversa no toast. */
   showSender: boolean;
   /** Mostrar o texto da mensagem no toast. */
   showPreview: boolean;
-  /** Som padrão do Windows. Substituído pelos sons personalizados na Fase 5. */
-  systemSound: boolean;
   quietHours: QuietHours;
+  mentions: MentionSettings;
   /** Chaves das conversas silenciadas (nome exibido no título da notificação). */
   mutedConversations: string[];
+}
+
+export interface SoundSettings {
+  /** Desligado: toasts silenciosos, mas continuam aparecendo. */
+  enabled: boolean;
+  /** 0 a 100. Vale para os sons do app (o som do Windows segue o volume do sistema). */
+  volume: number;
+  defaultSound: SoundId;
+  /** null = usa o som padrão. */
+  mentionSound: SoundId | null;
+  /** Som específico por conversa (chave = nome exibido). */
+  conversationSounds: Record<string, SoundId>;
+  /** Sons importados. Só o main altera esta lista. */
+  library: CustomSound[];
 }
 
 export interface Settings {
   version: typeof SETTINGS_VERSION;
   notifications: NotificationSettings;
+  sounds: SoundSettings;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -38,23 +61,34 @@ export const DEFAULT_SETTINGS: Settings = {
     enabled: true,
     showSender: true,
     showPreview: true,
-    systemSound: true,
     quietHours: { enabled: false, start: '22:00', end: '07:00' },
+    mentions: { keywords: [], bypassQuietHours: false },
     mutedConversations: [],
+  },
+  sounds: {
+    enabled: true,
+    volume: 80,
+    defaultSound: 'builtin:gota',
+    mentionSound: null,
+    conversationSounds: {},
+    library: [],
   },
 };
 
 export const LIMITS = {
   conversationKey: 200,
   mutedConversations: 500,
+  conversationSounds: 200,
+  keyword: 60,
+  keywords: 20,
 } as const;
 
-/** Atualização parcial aceita pelo IPC (um nível de profundidade por seção). */
-export interface SettingsPatch {
-  notifications?: Partial<Omit<NotificationSettings, 'quietHours'>> & {
-    quietHours?: Partial<QuietHours>;
-  };
-}
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends unknown[] ? T[K] : T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+
+/** Atualização parcial aceita pelo IPC. `sounds.library` é ignorado se vier do renderer. */
+export type SettingsPatch = DeepPartial<Omit<Settings, 'version'>>;
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -64,44 +98,122 @@ export const isClockTime = (v: unknown): v is ClockTime => typeof v === 'string'
 
 const bool = (v: unknown, fallback: boolean): boolean => (typeof v === 'boolean' ? v : fallback);
 const clock = (v: unknown, fallback: ClockTime): ClockTime => (isClockTime(v) ? v : fallback);
+const sound = (v: unknown, fallback: SoundId): SoundId => (isSoundId(v) ? v : fallback);
 
-function cleanKeys(v: unknown, fallback: string[]): string[] {
+function cleanStrings(v: unknown, fallback: string[], maxLength: number, maxItems: number) {
   if (!Array.isArray(v)) return fallback;
-  const keys = v
+  const items = v
     .filter((k): k is string => typeof k === 'string')
     .map((k) => k.trim())
-    .filter((k) => k.length > 0 && k.length <= LIMITS.conversationKey);
-  return [...new Set(keys)].slice(0, LIMITS.mutedConversations);
+    .filter((k) => k.length > 0 && k.length <= maxLength);
+  return [...new Set(items)].slice(0, maxItems);
+}
+
+function cleanConversationSounds(v: unknown, fallback: Record<string, SoundId>) {
+  if (!isObj(v)) return fallback;
+  const out: Record<string, SoundId> = {};
+  for (const [rawKey, value] of Object.entries(v).slice(0, LIMITS.conversationSounds)) {
+    const key = rawKey.trim();
+    if (key && key.length <= LIMITS.conversationKey && isSoundId(value)) out[key] = value;
+  }
+  return out;
+}
+
+function cleanLibrary(v: unknown, fallback: CustomSound[]): CustomSound[] {
+  if (!Array.isArray(v)) return fallback;
+  const out: CustomSound[] = [];
+  for (const item of v) {
+    if (!isObj(item) || !isCustomSoundId(item['id'])) continue;
+    const name = typeof item['name'] === 'string' ? item['name'].trim() : '';
+    const ext = item['ext'];
+    if (!name || name.length > SOUND_LIMITS.nameLength) continue;
+    if (!SOUND_EXTENSIONS.includes(ext as SoundExtension)) continue;
+    if (out.some((s) => s.id === item['id'])) continue;
+    out.push({ id: item['id'], name, ext: ext as SoundExtension });
+  }
+  return out.slice(0, SOUND_LIMITS.library);
+}
+
+/** Converte arquivos de versões anteriores para o formato atual. */
+function migrate(raw: Record<string, unknown>): Record<string, unknown> {
+  if (raw['version'] !== 1) return raw;
+  const n = isObj(raw['notifications']) ? raw['notifications'] : {};
+  // v1 só tinha "som do Windows" ligado/desligado.
+  const defaultSound: SoundId = n['systemSound'] === false ? 'none' : 'system';
+  return { ...raw, version: 2, sounds: { defaultSound } };
+}
+
+interface NormalizeOptions {
+  /** Só o main pode alterar a biblioteca de sons importados. */
+  allowLibrary?: boolean;
 }
 
 /**
  * Normaliza qualquer entrada (arquivo do disco, patch do renderer) para um
  * Settings válido. Campos inválidos ou ausentes caem no valor de `base`.
  */
-export function normalizeSettings(input: unknown, base: Settings = DEFAULT_SETTINGS): Settings {
-  const raw = isObj(input) ? input : {};
+export function normalizeSettings(
+  input: unknown,
+  base: Settings = DEFAULT_SETTINGS,
+  { allowLibrary = true }: NormalizeOptions = {},
+): Settings {
+  const raw = isObj(input) ? migrate(input) : {};
   const n = isObj(raw['notifications']) ? raw['notifications'] : {};
   const q = isObj(n['quietHours']) ? n['quietHours'] : {};
-  const b = base.notifications;
+  const m = isObj(n['mentions']) ? n['mentions'] : {};
+  const s = isObj(raw['sounds']) ? raw['sounds'] : {};
+  const bn = base.notifications;
+  const bs = base.sounds;
+
+  const volume =
+    typeof s['volume'] === 'number' && Number.isFinite(s['volume'])
+      ? Math.round(Math.min(100, Math.max(0, s['volume'])))
+      : bs.volume;
 
   return {
     version: SETTINGS_VERSION,
     notifications: {
-      enabled: bool(n['enabled'], b.enabled),
-      showSender: bool(n['showSender'], b.showSender),
-      showPreview: bool(n['showPreview'], b.showPreview),
-      systemSound: bool(n['systemSound'], b.systemSound),
+      enabled: bool(n['enabled'], bn.enabled),
+      showSender: bool(n['showSender'], bn.showSender),
+      showPreview: bool(n['showPreview'], bn.showPreview),
       quietHours: {
-        enabled: bool(q['enabled'], b.quietHours.enabled),
-        start: clock(q['start'], b.quietHours.start),
-        end: clock(q['end'], b.quietHours.end),
+        enabled: bool(q['enabled'], bn.quietHours.enabled),
+        start: clock(q['start'], bn.quietHours.start),
+        end: clock(q['end'], bn.quietHours.end),
       },
-      mutedConversations: cleanKeys(n['mutedConversations'], b.mutedConversations),
+      mentions: {
+        keywords: cleanStrings(
+          m['keywords'],
+          bn.mentions.keywords,
+          LIMITS.keyword,
+          LIMITS.keywords,
+        ),
+        bypassQuietHours: bool(m['bypassQuietHours'], bn.mentions.bypassQuietHours),
+      },
+      mutedConversations: cleanStrings(
+        n['mutedConversations'],
+        bn.mutedConversations,
+        LIMITS.conversationKey,
+        LIMITS.mutedConversations,
+      ),
+    },
+    sounds: {
+      enabled: bool(s['enabled'], bs.enabled),
+      volume,
+      defaultSound: sound(s['defaultSound'], bs.defaultSound),
+      mentionSound:
+        s['mentionSound'] === null
+          ? null
+          : isSoundId(s['mentionSound'])
+            ? s['mentionSound']
+            : bs.mentionSound,
+      conversationSounds: cleanConversationSounds(s['conversationSounds'], bs.conversationSounds),
+      library: allowLibrary ? cleanLibrary(s['library'], bs.library) : bs.library,
     },
   };
 }
 
-/** Aplica um patch vindo do renderer sobre as configurações atuais. */
+/** Aplica um patch vindo do renderer (sem poder mexer na biblioteca de sons). */
 export function applyPatch(current: Settings, patch: unknown): Settings {
-  return normalizeSettings(patch, current);
+  return normalizeSettings(patch, current, { allowLibrary: false });
 }

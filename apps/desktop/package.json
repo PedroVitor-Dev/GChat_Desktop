@@ -13,7 +13,8 @@
     "preview": "electron-vite preview",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.preload.json && tsc -p tsconfig.web.json",
     "dist": "electron-vite build && electron-builder --win --x64",
-    "icons": "electron scripts/generate-icons.cjs"
+    "icons": "electron scripts/generate-icons.cjs",
+    "sounds": "node scripts/generate-sounds.mjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.5",

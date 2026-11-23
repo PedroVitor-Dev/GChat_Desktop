@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { CapturedNotification } from '../../shared/notifications';
 import { DEFAULT_SETTINGS } from '../../shared/settings';
-import { Deduplicator, formatToast, isInQuietHours, isMuted } from './rules';
+import {
+  Deduplicator,
+  chooseSound,
+  formatToast,
+  isInQuietHours,
+  isMention,
+  isMuted,
+} from './rules';
 
 const at = (hhmm: string) => new Date(`2026-11-23T${hhmm}:00`);
 const msg = (over: Partial<CapturedNotification> = {}): CapturedNotification => ({
@@ -74,5 +81,34 @@ describe('Deduplicator', () => {
     const d = new Deduplicator(60_000, 3);
     for (let i = 0; i < 10; i++) d.isDuplicate(msg({ body: `m${i}` }), i);
     expect(d.isDuplicate(msg({ body: 'm0' }), 11)).toBe(false);
+  });
+});
+
+describe('isMention', () => {
+  it('ignora acentos e maiúsculas e só olha o texto', () => {
+    expect(isMention(msg({ body: 'Oi @joao, pode ver?' }), ['@João'])).toBe(true);
+    expect(isMention(msg({ body: 'Oi pessoal' }), ['@João'])).toBe(false);
+    expect(isMention(msg({ title: '@João', body: 'oi' }), ['@João'])).toBe(false);
+    expect(isMention(msg({ body: 'Oi @joao' }), [])).toBe(false);
+  });
+});
+
+describe('chooseSound', () => {
+  const sounds = {
+    enabled: true,
+    defaultSound: 'builtin:gota',
+    mentionSound: 'builtin:sino',
+    conversationSounds: { Maria: 'builtin:pop' },
+  } as const;
+
+  it('menção > conversa > padrão', () => {
+    expect(chooseSound(msg(), sounds, true)).toBe('builtin:sino');
+    expect(chooseSound(msg(), sounds, false)).toBe('builtin:pop');
+    expect(chooseSound(msg({ title: 'João' }), sounds, false)).toBe('builtin:gota');
+  });
+
+  it('menção sem som próprio usa a regra normal; sons desligados = nenhum', () => {
+    expect(chooseSound(msg(), { ...sounds, mentionSound: null }, true)).toBe('builtin:pop');
+    expect(chooseSound(msg(), { ...sounds, enabled: false }, true)).toBe('none');
   });
 });

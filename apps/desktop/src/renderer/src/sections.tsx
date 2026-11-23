@@ -13,6 +13,7 @@ import { AboutPage } from './pages/AboutPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PlannedPage } from './pages/PlannedPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { SoundsPage } from './pages/SoundsPage';
 
 export type SectionId =
   'geral' | 'notificacoes' | 'sons' | 'contas' | 'aparencia' | 'privacidade' | 'sobre';
@@ -49,7 +50,7 @@ export const sections: Section[] = [
     id: 'sons',
     label: 'Sons',
     icon: Volume2,
-    page: planned('Fase 5', ['Som padrão e de menções', 'Importar MP3/WAV/OGG', 'Volume e prévia']),
+    page: SoundsPage,
   },
   {
     id: 'contas',

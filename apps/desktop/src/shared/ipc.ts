@@ -7,6 +7,10 @@ export const IpcChannel = {
   SettingsChanged: 'settings:changed',
   NotificationTest: 'notifications:test',
   RecentConversations: 'notifications:recent',
+  SoundOptions: 'sounds:options',
+  SoundPreview: 'sounds:preview',
+  SoundImport: 'sounds:import',
+  SoundRemove: 'sounds:remove',
 } as const;
 
 export interface AppInfo {

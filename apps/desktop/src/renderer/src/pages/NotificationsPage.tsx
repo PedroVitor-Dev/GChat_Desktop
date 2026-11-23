@@ -37,17 +37,29 @@ export function NotificationsPage() {
           checked={n.enabled}
           onChange={(enabled) => update({ notifications: { enabled } })}
         />
-        <Toggle
-          label="Som do Windows"
-          description="Sons personalizados por conversa chegam na próxima versão."
-          checked={n.systemSound}
-          disabled={!n.enabled}
-          onChange={(systemSound) => update({ notifications: { systemSound } })}
-        />
         <div className="flex items-center gap-3 pt-3">
           <Button onClick={() => void test()}>Testar notificação</Button>
           {testResult && <p className="text-muted text-xs">{testResult}</p>}
         </div>
+      </Card>
+
+      <SectionTitle>Menções</SectionTitle>
+      <Card>
+        <KeywordsInput
+          // Recria o campo quando a lista muda por fora (mantém o rascunho em sincronia).
+          key={n.mentions.keywords.join(',')}
+          keywords={n.mentions.keywords}
+          onChange={(keywords) => update({ notifications: { mentions: { keywords } } })}
+        />
+        <Toggle
+          label="Menções ignoram o horário de silêncio"
+          description="Mensagens que citam você avisam mesmo dentro do horário de silêncio."
+          checked={n.mentions.bypassQuietHours}
+          disabled={n.mentions.keywords.length === 0}
+          onChange={(bypassQuietHours) =>
+            update({ notifications: { mentions: { bypassQuietHours } } })
+          }
+        />
       </Card>
 
       <SectionTitle>Horário de silêncio</SectionTitle>
@@ -134,5 +146,44 @@ function ConversationRow({
       </span>
       <Button onClick={onToggle}>{muted ? 'Reativar' : 'Silenciar'}</Button>
     </li>
+  );
+}
+
+/** Palavras separadas por vírgula; salva ao sair do campo ou com Enter. */
+function KeywordsInput({
+  keywords,
+  onChange,
+}: {
+  keywords: string[];
+  onChange: (keywords: string[]) => void;
+}) {
+  const [draft, setDraft] = useState(keywords.join(', '));
+  const commit = () =>
+    onChange(
+      draft
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean),
+    );
+
+  return (
+    <div className="border-line border-b py-3">
+      <label htmlFor="mention-keywords" className="block">
+        Como detectar menções a você
+      </label>
+      <p className="text-muted mt-0.5 mb-2 text-xs">
+        O Google Chat não indica menções na notificação. Informe como costumam citar você, separado
+        por vírgulas (ex.: <code>@Pedro, Pedro Vitor</code>). Maiúsculas e acentos não importam.
+      </p>
+      <input
+        id="mention-keywords"
+        value={draft}
+        placeholder="@SeuNome"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        className="bg-surface border-line focus:border-accent w-full rounded-md border px-3 py-1.5 outline-none"
+      />
+    </div>
   );
 }

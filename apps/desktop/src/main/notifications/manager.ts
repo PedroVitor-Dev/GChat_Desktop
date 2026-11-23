@@ -1,10 +1,19 @@
 import { EventEmitter } from 'node:events';
-import type { BrowserWindow } from 'electron';
-import { Notification, type WebFrameMain } from 'electron';
+import { Notification, type BrowserWindow, type WebFrameMain } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../../shared/notifications';
+import type { SoundId } from '../../shared/sounds';
+import type { SoundPlayer } from '../sounds/player';
 import type { SettingsStore } from '../store/settings-store';
 import { appIcon } from '../system/app-icon';
-import { Deduplicator, conversationKey, formatToast, isInQuietHours, isMuted } from './rules';
+import {
+  Deduplicator,
+  chooseSound,
+  conversationKey,
+  formatToast,
+  isInQuietHours,
+  isMention,
+  isMuted,
+} from './rules';
 
 /** Motivo pelo qual uma notificação não virou toast (para estatísticas, sem conteúdo). */
 export type DropReason = 'disabled' | 'duplicate' | 'muted' | 'quiet-hours' | 'unsupported';
@@ -18,7 +27,11 @@ interface ManagerDeps {
   settings: SettingsStore;
   /** Janela do Chat, para foco e alerta na barra de tarefas. */
   getChatWindow: () => BrowserWindow | null;
+  player: SoundPlayer;
 }
+
+/** Som usado se o escolhido não puder ser lido (ex.: arquivo apagado por fora). */
+const FALLBACK_SOUND: SoundId = 'builtin:gota';
 
 /** Toasts ativos precisam de referência viva, senão o GC remove os handlers de clique. */
 const MAX_ACTIVE = 50;
@@ -43,7 +56,8 @@ export class NotificationManager extends EventEmitter<Events> {
   }
 
   handle(n: CapturedNotification, frame: WebFrameMain | null): 'shown' | DropReason {
-    const settings = this.deps.settings.get().notifications;
+    const all = this.deps.settings.get();
+    const settings = all.notifications;
 
     if (!settings.enabled) return this.drop('disabled');
     if (this.dedup.isDuplicate(n)) return this.drop('duplicate');
@@ -54,14 +68,18 @@ export class NotificationManager extends EventEmitter<Events> {
     if (this.recent.size > 30) this.recent.delete(this.recent.keys().next().value!);
 
     if (isMuted(n, settings)) return this.drop('muted');
-    if (isInQuietHours(new Date(), settings.quietHours)) return this.drop('quiet-hours');
+    const mention = isMention(n, settings.mentions.keywords);
+    const bypass = mention && settings.mentions.bypassQuietHours;
+    if (!bypass && isInQuietHours(new Date(), settings.quietHours)) return this.drop('quiet-hours');
     if (!Notification.isSupported()) return this.drop('unsupported');
 
     const { title, body } = formatToast(n, settings);
+    const sound = chooseSound(n, all.sounds, mention);
     const toast = new Notification({
       title,
       body,
-      silent: !settings.systemSound,
+      // O Windows só toca o som dele quando escolhido; os demais tocam pelo player.
+      silent: sound !== 'system',
       icon: appIcon(),
       actions: [{ type: 'button', text: 'Silenciar conversa' }],
     });
@@ -86,6 +104,7 @@ export class NotificationManager extends EventEmitter<Events> {
     this.active.set(n.id, toast);
     if (this.active.size > MAX_ACTIVE) this.active.delete(this.active.keys().next().value!);
     toast.show();
+    this.playSound(sound);
 
     const win = this.deps.getChatWindow();
     if (win && !win.isFocused()) win.flashFrame(true);
@@ -96,7 +115,8 @@ export class NotificationManager extends EventEmitter<Events> {
   /** Toast de teste da tela de configurações (não passa por silêncio/dedup). */
   showTest(): boolean {
     if (!Notification.isSupported()) return false;
-    const settings = this.deps.settings.get().notifications;
+    const { notifications: settings, sounds } = this.deps.settings.get();
+    const sound: SoundId = sounds.enabled ? sounds.defaultSound : 'none';
     const sample: CapturedNotification = {
       id: 'test',
       api: 'window.Notification',
@@ -107,13 +127,21 @@ export class NotificationManager extends EventEmitter<Events> {
     const toast = new Notification({
       title,
       body,
-      silent: !settings.systemSound,
+      silent: sound !== 'system',
       icon: appIcon(),
     });
     this.active.set('test', toast);
     toast.on('close', () => this.active.delete('test'));
     toast.show();
+    this.playSound(sound, true);
     return true;
+  }
+
+  private playSound(sound: SoundId, force = false): void {
+    const { volume } = this.deps.settings.get().sounds;
+    void this.deps.player.play(sound, volume, { force }).then((ok) => {
+      if (!ok) void this.deps.player.play(FALLBACK_SOUND, volume, { force: true });
+    });
   }
 
   private mute(key: string): void {

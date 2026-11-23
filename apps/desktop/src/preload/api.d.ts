@@ -1,5 +1,8 @@
 import type { AppInfo } from '../shared/ipc';
 import type { Settings, SettingsPatch } from '../shared/settings';
+import type { CustomSound, SoundId, SoundOption } from '../shared/sounds';
+
+export type ImportSoundResult = { ok: true; sound: CustomSound } | { ok: false; error: string };
 
 export interface GChatApi {
   getAppInfo(): Promise<AppInfo>;
@@ -12,6 +15,13 @@ export interface GChatApi {
   testNotification(): Promise<boolean>;
   /** Nomes das conversas que notificaram recentemente (sem conteúdo). */
   getRecentConversations(): Promise<string[]>;
+  /** Sons disponíveis: especiais, predefinidos e importados. */
+  getSoundOptions(): Promise<SoundOption[]>;
+  /** Toca o som no volume atual (ignora o intervalo mínimo entre sons). */
+  previewSound(id: SoundId): Promise<boolean>;
+  /** Abre o diálogo de arquivo. `null` se o usuário cancelar. */
+  importSound(): Promise<ImportSoundResult | null>;
+  removeSound(id: SoundId): Promise<boolean>;
 }
 
 declare global {

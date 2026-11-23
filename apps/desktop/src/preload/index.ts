@@ -16,6 +16,10 @@ const api: GChatApi = {
   },
   testNotification: () => ipcRenderer.invoke(IpcChannel.NotificationTest),
   getRecentConversations: () => ipcRenderer.invoke(IpcChannel.RecentConversations),
+  getSoundOptions: () => ipcRenderer.invoke(IpcChannel.SoundOptions),
+  previewSound: (id) => ipcRenderer.invoke(IpcChannel.SoundPreview, id),
+  importSound: () => ipcRenderer.invoke(IpcChannel.SoundImport),
+  removeSound: (id) => ipcRenderer.invoke(IpcChannel.SoundRemove, id),
 };
 
 contextBridge.exposeInMainWorld('gchat', Object.freeze(api));

@@ -8,6 +8,7 @@ import {
   applyPatch,
   normalizeSettings,
   type Settings,
+  type SettingsPatch,
 } from '../../shared/settings';
 
 const SAVE_DELAY_MS = 300;
@@ -33,8 +34,18 @@ export class SettingsStore extends EventEmitter<{ change: [Settings] }> {
     return this.current;
   }
 
+  /** Alteração proposta pelo renderer (não pode mexer na biblioteca de sons). */
   update(patch: unknown): Settings {
-    this.current = applyPatch(this.current, patch);
+    return this.commit(applyPatch(this.current, patch));
+  }
+
+  /** Alteração feita pelo próprio main (pode alterar tudo, inclusive a biblioteca). */
+  updateInternal(patch: SettingsPatch): Settings {
+    return this.commit(normalizeSettings(patch, this.current));
+  }
+
+  private commit(next: Settings): Settings {
+    this.current = next;
     this.emit('change', this.current);
     this.scheduleSave();
     return this.current;

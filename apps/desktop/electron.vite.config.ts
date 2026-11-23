@@ -15,6 +15,7 @@ export default defineConfig({
         input: {
           index: resolve(import.meta.dirname, 'src/preload/index.ts'), // janela de configurações
           chat: resolve(import.meta.dirname, 'src/preload/chat.ts'), // janela do Google Chat
+          audio: resolve(import.meta.dirname, 'src/preload/audio.ts'), // player de sons (oculto)
         },
         output: { format: 'cjs', entryFileNames: '[name].cjs' },
       },
@@ -25,7 +26,12 @@ export default defineConfig({
     build: {
       outDir: resolve(import.meta.dirname, 'out/renderer'),
       minify: true,
-      rollupOptions: { input: resolve(import.meta.dirname, 'src/renderer/index.html') },
+      rollupOptions: {
+        input: {
+          index: resolve(import.meta.dirname, 'src/renderer/index.html'),
+          audio: resolve(import.meta.dirname, 'src/renderer/audio.html'),
+        },
+      },
     },
     plugins: [react(), tailwindcss()],
   },

@@ -18,7 +18,8 @@ conteúdo das mensagens.
 - [x] Fase 2: estrutura do projeto
 - [x] Fase 3: cliente Google Chat (janela, sessão persistente, navegação segura)
 - [x] Fase 4: notificações nativas ([docs/notificacoes.md](docs/notificacoes.md))
-- [ ] Fase 5: sons personalizados
+- [x] Fase 5: sons personalizados ([docs/sons.md](docs/sons.md))
+- [ ] Fase 6: bandeja e segundo plano
 
 ## Licença
 

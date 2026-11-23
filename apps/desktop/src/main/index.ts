@@ -5,6 +5,8 @@ import { registerIpc } from './ipc';
 import { buildAppMenu } from './menu';
 import { listenForCaptures } from './notifications/capture-listener';
 import { NotificationManager } from './notifications/manager';
+import { SoundLibrary } from './sounds/library';
+import { SoundPlayer } from './sounds/player';
 import { applySecurityPolicies } from './security';
 import { SettingsStore } from './store/settings-store';
 import { appIcon } from './system/app-icon';
@@ -66,6 +68,9 @@ function showChat(): void {
     chatWindow = createChatWindow();
     chatWindow.on('closed', () => {
       chatWindow = null;
+      // A janela oculta do player impede o 'window-all-closed'. A Fase 6 troca
+      // isto por "continuar na bandeja".
+      app.quit();
     });
     // Para o alerta da barra de tarefas quando o usuário volta ao Chat.
     chatWindow.on('focus', () => chatWindow?.flashFrame(false));
@@ -84,10 +89,17 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     const settings = new SettingsStore();
-    const notifications = new NotificationManager({ settings, getChatWindow: () => chatWindow });
+    const player = new SoundPlayer();
+    const library = new SoundLibrary(settings, (bytes) => player.probe(bytes));
+    player.attach(library);
+    const notifications = new NotificationManager({
+      settings,
+      player,
+      getChatWindow: () => chatWindow,
+    });
 
     applySecurityPolicies();
-    registerIpc({ settings, notifications });
+    registerIpc({ settings, notifications, library, player });
     listenForCaptures(notifications);
     buildAppMenu({ showSettings, showChat });
     showChat(); // a janela do Chat é necessária para receber mensagens
