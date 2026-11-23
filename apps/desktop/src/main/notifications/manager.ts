@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events';
 import { Notification, type WebFrameMain } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../../shared/notifications';
 import type { SoundId } from '../../shared/sounds';
+import { diagnosticsEnabled } from '../chat/diagnostics';
 import type { SoundPlayer } from '../sounds/player';
 import type { SettingsStore } from '../store/settings-store';
 import { appIcon } from '../system/app-icon';
@@ -94,6 +95,9 @@ export class NotificationManager extends EventEmitter<Events> {
     const title = accountName ? `${formatted.title} · ${accountName}` : formatted.title;
     const { body } = formatted;
     const sound = chooseSound(n, all.sounds, mention);
+    if (diagnosticsEnabled) {
+      console.error(`[diag] menção: ${mention ? 'sim' : 'não'} · som: ${sound}`);
+    }
     const toast = new Notification({
       title,
       body,

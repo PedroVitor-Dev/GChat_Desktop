@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { BellOff, Bell } from 'lucide-react';
 import { Card } from '../components/Card';
-import { Button, SectionTitle, TimeInput, Toggle, inputClass } from '../components/controls';
+import { Button, SectionTitle, TimeInput, Toggle } from '../components/controls';
+import { KeywordsInput } from '../components/KeywordsInput';
 import { useSettings } from '../hooks/useSettings';
 
 export function NotificationsPage() {
@@ -146,44 +147,5 @@ function ConversationRow({
       </span>
       <Button onClick={onToggle}>{muted ? 'Reativar' : 'Silenciar'}</Button>
     </li>
-  );
-}
-
-/** Palavras separadas por vírgula; salva ao sair do campo ou com Enter. */
-function KeywordsInput({
-  keywords,
-  onChange,
-}: {
-  keywords: string[];
-  onChange: (keywords: string[]) => void;
-}) {
-  const [draft, setDraft] = useState(keywords.join(', '));
-  const commit = () =>
-    onChange(
-      draft
-        .split(',')
-        .map((k) => k.trim())
-        .filter(Boolean),
-    );
-
-  return (
-    <div className="border-line border-b py-3">
-      <label htmlFor="mention-keywords" className="block">
-        Como detectar menções a você
-      </label>
-      <p className="text-muted mt-0.5 mb-2 text-xs">
-        O Google Chat não indica menções na notificação. Informe como costumam citar você, separado
-        por vírgulas (ex.: <code>@Pedro, Pedro Vitor</code>). Maiúsculas e acentos não importam.
-      </p>
-      <input
-        id="mention-keywords"
-        value={draft}
-        placeholder="@SeuNome"
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => e.key === 'Enter' && commit()}
-        className={`${inputClass} w-full`}
-      />
-    </div>
   );
 }

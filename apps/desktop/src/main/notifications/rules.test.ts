@@ -89,7 +89,20 @@ describe('isMention', () => {
     expect(isMention(msg({ body: 'Oi @joao, pode ver?' }), ['@João'])).toBe(true);
     expect(isMention(msg({ body: 'Oi pessoal' }), ['@João'])).toBe(false);
     expect(isMention(msg({ title: '@João', body: 'oi' }), ['@João'])).toBe(false);
-    expect(isMention(msg({ body: 'Oi @joao' }), [])).toBe(false);
+  });
+
+  it('sem palavras configuradas, qualquer @menção conta', () => {
+    expect(isMention(msg({ body: 'Oi @joao' }), [])).toBe(true);
+    expect(isMention(msg({ body: '@Ângela pode ver?' }), [])).toBe(true);
+    expect(isMention(msg({ body: 'Avisem @todos' }), [])).toBe(true);
+    expect(isMention(msg({ body: 'Manda para pedro@empresa.com' }), [])).toBe(false);
+    expect(isMention(msg({ body: 'Oi pessoal' }), [])).toBe(false);
+    expect(isMention(msg({ body: 'Custa @ 10 reais' }), [])).toBe(false);
+  });
+
+  it('com palavras configuradas, só elas contam', () => {
+    expect(isMention(msg({ body: 'Oi @joao' }), ['Pedro'])).toBe(false);
+    expect(isMention(msg({ body: 'Pedro Vitor, pode ver?' }), ['pedro vitor'])).toBe(true);
   });
 });
 

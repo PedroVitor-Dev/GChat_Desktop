@@ -3,6 +3,7 @@ import { Play, Plus, Trash2, Upload } from 'lucide-react';
 import type { SoundId, SoundOption } from '../../../shared/sounds';
 import { Card } from '../components/Card';
 import { Button, SectionTitle, SettingRow, Toggle, inputClass } from '../components/controls';
+import { KeywordsInput } from '../components/KeywordsInput';
 import { useSettings } from '../hooks/useSettings';
 
 function useSoundOptions(): [SoundOption[], () => void] {
@@ -92,7 +93,7 @@ export function SoundsPage() {
         />
         <SoundPicker
           label="Som de menções"
-          description="Usado quando a mensagem cita você (configure em Notificações → Menções)."
+          description="Toca quando a mensagem cita você. Tem prioridade sobre o som da conversa."
           value={s.mentionSound}
           options={options}
           disabled={!s.enabled}
@@ -100,6 +101,13 @@ export function SoundsPage() {
           onChange={(mentionSound) => update({ sounds: { mentionSound } })}
           onPreview={preview}
         />
+        {s.mentionSound && (
+          <KeywordsInput
+            key={settings.notifications.mentions.keywords.join(',')}
+            keywords={settings.notifications.mentions.keywords}
+            onChange={(keywords) => update({ notifications: { mentions: { keywords } } })}
+          />
+        )}
       </Card>
 
       <SectionTitle>Sons por conversa</SectionTitle>

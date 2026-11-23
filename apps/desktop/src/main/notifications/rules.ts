@@ -40,12 +40,19 @@ const fold = (s: string): string =>
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase();
 
+/** "@" seguido de uma letra (inclui acentos): "@Pedro", "@todos". Ignora e-mails. */
+const AT_MENTION = /(^|[^\p{L}\p{N}._%+-])@\p{L}/u;
+
 /**
- * É uma menção? O Chat não marca menções na notificação, então usamos as
- * palavras configuradas pelo usuário (ex.: "@Pedro"), procuradas no texto.
+ * É uma menção? O Chat não marca menções na notificação, então:
+ * - com palavras configuradas pelo usuário (ex.: "@Pedro", "Pedro Vitor"),
+ *   procura qualquer uma delas no texto (sem diferenciar maiúsculas/acentos);
+ * - sem palavras, qualquer "@nome" no texto conta como menção. Menos preciso
+ *   (pode ser menção a outra pessoa), mas faz o som de menção funcionar de imediato.
  */
 export function isMention(n: CapturedNotification, keywords: readonly string[]): boolean {
-  if (keywords.length === 0 || !n.body) return false;
+  if (!n.body) return false;
+  if (keywords.length === 0) return AT_MENTION.test(n.body);
   const text = fold(n.body);
   return keywords.some((k) => text.includes(fold(k)));
 }
