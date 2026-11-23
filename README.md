@@ -10,6 +10,7 @@ conteúdo das mensagens.
 - Arquitetura: [docs/decisao-arquitetura.md](docs/decisao-arquitetura.md)
 - Estrutura: [docs/estrutura.md](docs/estrutura.md)
 - Visual e atalhos: [docs/visual.md](docs/visual.md)
+- Instalador: [docs/instalador.md](docs/instalador.md)
 - Desenvolvimento: [docs/desenvolvimento.md](docs/desenvolvimento.md)
 - Pesquisa inicial: [docs/fase-1-viabilidade.md](docs/fase-1-viabilidade.md)
 

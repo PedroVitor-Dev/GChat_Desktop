@@ -29,6 +29,18 @@ nsis:
   shortcutName: GChat Desktop+
   installerIcon: resources/icon.ico
   uninstallerIcon: resources/icon.ico
+  # Visual do instalador (gerado por `npm run installer-art`)
+  installerSidebar: resources/installer/sidebar.bmp
+  uninstallerSidebar: resources/installer/sidebar.bmp
+  installerHeader: resources/installer/header.bmp
+  # Instalador em português do Brasil
+  installerLanguages: [pt_BR]
+  language: '1046'
+  multiLanguageInstaller: false
+  # Licença exibida antes da instalação
+  license: ../../LICENSE
+  runAfterFinish: true
+  menuCategory: false
   # Configurações e sons importados ficam em %APPDATA% e sobrevivem a atualizações.
   deleteAppDataOnUninstall: false
 # Estrutura pronta para auto-update (electron-updater) — provedor definido na Fase 10.

@@ -96,7 +96,7 @@ if (!app.requestSingleInstanceLock()) {
       flushed = true;
       tray?.destroy();
       player.destroy();
-      void settings.flush().finally(() => app.quit());
+      void Promise.all([settings.flush(), shell.flushSessions()]).finally(() => app.quit());
     });
   });
 }

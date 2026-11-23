@@ -1,8 +1,8 @@
 {
   "name": "@gchat/desktop",
   "private": true,
-  "version": "0.1.0",
-  "description": "GChat Desktop+ — app Windows",
+  "version": "0.0.1",
+  "description": "GChat Desktop+ — Google Chat para Windows com notificações e sons personalizáveis",
   "author": "Pedro Vitor",
   "license": "GPL-3.0-only",
   "type": "module",
@@ -14,14 +14,15 @@
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.preload.json && tsc -p tsconfig.web.json",
     "dist": "electron-vite build && electron-builder --win --x64",
     "icons": "electron scripts/generate-icons.cjs",
-    "sounds": "node scripts/generate-sounds.mjs"
+    "sounds": "node scripts/generate-sounds.mjs",
+    "installer-art": "electron scripts/generate-installer-art.cjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
-    "electron": "^45.4.1",
+    "electron": "45.4.1",
     "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
     "lucide-react": "^1.78.0",

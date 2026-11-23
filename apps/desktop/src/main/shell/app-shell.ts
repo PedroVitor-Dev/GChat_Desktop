@@ -265,6 +265,18 @@ export class AppShell {
     this.emitState();
   }
 
+  /**
+   * Grava em disco os cookies de todas as contas. O Chromium grava periodicamente;
+   * isto garante que um login feito segundos antes de sair não se perca.
+   */
+  async flushSessions(): Promise<void> {
+    await Promise.all(
+      [...this.slots.values()].map((s) =>
+        s.view.webContents.session.cookies.flushStore().catch(() => undefined),
+      ),
+    );
+  }
+
   markQuitting(): void {
     this.quitting = true;
   }
