@@ -10,6 +10,15 @@
 `Som padrão do Windows` deixa o próprio toast tocar o som do sistema. Os demais
 são tocados pelo app, e o toast fica silencioso para não somar dois sons.
 
+## Som do próprio Google Chat
+
+O Chat toca o som de notificação dele dentro da página, um pouco **antes** de criar
+a notificação. Como o app toca o som escolhido pelo usuário, os dois se
+sobrepunham (o do Chat encobria o personalizado). O hook segura por 150 ms os sons
+**curtos** da página. Se uma notificação chega nesse intervalo, o som do Chat é
+descartado; se não, ele toca normalmente. Áudio de chamadas (MediaStream) e sons
+em repetição (toque de chamada) nunca são afetados.
+
 ## Menções
 
 O Google Chat não marca menções na notificação. O usuário informa as palavras que

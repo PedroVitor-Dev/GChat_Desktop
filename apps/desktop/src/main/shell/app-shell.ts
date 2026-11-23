@@ -349,6 +349,14 @@ export class AppShell {
       if (details.reason !== 'clean-exit' && !contents.isDestroyed()) contents.reload();
     });
     contents.on('unresponsive', () => console.error(`[chat] conta ${account.id} sem resposta`));
+    // Diagnóstico: a própria página do Chat está tocando som?
+    if (diagnosticsEnabled) {
+      contents.on('audio-state-changed', ({ audible }) =>
+        console.error(
+          `[diag ${new Date().toISOString()}] página do Chat (${account.id}) com áudio: ${audible ? 'sim' : 'não'}`,
+        ),
+      );
+    }
     return slot;
   }
 

@@ -52,6 +52,75 @@ if (location.origin === CHAT_ORIGIN) {
       const Original = window.Notification;
       if (!bridge || typeof Original !== 'function') return;
 
+      // ── Som de notificação do próprio Chat ──────────────────────────────
+      // O app toca o som escolhido pelo usuário. O Chat também toca o dele (um
+      // pouco ANTES de criar a notificação), e os dois se sobrepunham. Sons
+      // curtos da página são segurados por SOUND_HOLD_MS: se uma notificação
+      // chega nesse intervalo, o som do Chat é descartado; se não, toca
+      // normalmente. Áudio de chamadas (srcObject/MediaStream) e sons em
+      // repetição (toque de chamada) nunca são afetados.
+      const SOUND_HOLD_MS = 150;
+      const AFTER_NOTIFY_MS = 1500;
+      let lastNotifyAt = 0;
+      const held = new Set<{ cancel: () => void }>();
+      const recentlyNotified = () => Date.now() - lastNotifyAt < AFTER_NOTIFY_MS;
+      const dropHeldSounds = () => {
+        for (const h of held) h.cancel();
+        held.clear();
+      };
+
+      const media = window.HTMLMediaElement?.prototype;
+      if (media?.play) {
+        const play = media.play;
+        media.play = function (this: HTMLMediaElement) {
+          const isNotificationLike = !this.srcObject && !this.loop;
+          if (!isNotificationLike) return play.call(this);
+          if (recentlyNotified()) return Promise.resolve();
+          return new Promise<void>((resolve) => {
+            const entry = {
+              cancel: () => {
+                clearTimeout(timer);
+                resolve(); // a página segue como se tivesse tocado
+              },
+            };
+            const timer = setTimeout(() => {
+              held.delete(entry);
+              play.call(this).then(resolve, resolve);
+            }, SOUND_HOLD_MS);
+            held.add(entry);
+          });
+        } as typeof media.play;
+      }
+
+      const source = window.AudioBufferSourceNode?.prototype;
+      if (source?.start) {
+        const start = source.start;
+        source.start = function (
+          this: AudioBufferSourceNode,
+          when = 0,
+          offset?: number,
+          duration?: number,
+        ) {
+          const short = !this.loop && (this.buffer?.duration ?? Infinity) <= 4;
+          if (!short) return start.call(this, when, offset, duration);
+          if (recentlyNotified()) return;
+          // Agenda com atraso e cancela (stop antes de começar) se vier notificação.
+          const at = Math.max(when, this.context.currentTime) + SOUND_HOLD_MS / 1000;
+          start.call(this, at, offset, duration);
+          const entry = {
+            cancel: () => {
+              try {
+                this.stop();
+              } catch {
+                // já terminou
+              }
+            },
+          };
+          held.add(entry);
+          setTimeout(() => held.delete(entry), SOUND_HOLD_MS + 50);
+        } as typeof source.start;
+      }
+
       const str = (v: unknown): string | undefined =>
         typeof v === 'string' && v.length > 0 ? v : undefined;
       const capture = (api: string, title: unknown, options?: NotificationOptions) => {
@@ -63,7 +132,13 @@ if (location.origin === CHAT_ORIGIN) {
         const tag = str(options?.tag);
         if (body) payload.body = body;
         if (tag) payload.tag = tag;
-        return bridge.notify(payload);
+        const id = bridge.notify(payload);
+        if (id) {
+          // O app vai tocar o som dele: descarta o do Chat.
+          lastNotifyAt = Date.now();
+          dropHeldSounds();
+        }
+        return id;
       };
 
       const registry = new Map<string, EventTarget>();
