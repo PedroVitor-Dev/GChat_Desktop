@@ -1,7 +1,6 @@
 import { join } from 'node:path';
-import { BrowserWindow, Menu, nativeTheme, shell, type WebContents } from 'electron';
+import { Menu, WebContentsView, shell, type WebContents } from 'electron';
 import { CHAT_URL, LOGIN_URL, decideNavigation, decidePopup, isLoggedOutLanding } from './policy';
-import { appIcon } from '../system/app-icon';
 import { getChatSession } from './session';
 
 const openExternal = (url: string): void => {
@@ -84,17 +83,9 @@ function showContextMenu(contents: WebContents, params: Electron.ContextMenuPara
   if (items.length > 0) Menu.buildFromTemplate(items).popup();
 }
 
-export function createChatWindow(): BrowserWindow {
-  const win = new BrowserWindow({
-    icon: appIcon(),
-    width: 1280,
-    height: 860,
-    minWidth: 720,
-    minHeight: 500,
-    show: false,
-    title: 'Google Chat — GChat Desktop+',
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#202124' : '#ffffff',
-    autoHideMenuBar: true,
+/** Cria a view do Google Chat (sessão persistente, sandbox, regras de navegação). */
+export function createChatView(): WebContentsView {
+  const view = new WebContentsView({
     webPreferences: {
       session: getChatSession(),
       preload: join(import.meta.dirname, '../preload/chat.cjs'),
@@ -107,15 +98,14 @@ export function createChatWindow(): BrowserWindow {
       nodeIntegrationInSubFrames: true,
     },
   });
-
-  applyChatPolicy(win.webContents);
+  const contents = view.webContents;
+  applyChatPolicy(contents);
 
   // Sem sessão, o Chat mostra a página de produto: leva direto ao login oficial.
-  win.webContents.on('did-navigate', (_event, url) => {
-    if (isLoggedOutLanding(url)) void win.loadURL(LOGIN_URL);
+  contents.on('did-navigate', (_event, url) => {
+    if (isLoggedOutLanding(url)) void contents.loadURL(LOGIN_URL);
   });
 
-  win.once('ready-to-show', () => win.show());
-  void win.loadURL(CHAT_URL);
-  return win;
+  void contents.loadURL(CHAT_URL);
+  return view;
 }

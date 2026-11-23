@@ -49,10 +49,20 @@ export interface SoundSettings {
   library: CustomSound[];
 }
 
+export type ThemeChoice = 'dark' | 'light' | 'system';
+
+export interface AppearanceSettings {
+  /** Tema do app. Também é repassado ao Chat (que segue o tema do sistema por padrão). */
+  theme: ThemeChoice;
+  /** Experimental: aplica a paleta estilo Discord dentro do Google Chat. */
+  chatTheme: boolean;
+}
+
 export interface Settings {
   version: typeof SETTINGS_VERSION;
   notifications: NotificationSettings;
   sounds: SoundSettings;
+  appearance: AppearanceSettings;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -73,6 +83,7 @@ export const DEFAULT_SETTINGS: Settings = {
     conversationSounds: {},
     library: [],
   },
+  appearance: { theme: 'dark', chatTheme: false },
 };
 
 export const LIMITS = {
@@ -89,6 +100,8 @@ type DeepPartial<T> = {
 
 /** Atualização parcial aceita pelo IPC. `sounds.library` é ignorado se vier do renderer. */
 export type SettingsPatch = DeepPartial<Omit<Settings, 'version'>>;
+
+const THEMES: readonly ThemeChoice[] = ['dark', 'light', 'system'];
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -162,6 +175,7 @@ export function normalizeSettings(
   const q = isObj(n['quietHours']) ? n['quietHours'] : {};
   const m = isObj(n['mentions']) ? n['mentions'] : {};
   const s = isObj(raw['sounds']) ? raw['sounds'] : {};
+  const a = isObj(raw['appearance']) ? raw['appearance'] : {};
   const bn = base.notifications;
   const bs = base.sounds;
 
@@ -209,6 +223,12 @@ export function normalizeSettings(
             : bs.mentionSound,
       conversationSounds: cleanConversationSounds(s['conversationSounds'], bs.conversationSounds),
       library: allowLibrary ? cleanLibrary(s['library'], bs.library) : bs.library,
+    },
+    appearance: {
+      theme: THEMES.includes(a['theme'] as ThemeChoice)
+        ? (a['theme'] as ThemeChoice)
+        : base.appearance.theme,
+      chatTheme: bool(a['chatTheme'], base.appearance.chatTheme),
     },
   };
 }

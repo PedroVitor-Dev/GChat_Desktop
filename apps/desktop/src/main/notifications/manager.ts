@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { Notification, type BrowserWindow, type WebFrameMain } from 'electron';
+import { Notification, type WebFrameMain } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../../shared/notifications';
 import type { SoundId } from '../../shared/sounds';
 import type { SoundPlayer } from '../sounds/player';
@@ -25,8 +25,8 @@ interface Events {
 
 interface ManagerDeps {
   settings: SettingsStore;
-  /** Janela do Chat, para foco e alerta na barra de tarefas. */
-  getChatWindow: () => BrowserWindow | null;
+  /** Janela principal: foco no clique e contador de não lidas. */
+  shell: { focusChat(): void; onNotificationShown(): void };
   player: SoundPlayer;
 }
 
@@ -106,8 +106,7 @@ export class NotificationManager extends EventEmitter<Events> {
     toast.show();
     this.playSound(sound);
 
-    const win = this.deps.getChatWindow();
-    if (win && !win.isFocused()) win.flashFrame(true);
+    this.deps.shell.onNotificationShown();
     this.emit('shown', n);
     return 'shown';
   }
@@ -151,11 +150,7 @@ export class NotificationManager extends EventEmitter<Events> {
   }
 
   private focusChat(): void {
-    const win = this.deps.getChatWindow();
-    if (!win) return;
-    if (win.isMinimized()) win.restore();
-    win.show();
-    win.focus();
+    this.deps.shell.focusChat();
   }
 
   private drop(reason: DropReason): DropReason {

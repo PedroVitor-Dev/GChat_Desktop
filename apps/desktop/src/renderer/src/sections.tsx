@@ -10,6 +10,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import { AboutPage } from './pages/AboutPage';
+import { AppearancePage } from './pages/AppearancePage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PlannedPage } from './pages/PlannedPage';
 import { PrivacyPage } from './pages/PrivacyPage';
@@ -62,7 +63,7 @@ export const sections: Section[] = [
     id: 'aparencia',
     label: 'Aparência',
     icon: Palette,
-    page: planned('Fase 7', ['Tema claro, escuro ou do sistema']),
+    page: AppearancePage,
   },
   {
     id: 'privacidade',

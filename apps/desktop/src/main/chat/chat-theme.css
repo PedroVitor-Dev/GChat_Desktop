@@ -1,0 +1,54 @@
+/*
+ * Tema EXPERIMENTAL estilo Discord para o Google Chat.
+ *
+ * Só troca cores e barras de rolagem: não esconde nada, não move elementos e não
+ * toca no conteúdo das mensagens. Funciona sobrescrevendo os tokens de cor do
+ * Material 3 (--gm3-sys-color-*), que a interface web do Google usa. Se o Google
+ * renomear os tokens, o efeito some sozinho: o Chat volta ao visual original, sem
+ * quebrar nada.
+ *
+ * Para efeito completo, use o Chat no tema "Escuro" ou "Padrão do sistema".
+ */
+:root,
+html,
+body {
+  --gm3-sys-color-background: #313338 !important;
+  --gm3-sys-color-on-background: #dbdee1 !important;
+  --gm3-sys-color-surface: #313338 !important;
+  --gm3-sys-color-surface-dim: #2b2d31 !important;
+  --gm3-sys-color-surface-bright: #383a40 !important;
+  --gm3-sys-color-surface-container-lowest: #1e1f22 !important;
+  --gm3-sys-color-surface-container-low: #2b2d31 !important;
+  --gm3-sys-color-surface-container: #2b2d31 !important;
+  --gm3-sys-color-surface-container-high: #383a40 !important;
+  --gm3-sys-color-surface-container-highest: #404249 !important;
+  --gm3-sys-color-surface-variant: #383a40 !important;
+  --gm3-sys-color-on-surface: #dbdee1 !important;
+  --gm3-sys-color-on-surface-variant: #b5bac1 !important;
+  --gm3-sys-color-outline: #4e5058 !important;
+  --gm3-sys-color-outline-variant: #3f4147 !important;
+  --gm3-sys-color-primary: #8c96ff !important;
+  --gm3-sys-color-on-primary: #ffffff !important;
+  --gm3-sys-color-primary-container: #5865f2 !important;
+  --gm3-sys-color-on-primary-container: #ffffff !important;
+  --gm3-sys-color-secondary-container: #404249 !important;
+  --gm3-sys-color-on-secondary-container: #f2f3f5 !important;
+  --gm3-sys-color-inverse-surface: #f2f3f5 !important;
+  --gm3-sys-color-inverse-on-surface: #313338 !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+::-webkit-scrollbar-thumb {
+  background: #1a1b1e !important;
+  border-radius: 4px !important;
+}
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::selection {
+  background: rgba(88, 101, 242, 0.45);
+}

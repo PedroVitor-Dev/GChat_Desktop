@@ -1,8 +1,10 @@
 import { BrowserWindow, app, dialog } from 'electron';
 import { IpcChannel, type AppInfo } from '../../shared/ipc';
 import type { Settings } from '../../shared/settings';
+import { ShellChannel, type ShellState } from '../../shared/shell';
 import { isSoundId, type SoundId } from '../../shared/sounds';
 import type { NotificationManager } from '../notifications/manager';
+import type { AppShell } from '../shell/app-shell';
 import type { ImportResult, SoundLibrary } from '../sounds/library';
 import type { SoundPlayer } from '../sounds/player';
 import type { SettingsStore } from '../store/settings-store';
@@ -13,6 +15,7 @@ interface IpcDeps {
   notifications: NotificationManager;
   library: SoundLibrary;
   player: SoundPlayer;
+  shell: AppShell;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -29,7 +32,18 @@ const oneSoundId = (args: unknown[]): SoundId => {
   return args[0];
 };
 
-export function registerIpc({ settings, notifications, library, player }: IpcDeps): void {
+/** Um único booleano. */
+const oneBoolean = (args: unknown[]): boolean => {
+  if (args.length !== 1 || typeof args[0] !== 'boolean') throw new TypeError('esperado booleano');
+  return args[0];
+};
+
+export function registerIpc({ settings, notifications, library, player, shell }: IpcDeps): void {
+  handle(ShellChannel.GetState, noArgs, (): ShellState => shell.getState());
+  handle(ShellChannel.SetSettingsOpen, oneBoolean, (open) => shell.setSettingsOpen(open));
+  handle(ShellChannel.FocusChat, noArgs, () => shell.focusChat());
+  handle(ShellChannel.ReloadChat, noArgs, () => shell.reloadChat());
+
   handle(IpcChannel.AppInfo, noArgs, (): AppInfo => ({
     name: app.getName(),
     version: app.getVersion(),
@@ -68,7 +82,7 @@ export function registerIpc({ settings, notifications, library, player }: IpcDep
 
   settings.on('change', (next) => {
     for (const win of BrowserWindow.getAllWindows()) {
-      // Só janelas locais (configurações) recebem; a do Chat não tem esse canal.
+      // Só janelas locais recebem (o Chat fica numa view própria, fora desta lista).
       if (win.webContents.getURL().startsWith('https://')) continue;
       win.webContents.send(IpcChannel.SettingsChanged, next);
     }

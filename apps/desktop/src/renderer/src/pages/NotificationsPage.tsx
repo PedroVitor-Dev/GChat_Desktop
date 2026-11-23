@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BellOff, Bell } from 'lucide-react';
 import { Card } from '../components/Card';
-import { Button, SectionTitle, TimeInput, Toggle } from '../components/controls';
+import { Button, SectionTitle, TimeInput, Toggle, inputClass } from '../components/controls';
 import { useSettings } from '../hooks/useSettings';
 
 export function NotificationsPage() {
@@ -182,7 +182,7 @@ function KeywordsInput({
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => e.key === 'Enter' && commit()}
-        className="bg-surface border-line focus:border-accent w-full rounded-md border px-3 py-1.5 outline-none"
+        className={`${inputClass} w-full`}
       />
     </div>
   );

@@ -13,19 +13,19 @@ export function SettingRow({
   children: ReactNode;
 }) {
   return (
-    <div className="border-line flex items-center justify-between gap-6 border-b py-3 last:border-b-0">
-      <div>
-        <label htmlFor={htmlFor} className="block">
+    <div className="border-line flex items-center justify-between gap-6 border-b py-4 last:border-b-0">
+      <div className="min-w-0">
+        <label htmlFor={htmlFor} className="text-header block font-medium">
           {label}
         </label>
-        {description && <p className="text-muted mt-0.5 text-xs">{description}</p>}
+        {description && <p className="text-muted mt-1 text-sm">{description}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
   );
 }
 
-/** Interruptor no estilo Windows 11. */
+/** Interruptor estilo Discord: verde quando ligado, com ícone no botão. */
 export function Toggle({
   label,
   description,
@@ -49,20 +49,43 @@ export function Toggle({
         aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative h-5 w-10 rounded-full border transition-colors duration-150 disabled:opacity-40 ${
-          checked ? 'bg-accent border-accent' : 'border-muted bg-transparent'
+        className={`ease-snappy relative h-6 w-10 rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+          checked ? 'bg-success' : 'bg-switch-off'
         }`}
       >
         <span
-          className={`absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full transition-all duration-150 ${
-            checked ? 'left-[22px] bg-white' : 'bg-muted left-[4px]'
+          className={`ease-snappy absolute top-[3px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white transition-all duration-200 ${
+            checked ? 'left-[19px]' : 'left-[3px]'
           }`}
-        />
+        >
+          <svg viewBox="0 0 20 20" className="h-3 w-3" aria-hidden>
+            {checked ? (
+              <path
+                d="M5 10.5l3.2 3L15 6.5"
+                fill="none"
+                stroke="var(--color-success)"
+                strokeWidth="2.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ) : (
+              <path
+                d="M6 6l8 8M14 6l-8 8"
+                stroke="var(--color-switch-off)"
+                strokeWidth="2.6"
+                strokeLinecap="round"
+              />
+            )}
+          </svg>
+        </span>
         <span className="sr-only">{checked ? 'Ativado' : 'Desativado'}</span>
       </button>
     </SettingRow>
   );
 }
+
+const fieldClass =
+  'bg-field text-ink rounded-[3px] px-2.5 py-2 outline-none transition-shadow focus:ring-2 focus:ring-accent disabled:opacity-40';
 
 export function TimeInput({
   label,
@@ -84,11 +107,13 @@ export function TimeInput({
         value={value}
         disabled={disabled}
         onChange={(e) => e.target.value && onChange(e.target.value)}
-        className="bg-surface border-line focus:border-accent rounded-md border px-2 py-1 outline-none disabled:opacity-40"
+        className={`${fieldClass} [color-scheme:dark] [.theme-light_&]:[color-scheme:light]`}
       />
     </SettingRow>
   );
 }
+
+export const inputClass = fieldClass;
 
 export function Button({
   children,
@@ -97,23 +122,29 @@ export function Button({
 }: {
   children: ReactNode;
   onClick: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
 }) {
-  const styles =
-    variant === 'primary'
-      ? 'bg-accent text-white hover:opacity-90'
-      : 'bg-surface border-line border hover:bg-line/60';
+  const styles = {
+    primary: 'bg-accent hover:bg-accent-hover text-white',
+    secondary: 'bg-selected hover:bg-switch-off/60 text-header',
+    danger: 'bg-danger hover:brightness-90 text-white',
+  }[variant];
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-md px-3 py-1.5 text-[13px] transition-colors duration-150 ${styles}`}
+      className={`h-8 rounded-[3px] px-4 text-sm font-medium transition-colors duration-150 ${styles}`}
     >
       {children}
     </button>
   );
 }
 
+/** Título de grupo em caixa alta, como nas configurações do Discord. */
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="mt-6 mb-2 text-sm font-semibold first:mt-0">{children}</h2>;
+  return (
+    <h2 className="text-muted mt-8 mb-2 text-xs font-bold tracking-wide uppercase first:mt-0">
+      {children}
+    </h2>
+  );
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Play, Plus, Trash2, Upload } from 'lucide-react';
 import type { SoundId, SoundOption } from '../../../shared/sounds';
 import { Card } from '../components/Card';
-import { Button, SectionTitle, SettingRow, Toggle } from '../components/controls';
+import { Button, SectionTitle, SettingRow, Toggle, inputClass } from '../components/controls';
 import { useSettings } from '../hooks/useSettings';
 
 function useSoundOptions(): [SoundOption[], () => void] {
@@ -131,7 +131,7 @@ export function SoundsPage() {
                   key={key}
                   type="button"
                   onClick={() => setConversationSound(key, s.defaultSound)}
-                  className="border-line hover:bg-line/60 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[13px]"
+                  className="bg-selected text-interactive hover:text-header inline-flex items-center gap-1 rounded-full px-3 py-1 text-[13px]"
                 >
                   <Plus size={13} aria-hidden /> {key}
                 </button>
@@ -177,7 +177,7 @@ export function SoundsPage() {
         {message && (
           <p
             role="status"
-            className={`mt-3 text-[13px] ${message.kind === 'error' ? 'text-red-500' : 'text-muted'}`}
+            className={`mt-3 text-[13px] ${message.kind === 'error' ? 'text-danger' : 'text-muted'}`}
           >
             {message.text}
           </p>
@@ -226,7 +226,7 @@ function SoundPicker<Nullable extends boolean = false>({
               v === DEFAULT_OPTION ? null : (v as SoundId),
             );
           }}
-          className="bg-surface border-line focus:border-accent w-52 rounded-md border px-2 py-1.5 outline-none disabled:opacity-40"
+          className={`${inputClass} w-52`}
         >
           {allowDefault && <option value={DEFAULT_OPTION}>Igual ao som padrão</option>}
           {groups.map(([groupLabel, kind]) => {
@@ -272,7 +272,7 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="border-line hover:bg-line/60 rounded-md border p-1.5 disabled:opacity-40"
+      className="bg-selected text-interactive hover:text-header rounded-[3px] p-1.5 disabled:opacity-40"
     >
       {children}
     </button>

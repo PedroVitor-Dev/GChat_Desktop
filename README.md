@@ -9,6 +9,7 @@ conteúdo das mensagens.
 
 - Arquitetura: [docs/decisao-arquitetura.md](docs/decisao-arquitetura.md)
 - Estrutura: [docs/estrutura.md](docs/estrutura.md)
+- Visual e atalhos: [docs/visual.md](docs/visual.md)
 - Desenvolvimento: [docs/desenvolvimento.md](docs/desenvolvimento.md)
 - Pesquisa inicial: [docs/fase-1-viabilidade.md](docs/fase-1-viabilidade.md)
 
@@ -19,6 +20,7 @@ conteúdo das mensagens.
 - [x] Fase 3: cliente Google Chat (janela, sessão persistente, navegação segura)
 - [x] Fase 4: notificações nativas ([docs/notificacoes.md](docs/notificacoes.md))
 - [x] Fase 5: sons personalizados ([docs/sons.md](docs/sons.md))
+- [x] Visual estilo Discord (shell, trilho, configurações em tela cheia, temas)
 - [ ] Fase 6: bandeja e segundo plano
 
 ## Licença

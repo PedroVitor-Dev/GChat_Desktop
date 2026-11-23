@@ -1,5 +1,6 @@
 import type { AppInfo } from '../shared/ipc';
 import type { Settings, SettingsPatch } from '../shared/settings';
+import type { ShellState } from '../shared/shell';
 import type { CustomSound, SoundId, SoundOption } from '../shared/sounds';
 
 export type ImportSoundResult = { ok: true; sound: CustomSound } | { ok: false; error: string };
@@ -22,6 +23,14 @@ export interface GChatApi {
   /** Abre o diálogo de arquivo. `null` se o usuário cancelar. */
   importSound(): Promise<ImportSoundResult | null>;
   removeSound(id: SoundId): Promise<boolean>;
+  /** Janela principal (barra de título, trilho, configurações em tela cheia). */
+  shell: {
+    getState(): Promise<ShellState>;
+    onState(listener: (state: ShellState) => void): () => void;
+    setSettingsOpen(open: boolean): Promise<void>;
+    focusChat(): Promise<void>;
+    reloadChat(): Promise<void>;
+  };
 }
 
 declare global {

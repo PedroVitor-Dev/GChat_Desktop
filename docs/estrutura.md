@@ -11,22 +11,23 @@ GChat_Desktop/
 │     ├─ src/
 │     │  ├─ main/                  # Processo principal
 │     │  │  ├─ index.ts            # bootstrap, instância única, janelas
-│     │  │  ├─ menu.ts             # menu pt-BR (oculto; Alt exibe)
+│     │  │  ├─ shell/              # janela principal estilo Discord (título, trilho, view do Chat)
 │     │  │  ├─ security.ts         # endurecimento das janelas locais
 │     │  │  ├─ chat/               # janela do Google Chat
-│     │  │  │  ├─ chat-window.ts   # janela, navegação, popups, menu de contexto
+│     │  │  │  ├─ chat-view.ts     # view do Chat: navegação, popups, menu de contexto
+│     │  │  │  ├─ chat-theme.css   # tema experimental (tokens Material 3)
 │     │  │  │  ├─ policy.ts        # regras puras de navegação/permissões (+ testes)
 │     │  │  │  ├─ session.ts       # sessão persistente por conta
 │     │  │  │  └─ diagnostics.ts   # GCHAT_DIAG=1: metadados das notificações
 │     │  │  ├─ ipc/                # canais IPC + validação de remetente/payload
-│     │  │  ├─ notifications/      # (Fase 4) Notification Manager
-│     │  │  ├─ sounds/             # (Fase 5) biblioteca e validação de áudio
+│     │  │  ├─ notifications/      # Notification Manager (regras, dedup, toasts)
+│     │  │  ├─ sounds/             # biblioteca, validação e player de áudio
 │     │  │  ├─ tray/               # (Fase 6) bandeja, contador, autostart
-│     │  │  └─ store/              # (Fase 7) configurações versionadas
+│     │  │  └─ store/              # configurações versionadas (com migração)
 │     │  ├─ preload/
 │     │  │  ├─ index.ts            # janela de configurações (API mínima)
 │     │  │  └─ chat.ts             # janela do Chat (hook de notificações)
-│     │  ├─ renderer/              # Telas React de configurações
+│     │  ├─ renderer/              # shell + configurações (React) e player oculto (audio.html)
 │     │  └─ shared/                # tipos compartilhados main ⇄ preload ⇄ renderer
 │     ├─ resources/                # ícones, sons predefinidos
 │     └─ electron-builder.yml      # instalador NSIS x64

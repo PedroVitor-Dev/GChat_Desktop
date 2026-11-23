@@ -52,6 +52,19 @@ describe('normalizeSettings', () => {
   });
 });
 
+describe('aparência', () => {
+  it('valida o tema e mantém o padrão escuro', () => {
+    expect(normalizeSettings({}).appearance).toEqual({ theme: 'dark', chatTheme: false });
+    expect(normalizeSettings({ appearance: { theme: 'neon', chatTheme: 1 } }).appearance).toEqual({
+      theme: 'dark',
+      chatTheme: false,
+    });
+    expect(
+      normalizeSettings({ appearance: { theme: 'light', chatTheme: true } }).appearance,
+    ).toEqual({ theme: 'light', chatTheme: true });
+  });
+});
+
 describe('migração v1 → v2', () => {
   it('preserva a escolha de som do Windows', () => {
     const v1 = (systemSound: boolean) => ({
