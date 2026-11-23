@@ -35,22 +35,38 @@ describe('parseStatusReport', () => {
   it('reconhece a presença pelo rótulo do botão', () => {
     expect(parseStatusReport({ label: 'Status: Ativo', text: 'Ativo' })).toEqual({
       presence: 'active',
+      complete: false,
     });
     expect(parseStatusReport({ label: 'Status: Não perturbe', text: 'Não perturbe' })).toEqual({
       presence: 'dnd',
+      complete: false,
     });
     expect(parseStatusReport({ label: 'Status: Away', text: 'Away' })).toEqual({
       presence: 'away',
+      complete: false,
     });
   });
 
-  it('separa o status personalizado', () => {
+  it('o botão do Chat só traz o emoji do status personalizado', () => {
+    expect(parseStatusReport({ label: 'Status: Ativo, 🍴', text: '' })).toEqual({
+      presence: 'active',
+      text: '🍴',
+      complete: false,
+    });
+  });
+
+  it('junta o emoji do botão com a frase do menu', () => {
     expect(
-      parseStatusReport({ label: 'Status: Ativo, 🧪 Testando o app', text: '🧪 Testando o app' }),
-    ).toEqual({ presence: 'active', text: '🧪 Testando o app' });
-    expect(parseStatusReport({ label: 'Status: Ausente', text: '🍔 Almoçando' })).toEqual({
+      parseStatusReport({ label: 'Status: Ativo, 🍴', text: '', detail: 'Pausa Intervalo' }),
+    ).toEqual({ presence: 'active', text: '🍴 Pausa Intervalo', complete: true });
+    expect(parseStatusReport({ label: 'Status: Ativo', text: '', detail: '' })).toEqual({
+      presence: 'active',
+      complete: true,
+    });
+    expect(parseStatusReport({ label: 'Status: Ausente', text: '', detail: 'Almoçando' })).toEqual({
       presence: 'away',
-      text: '🍔 Almoçando',
+      text: 'Almoçando',
+      complete: true,
     });
   });
 
@@ -58,6 +74,7 @@ describe('parseStatusReport', () => {
     expect(parseStatusReport({ label: 'Configurações', text: '' })).toBeNull();
     expect(parseStatusReport('Ativo')).toBeNull();
     expect(parseStatusReport({ label: 'x'.repeat(600), text: '' })).toBeNull();
+    expect(parseStatusReport({ label: 'Status: Ativo', text: '', detail: 3 })).toBeNull();
   });
 });
 

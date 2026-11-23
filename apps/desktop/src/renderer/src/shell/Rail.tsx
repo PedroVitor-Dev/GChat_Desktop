@@ -228,6 +228,8 @@ function ProfileButton({
           <span
             aria-hidden
             className="bg-rail absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[13px] leading-none"
+            // Fonte de emoji colorido: sem ela, o Windows desenha alguns (ex.: 🍴) em preto e branco.
+            style={{ fontFamily: '"Segoe UI Emoji", "Noto Color Emoji", sans-serif' }}
           >
             {emoji}
           </span>

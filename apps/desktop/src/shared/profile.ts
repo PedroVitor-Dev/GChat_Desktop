@@ -90,11 +90,19 @@ export const STATUS_CHANNEL = 'chat:status';
 export const OPEN_STATUS_CHANNEL = 'chat:open-status';
 
 export interface StatusReport {
-  /** aria-label do botão (ex.: "Status: Ativo"). */
+  /** aria-label do botão (ex.: "Status: Ativo, 🍴"). */
   label: string;
   /** Texto visível no botão. */
   text: string;
+  /**
+   * Frase do status, lida do item "Seu status" do menu (o botão só mostra o
+   * emoji). Ausente enquanto o menu não foi aberto; "" = sem status.
+   */
+  detail?: string;
 }
+
+/** Resultado da leitura: `complete` = a frase veio do menu (não só o emoji). */
+export type ParsedStatus = ChatStatus & { complete: boolean };
 
 const STATUS_TEXT_MAX = 140;
 const PRESENCE_WORDS: [RegExp, ChatPresence][] = [
@@ -120,25 +128,33 @@ function presenceOf(value: string): { presence: ChatPresence; rest: string } | n
   return null;
 }
 
-/** Interpreta o botão de status do Chat; null se não for reconhecível. */
-export function parseStatusReport(input: unknown): ChatStatus | null {
+/** Interpreta o botão (e o menu) de status do Chat; null se não for reconhecível. */
+export function parseStatusReport(input: unknown): ParsedStatus | null {
   if (typeof input !== 'object' || input === null) return null;
   const r = input as Record<string, unknown>;
   if (typeof r['label'] !== 'string' || typeof r['text'] !== 'string') return null;
-  if (r['label'].length > 500 || r['text'].length > 500) return null;
+  const rawDetail = r['detail'];
+  if (rawDetail !== undefined && typeof rawDetail !== 'string') return null;
+  if (r['label'].length > 500 || r['text'].length > 500 || (rawDetail?.length ?? 0) > 500) {
+    return null;
+  }
   const label = clean(r['label']).replace(/^status\s*:\s*/i, '');
   const text = clean(r['text']);
+  const detail = rawDetail === undefined ? undefined : clean(rawDetail);
 
   const fromLabel = presenceOf(label);
   const fromText = presenceOf(text);
   const presence = fromLabel?.presence ?? fromText?.presence;
   if (!presence) return null;
 
-  // Status personalizado: o que sobra depois da palavra da presença (no rótulo),
-  // ou o texto visível quando ele não é a própria presença.
-  const custom = fromLabel?.rest || (fromText ? fromText.rest : text);
-  const status: ChatStatus = { presence };
-  if (custom && !presenceOf(custom)) status.text = [...custom].slice(0, STATUS_TEXT_MAX).join('');
+  // O que sobra depois da presença no rótulo (hoje, só o emoji do status), ou o
+  // texto visível quando ele não é a própria presença.
+  let custom = fromLabel?.rest || (fromText ? fromText.rest : text);
+  if (presenceOf(custom)) custom = '';
+  if (detail) custom = custom && !detail.startsWith(custom) ? `${custom} ${detail}` : detail;
+
+  const status: ParsedStatus = { presence, complete: detail !== undefined };
+  if (custom) status.text = [...custom].slice(0, STATUS_TEXT_MAX).join('');
   return status;
 }
 

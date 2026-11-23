@@ -10,6 +10,7 @@ import {
   parseProfileReport,
   parseStatusReport,
   type ChatStatus,
+  type ParsedStatus,
   photoUrlAtSize,
   type AccountProfile,
   type ProfileReport,
@@ -30,7 +31,7 @@ export class ProfileService extends EventEmitter<{ change: [Map<string, AccountP
   private readonly dir = join(app.getPath('userData'), 'profiles');
   private readonly profiles = new Map<string, AccountProfile>();
   private readonly inFlight = new Set<string>();
-  /** Status do Chat por conta (só em memória: muda o tempo todo e é do Google). */
+  /** Status do Chat por conta, como está agora (em memória). */
   private readonly statuses = new Map<string, ChatStatus>();
 
   constructor(private readonly accountOf: (contents: Electron.WebContents) => string | null) {
@@ -50,13 +51,46 @@ export class ProfileService extends EventEmitter<{ change: [Map<string, AccountP
       if (!frame || frame !== event.sender.mainFrame || frame.origin !== CHAT_ORIGIN) return;
       if (!isChatSession(event.sender.session)) return;
       const accountId = this.accountOf(event.sender);
-      const status = parseStatusReport(raw);
-      if (!accountId || !status) return;
+      const parsed = parseStatusReport(raw);
+      if (!accountId || !parsed) return;
+      const status = this.withSavedText(accountId, parsed);
       const current = this.statuses.get(accountId);
       if (current?.presence === status.presence && current.text === status.text) return;
       this.statuses.set(accountId, status);
       this.emit('change', this.profiles);
     });
+  }
+
+  /**
+   * O botão do Chat só mostra o emoji do status; a frase vem do menu, que só fica
+   * na página depois de aberto. A última frase lida é guardada no perfil (só
+   * neste computador) e reaproveitada enquanto o emoji for o mesmo.
+   */
+  private withSavedText(accountId: string, parsed: ParsedStatus): ChatStatus {
+    const { complete, ...status } = parsed;
+    const saved = this.profiles.get(accountId)?.custom?.status;
+    if (complete || !status.text) {
+      // Frase nova do menu, ou nenhum status personalizado no Chat.
+      if (saved !== status.text) void this.saveStatusText(accountId, status.text);
+      return status;
+    }
+    if (saved?.startsWith(status.text)) return { ...status, text: saved };
+    return status;
+  }
+
+  private async saveStatusText(accountId: string, text: string | undefined): Promise<void> {
+    const current = this.profiles.get(accountId);
+    if (!current && !text) return;
+    const custom = { ...current?.custom };
+    if (text) custom.status = text;
+    else delete custom.status;
+    await this.persist({ ...current, accountId, updatedAt: Date.now(), custom });
+  }
+
+  private async persist(next: AccountProfile): Promise<void> {
+    this.profiles.set(next.accountId, next);
+    mkdirSync(this.dir, { recursive: true });
+    await writeFile(this.file(next.accountId), JSON.stringify(next), 'utf8');
   }
 
   /** Status atual do Chat de cada conta (o que o botão "Ativo ▾" mostra). */
@@ -91,15 +125,13 @@ export class ProfileService extends EventEmitter<{ change: [Map<string, AccountP
       let photo = current?.photo;
       if (photoChanged) photo = (await this.download(report.photoUrl, session)) ?? photo;
       const next: AccountProfile = {
-        ...current,
+        ...this.profiles.get(accountId), // pode ter mudado (status) durante o download
         accountId,
         displayName: report.displayName,
         updatedAt: Date.now(),
         ...(photo ? { photo, photoSource: report.photoUrl } : {}),
       };
-      this.profiles.set(accountId, next);
-      mkdirSync(this.dir, { recursive: true });
-      await writeFile(this.file(accountId), JSON.stringify(next), 'utf8');
+      await this.persist(next);
       this.emit('change', this.profiles);
     } finally {
       this.inFlight.delete(accountId);

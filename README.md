@@ -140,8 +140,7 @@ que recolore o próprio Google Chat.
   usuário.
 - 🙈 **Nada de mensagens em disco ou em logs.** Para montar o aviso, o app lê apenas o
   título e o texto da notificação que o próprio Chat cria.
-- 🖼️ **Do seu perfil, só a foto e o nome** que o Chat mostra, guardados localmente, e o
-  seu status, só em memória. O e-mail não é lido.
+- 🖼️ **Do seu perfil, só a foto e o nome** que o Chat mostra, guardados localmente, assim como a frase do seu status. O e-mail não é lido.
 - 🌐 **Nada é enviado a outros servidores** além dos do Google (e do GitHub, para
   checar atualizações).
 - 🛡️ Electron com `sandbox`, `contextIsolation`, sem Node na página, IPC validado,

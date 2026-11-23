@@ -54,8 +54,14 @@ os contatos veem, no navegador e no celular também. O app não cria um status p
 - **Não perturbe** vale também para o app: se ainda chegar algum aviso dessa conta, ele
   vem **sem som**.
 
-Como funciona: o preload do Chat lê, a cada 2 s, só o rótulo e o texto visíveis do
-botão de status (`[role=button][aria-label^="Status:"]`) e manda ao main
-(`chat:status`), que valida com `parseStatusReport` e guarda **só em memória**. Para
-abrir o menu, o main manda `chat:open-status` e o preload clica nesse botão. Se o
-Google mudar o botão, a foto fica sem bolinha e o clique só mostra o Chat. Nada quebra.
+Como funciona: o preload do Chat lê, a cada 2 s, só o rótulo do botão de status
+(`[role=button][aria-label^="Status:"]`, ex.: "Status: Ativo, 🍴") e, quando existe na
+página, o item **"Seu status"** do menu (a frase, ex.: "Pausa Intervalo"). O botão só
+mostra o **emoji**; o menu só fica na página depois de aberto uma vez (o clique na foto
+abre). O main valida com `parseStatusReport`, guarda a presença em memória e a **última
+frase** no perfil local (`custom.status`), reaproveitada após reiniciar enquanto o
+emoji for o mesmo. Para abrir o menu, o main manda `chat:open-status` e o preload clica
+no botão. Se o Google mudar essa tela, a foto fica sem bolinha e o clique só mostra o
+Chat. Nada quebra.
+
+Verificado em 23/11/2026 com um status real (🍴 "Pausa Intervalo").

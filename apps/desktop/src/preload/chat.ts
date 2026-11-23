@@ -60,6 +60,24 @@ function watchProfile(): void {
 const STATUS_BUTTON =
   '[role="button"][aria-label^="Status:"], [role="button"][aria-label^="Status :"]';
 
+/**
+ * Texto do status personalizado. O botão do Chat só mostra o emoji; a frase fica
+ * no item "Seu status" do menu de status, que só existe na página depois que o
+ * menu foi aberto uma vez (e continua lá, atualizado). null = ainda não aberto.
+ */
+function statusDetail(): string | null {
+  const menu = [...document.querySelectorAll<HTMLElement>('[role="menu"]')].find((m) =>
+    /perturbe|disturb/i.test(m.textContent ?? ''),
+  );
+  if (!menu) return null;
+  for (const span of menu.querySelectorAll<HTMLElement>('[role="menuitem"] span')) {
+    if (/^(Seu status|Your status)$/i.test(span.textContent?.trim() ?? '')) {
+      return span.nextElementSibling?.textContent?.trim() ?? '';
+    }
+  }
+  return ''; // menu presente e sem "Seu status": nenhum status personalizado
+}
+
 function watchStatus(): void {
   let last = '';
   const report = () => {
@@ -67,10 +85,11 @@ function watchStatus(): void {
     if (!button) return;
     const label = button.getAttribute('aria-label') ?? '';
     const text = (button.textContent ?? '').trim();
-    const key = `${label}|${text}`;
+    const detail = statusDetail();
+    const key = `${label}|${text}|${detail ?? ''}`;
     if (key === last) return;
     last = key;
-    ipcRenderer.send(STATUS_CHANNEL, { label, text });
+    ipcRenderer.send(STATUS_CHANNEL, detail === null ? { label, text } : { label, text, detail });
   };
   // Uma consulta a cada 2 s é bem mais leve que observar o DOM inteiro do Chat.
   setInterval(report, 2000);
