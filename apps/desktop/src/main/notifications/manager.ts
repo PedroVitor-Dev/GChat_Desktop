@@ -3,6 +3,7 @@ import type { BrowserWindow } from 'electron';
 import { Notification, type WebFrameMain } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../../shared/notifications';
 import type { SettingsStore } from '../store/settings-store';
+import { appIcon } from '../system/app-icon';
 import { Deduplicator, conversationKey, formatToast, isInQuietHours, isMuted } from './rules';
 
 /** Motivo pelo qual uma notificação não virou toast (para estatísticas, sem conteúdo). */
@@ -61,6 +62,7 @@ export class NotificationManager extends EventEmitter<Events> {
       title,
       body,
       silent: !settings.systemSound,
+      icon: appIcon(),
       actions: [{ type: 'button', text: 'Silenciar conversa' }],
     });
 
@@ -102,7 +104,12 @@ export class NotificationManager extends EventEmitter<Events> {
       body: 'As notificações estão funcionando.',
     };
     const { title, body } = formatToast(sample, settings);
-    const toast = new Notification({ title, body, silent: !settings.systemSound });
+    const toast = new Notification({
+      title,
+      body,
+      silent: !settings.systemSound,
+      icon: appIcon(),
+    });
     this.active.set('test', toast);
     toast.on('close', () => this.active.delete('test'));
     toast.show();

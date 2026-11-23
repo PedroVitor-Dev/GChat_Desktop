@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logo from '../../../resources/icon.png';
 import { sections, type SectionId } from './sections';
 
 export function App() {
@@ -9,9 +10,12 @@ export function App() {
   return (
     <div className="flex h-full">
       <nav className="w-60 shrink-0 p-3" aria-label="Configurações">
-        <div className="px-3 pt-2 pb-5">
-          <p className="text-base font-semibold">GChat Desktop+</p>
-          <p className="text-muted text-xs">Configurações</p>
+        <div className="flex items-center gap-2.5 px-3 pt-2 pb-5">
+          <img src={logo} alt="" className="h-8 w-8" draggable={false} />
+          <div>
+            <p className="text-base leading-tight font-semibold">GChat Desktop+</p>
+            <p className="text-muted text-xs">Configurações</p>
+          </div>
         </div>
         <ul className="space-y-0.5">
           {sections.map(({ id, label, icon: Icon }) => {

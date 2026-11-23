@@ -27,6 +27,6 @@ export default tseslint.config(
     // Scripts de build e configs rodam em Node e podem escrever no console.
     files: ['**/*.{js,mjs,cjs}', '**/*.config.ts'],
     languageOptions: { globals: globals.node },
-    rules: { 'no-console': 'off' },
+    rules: { 'no-console': 'off', '@typescript-eslint/no-require-imports': 'off' },
   },
 );

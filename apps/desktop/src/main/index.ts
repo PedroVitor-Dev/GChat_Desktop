@@ -7,6 +7,7 @@ import { listenForCaptures } from './notifications/capture-listener';
 import { NotificationManager } from './notifications/manager';
 import { applySecurityPolicies } from './security';
 import { SettingsStore } from './store/settings-store';
+import { appIcon } from './system/app-icon';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
 
@@ -15,6 +16,7 @@ let settingsWindow: BrowserWindow | null = null;
 
 function createSettingsWindow(): BrowserWindow {
   const win = new BrowserWindow({
+    icon: appIcon(),
     width: 960,
     height: 640,
     minWidth: 760,

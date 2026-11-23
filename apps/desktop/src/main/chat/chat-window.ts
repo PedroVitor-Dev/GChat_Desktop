@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { BrowserWindow, Menu, nativeTheme, shell, type WebContents } from 'electron';
 import { CHAT_URL, LOGIN_URL, decideNavigation, decidePopup, isLoggedOutLanding } from './policy';
+import { appIcon } from '../system/app-icon';
 import { getChatSession } from './session';
 
 const openExternal = (url: string): void => {
@@ -85,6 +86,7 @@ function showContextMenu(contents: WebContents, params: Electron.ContextMenuPara
 
 export function createChatWindow(): BrowserWindow {
   const win = new BrowserWindow({
+    icon: appIcon(),
     width: 1280,
     height: 860,
     minWidth: 720,
