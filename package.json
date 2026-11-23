@@ -1,7 +1,7 @@
 {
   "name": "gchat-desktop-plus",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Companheiro para Windows do Google Chat com notificações e sons personalizáveis.",
   "license": "GPL-3.0-only",
   "type": "module",
