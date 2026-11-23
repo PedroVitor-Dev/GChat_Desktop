@@ -26,3 +26,18 @@ botão de remover desativado.
 
 **Não verificado:** a atribuição de notificações entre duas contas logadas (a
 lógica foi revisada, mas o teste de ponta a ponta usou uma conta só).
+
+## Foto e nome do Google
+
+O preload do Chat lê, no botão da conta (canto superior do Chat), **só** a foto e
+o nome exibidos. O e-mail, que também está no rótulo do botão, é descartado ali
+mesmo. A foto é baixada em 128 px pela sessão da própria conta e salva como data
+URL em `%APPDATA%\GChat Desktop+\profiles\<conta>.json`. Aparece no trilho e na
+tela Contas e é apagada ao sair da conta ou remover a conta.
+
+O modelo (`shared/profile.ts`) já tem os campos do futuro perfil estilo Discord
+(banner com imagem/GIF, cor, bio e status), ainda sem uso. Um perfil **público**
+exigirá servidor e login com Google.
+
+**Status com frase:** use o recurso nativo do Google Chat ("Ativo ▾" → "Adicionar
+um status"), que todos os contatos veem, inclusive no navegador e no celular.

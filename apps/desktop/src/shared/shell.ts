@@ -42,6 +42,10 @@ export interface AccountView {
   loading: boolean;
   /** Título da página (ex.: "Chat"). */
   title: string;
+  /** Foto do Google (data URL), quando já lida da página do Chat. */
+  photo?: string;
+  /** Nome exibido pelo Google. */
+  displayName?: string;
 }
 
 export interface ShellState {

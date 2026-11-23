@@ -46,13 +46,25 @@ export function Rail({
         return (
           <RailItem
             key={a.id}
-            label={single ? 'Google Chat' : `${a.name}${i < 5 ? ` (Ctrl+${i + 1})` : ''}`}
+            label={
+              single
+                ? `Google Chat${a.displayName ? ` · ${a.displayName}` : ''}`
+                : `${a.name}${a.displayName ? ` · ${a.displayName}` : ''}${i < 5 ? ` (Ctrl+${i + 1})` : ''}`
+            }
             active={active}
             badge={a.unread}
             activeColor={single ? undefined : ACCOUNT_COLORS[a.color % ACCOUNT_COLORS.length]}
             onClick={() => onSelect(a.id)}
           >
-            {single ? (
+            {a.photo ? (
+              // Foto do Google: herda o formato do ícone (redondo → quadrado no hover/ativo)
+              <img
+                src={a.photo}
+                alt=""
+                className="h-full w-full rounded-[inherit] object-cover"
+                draggable={false}
+              />
+            ) : single ? (
               <img src={logo} alt="" className="h-8 w-8" draggable={false} />
             ) : (
               <span className="text-[17px] font-semibold">{accountInitials(a.name)}</span>

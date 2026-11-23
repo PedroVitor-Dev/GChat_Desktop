@@ -10,6 +10,7 @@ import type { AppShell } from '../shell/app-shell';
 import type { StreamerMode } from '../system/streamer-mode';
 import type { RoomsService } from '../meet/rooms-service';
 import type { AppUpdater } from '../system/updater';
+import type { ProfileService } from '../profile/profile-service';
 import { isRoomId } from '../../shared/rooms';
 import { autostartStatus } from '../system/autostart';
 import type { ImportResult, SoundLibrary } from '../sounds/library';
@@ -27,6 +28,7 @@ interface IpcDeps {
   streamer: StreamerMode;
   rooms: RoomsService;
   updater: AppUpdater;
+  profiles: ProfileService;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -73,6 +75,7 @@ export function registerIpc({
   streamer,
   rooms,
   updater,
+  profiles,
 }: IpcDeps): void {
   handle(IpcChannel.UpdateStatus, noArgs, () => updater.status());
   handle(IpcChannel.UpdateCheck, noArgs, () => updater.check());
@@ -124,8 +127,15 @@ export function registerIpc({
 
   handle(IpcChannel.AccountAdd, oneArg, (name) => accounts.add(name));
   handle(IpcChannel.AccountRename, accountArgs, ([id, name]) => accounts.rename(id, name));
-  handle(IpcChannel.AccountSignOut, accountArgs, ([id]) => accounts.signOut(id));
-  handle(IpcChannel.AccountRemove, accountArgs, ([id]) => accounts.remove(id));
+  handle(IpcChannel.AccountSignOut, accountArgs, async ([id]) => {
+    await profiles.clear(id);
+    return accounts.signOut(id);
+  });
+  handle(IpcChannel.AccountRemove, accountArgs, async ([id]) => {
+    const r = await accounts.remove(id);
+    if (r.ok) await profiles.clear(id);
+    return r;
+  });
   handle(ShellChannel.ReloadChat, noArgs, () => shell.reloadChat());
 
   handle(IpcChannel.AppInfo, noArgs, (): AppInfo => ({

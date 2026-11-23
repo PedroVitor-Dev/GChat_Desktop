@@ -13,8 +13,46 @@
  */
 import { contextBridge, ipcRenderer } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../shared/notifications';
+import { PROFILE_CHANNEL } from '../shared/profile';
 
 const CHAT_ORIGIN = 'https://chat.google.com';
+
+/**
+ * Perfil: lê do botão da conta (canto superior do Chat) só a foto e o nome
+ * exibidos — o e-mail que também aparece no rótulo é descartado aqui mesmo.
+ * Roda no world isolado (lê o DOM, não expõe nada à página).
+ */
+function watchProfile(): void {
+  let last = '';
+  const report = () => {
+    const button = document.querySelector<HTMLAnchorElement>(
+      'a[aria-label^="Conta do Google"], a[aria-label^="Google Account"]',
+    );
+    const img = button?.querySelector<HTMLImageElement>('img[src*="googleusercontent.com"]');
+    if (!button || !img) return;
+    // "Conta do Google: Nome \n(email)" → "Nome"
+    const label = button.getAttribute('aria-label') ?? '';
+    const displayName = label.split(':').slice(1).join(':').split('\n')[0]!.split('(')[0]!.trim();
+    const key = `${img.src}|${displayName}`;
+    if (!displayName || key === last) return;
+    last = key;
+    ipcRenderer.send(PROFILE_CHANNEL, { photoUrl: img.src, displayName });
+  };
+  // A barra do Chat aparece depois do carregamento; depois disso, checagem leve.
+  const observer = new MutationObserver(() => {
+    report();
+    if (last) observer.disconnect();
+  });
+  const start = () => {
+    report();
+    if (!last) observer.observe(document.body, { childList: true, subtree: true });
+    setInterval(report, 5 * 60_000); // troca de foto/nome no Google
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+}
+
+if (location.origin === CHAT_ORIGIN && window === window.top) watchProfile();
 
 if (location.origin === CHAT_ORIGIN) {
   let clickListener: ((id: string) => void) | null = null;

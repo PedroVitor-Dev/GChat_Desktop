@@ -14,6 +14,7 @@ import { WindowStateFile } from './system/window-state';
 import { StreamerMode } from './system/streamer-mode';
 import { RoomsService } from './meet/rooms-service';
 import { AppUpdater } from './system/updater';
+import { ProfileService } from './profile/profile-service';
 import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
@@ -77,6 +78,9 @@ if (!app.requestSingleInstanceLock()) {
 
     const rooms = new RoomsService(settings);
     const updater = new AppUpdater(settings);
+    const profiles = new ProfileService((contents) => shell.accountIdFor(contents));
+    shell.setProfiles(profiles.all());
+    profiles.on('change', (all) => shell.setProfiles(all));
     registerIpc({
       settings,
       notifications,
@@ -87,6 +91,7 @@ if (!app.requestSingleInstanceLock()) {
       streamer,
       rooms,
       updater,
+      profiles,
     });
     updater.on('status', (s) =>
       tray?.setUpdateReady(s.state === 'downloaded' ? (s.version ?? null) : null),

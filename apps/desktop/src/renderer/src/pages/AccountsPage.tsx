@@ -58,7 +58,15 @@ export function AccountsPage() {
               key={a.id}
               className="border-line flex items-center gap-3 border-b py-3 last:border-b-0"
             >
-              <AccountAvatar name={a.name} color={a.color} size={40} className="rounded-full" />
+              {a.photo ? (
+                <img
+                  src={a.photo}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <AccountAvatar name={a.name} color={a.color} size={40} className="rounded-full" />
+              )}
               <div className="min-w-0 flex-1">
                 {editing === a.id ? (
                   <form
@@ -88,6 +96,9 @@ export function AccountsPage() {
                 ) : (
                   <>
                     <p className="text-header truncate font-semibold select-text">{a.name}</p>
+                    {a.displayName && (
+                      <p className="text-interactive truncate text-sm">{a.displayName}</p>
+                    )}
                     <p className="text-muted text-sm">
                       {a.id === state.activeAccount ? 'Aberta agora' : 'Em segundo plano'}
                       {a.unread > 0 && ` · ${a.unread} novas`}

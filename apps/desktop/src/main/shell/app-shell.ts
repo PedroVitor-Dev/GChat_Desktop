@@ -13,6 +13,7 @@ import {
 import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
+import type { AccountProfile } from '../../shared/profile';
 import { meetCodeFromUrl, meetUrl, type CallState, type Room } from '../../shared/rooms';
 import { createMeetView } from '../meet/meet-view';
 import {
@@ -103,6 +104,7 @@ export class AppShell {
   private quitting = false;
   private lastTotalUnread = 0;
   private streamer: StreamerStatus = STREAMER_OFF;
+  private profiles = new Map<string, AccountProfile>();
   private relayoutTimers: NodeJS.Timeout[] = [];
   private view: ShellView = 'chat';
   /** Chamada do Meet em andamento: view própria, continua tocando em segundo plano. */
@@ -163,6 +165,7 @@ export class AppShell {
       unread: s.unread,
       loading: s.loading,
       title: s.title,
+      ...this.profileFields(s.account.id),
     }));
     return {
       settingsOpen: this.settingsOpen,
@@ -347,6 +350,19 @@ export class AppShell {
         s.view.webContents.session.cookies.flushStore().catch(() => undefined),
       ),
     );
+  }
+
+  setProfiles(profiles: Map<string, AccountProfile>): void {
+    this.profiles = profiles;
+    this.emitState();
+  }
+
+  private profileFields(id: string): { photo?: string; displayName?: string } {
+    const p = this.profiles.get(id);
+    return {
+      ...(p?.photo ? { photo: p.photo } : {}),
+      ...(p?.displayName ? { displayName: p.displayName } : {}),
+    };
   }
 
   setStreamer(status: StreamerStatus): void {
