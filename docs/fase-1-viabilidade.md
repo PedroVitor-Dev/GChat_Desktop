@@ -6,12 +6,12 @@
 
 ## 1. Resumo executivo
 
-| Pergunta | Resposta |
-|---|---|
-| Dá para fazer login no Google dentro de uma janela Electron? | **Não de forma confiável nem permitida.** O Google bloqueia login em frameworks de navegador incorporado (CEF, Electron) desde 04/01/2021. Contornar isso exige falsificar o navegador, que está fora do escopo do projeto. |
-| Existe API oficial que avise sobre novas mensagens? | **Sim, mas só para Google Workspace:** a Google Workspace Events API (`google.workspace.chat.message.v1.created`). Ela exige projeto no Google Cloud, OAuth com escopo `chat.messages` e Pub/Sub. Não serve para contas pessoais nem para uso "instale e use". |
-| Qual o caminho oficial do Google para o Chat no desktop? | O **app instalável (PWA)** do Chat no Chrome. Ele substituiu o antigo cliente Electron do próprio Google. |
-| Arquitetura escolhida | **PWA oficial do Chat no Chrome/Edge + extensão MV3 + aplicativo Windows companheiro (Electron), ligados por Native Messaging.** |
+| Pergunta                                                     | Resposta                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dá para fazer login no Google dentro de uma janela Electron? | **Não de forma confiável nem permitida.** O Google bloqueia login em frameworks de navegador incorporado (CEF, Electron) desde 04/01/2021. Contornar isso exige falsificar o navegador, que está fora do escopo do projeto.                                    |
+| Existe API oficial que avise sobre novas mensagens?          | **Sim, mas só para Google Workspace:** a Google Workspace Events API (`google.workspace.chat.message.v1.created`). Ela exige projeto no Google Cloud, OAuth com escopo `chat.messages` e Pub/Sub. Não serve para contas pessoais nem para uso "instale e use". |
+| Qual o caminho oficial do Google para o Chat no desktop?     | O **app instalável (PWA)** do Chat no Chrome. Ele substituiu o antigo cliente Electron do próprio Google.                                                                                                                                                      |
+| Arquitetura escolhida                                        | **PWA oficial do Chat no Chrome/Edge + extensão MV3 + aplicativo Windows companheiro (Electron), ligados por Native Messaging.**                                                                                                                               |
 
 ## 2. Restrições encontradas
 
@@ -58,16 +58,16 @@ estável para uso diário.
 
 ## 3. Comparação de arquiteturas
 
-| Critério | A. Electron carregando o Chat | B. PWA + extensão + app Windows | C. API oficial (Events API) |
-|---|---|---|---|
-| Login Google | Bloqueado sem falsificar o navegador | **Nativo do navegador** (2FA, passkeys, SSO) | OAuth oficial |
-| Contas pessoais (@gmail) | — | **Sim** | Não (só Workspace) |
-| Múltiplas contas | Partições de sessão | Perfis do navegador e seletor de contas do Chat | Uma assinatura por conta |
-| Acesso aos dados da notificação | Hook na página (não documentado) | Hook na página (não documentado) | **Documentado** |
-| Funciona com o navegador fechado | Sim | **Não** | Sim (com o app aberto) |
-| Configuração para o usuário | Instalar | Instalar o app e a extensão (o instalador guia) | Projeto GCP, OAuth, Pub/Sub |
-| Risco de quebra | **Alto** (bloqueio de login) | Médio (formato da notificação) | Baixo |
-| Conformidade com as regras do projeto | Viola (falsificação) | **Atende** | Atende |
+| Critério                              | A. Electron carregando o Chat        | B. PWA + extensão + app Windows                 | C. API oficial (Events API) |
+| ------------------------------------- | ------------------------------------ | ----------------------------------------------- | --------------------------- |
+| Login Google                          | Bloqueado sem falsificar o navegador | **Nativo do navegador** (2FA, passkeys, SSO)    | OAuth oficial               |
+| Contas pessoais (@gmail)              | —                                    | **Sim**                                         | Não (só Workspace)          |
+| Múltiplas contas                      | Partições de sessão                  | Perfis do navegador e seletor de contas do Chat | Uma assinatura por conta    |
+| Acesso aos dados da notificação       | Hook na página (não documentado)     | Hook na página (não documentado)                | **Documentado**             |
+| Funciona com o navegador fechado      | Sim                                  | **Não**                                         | Sim (com o app aberto)      |
+| Configuração para o usuário           | Instalar                             | Instalar o app e a extensão (o instalador guia) | Projeto GCP, OAuth, Pub/Sub |
+| Risco de quebra                       | **Alto** (bloqueio de login)         | Médio (formato da notificação)                  | Baixo                       |
+| Conformidade com as regras do projeto | Viola (falsificação)                 | **Atende**                                      | Atende                      |
 
 **Decisão: arquitetura B.** É a única que atende todas as regras (sem falsificação,
 sem tocar em credenciais, login 100% oficial) e funciona para qualquer conta. O
@@ -96,19 +96,19 @@ pequeno e testável, com modo de degradação (seção 5).
 ### 4.1 Componentes
 
 1. **Extensão MV3 (Chrome e Edge, o mesmo código)**
-   - `notification-hook` no *world* `MAIN` (`content_scripts[].world = "MAIN"`,
+   - `notification-hook` no _world_ `MAIN` (`content_scripts[].world = "MAIN"`,
      recurso documentado). Substitui `window.Notification` e
      `ServiceWorkerRegistration.prototype.showNotification` por versões que
      **leem apenas título, corpo, tag e timestamp** e repassam esses dados.
      Não toca em cookies, tokens, formulários nem no DOM das mensagens.
-   - `content bridge` no *world* `ISOLATED`. Valida o formato do `postMessage`,
+   - `content bridge` no _world_ `ISOLATED`. Valida o formato do `postMessage`,
      descarta o que não for do hook e repassa ao service worker.
    - **Service worker** que mantém a porta `connectNative` com o app e, ao receber
      "foco", chama `chrome.windows.update` / `chrome.tabs.update` (APIs documentadas)
      e dispara o `onclick` original guardado pelo hook.
 2. **native-host**: um executável mínimo iniciado pelo navegador. Ele só faz a
    ponte entre o stdio do Native Messaging (mensagens de até 1 MB com prefixo de
-   tamanho) e o *named pipe* do app. Se o app não estiver rodando, ele o inicia.
+   tamanho) e o _named pipe_ do app. Se o app não estiver rodando, ele o inicia.
    Fica registrado em `HKCU\Software\Google\Chrome\NativeMessagingHosts\…` e
    `HKCU\Software\Microsoft\Edge\NativeMessagingHosts\…`.
 3. **App Windows (Electron + React + TypeScript + Tailwind)**: Notification
@@ -133,25 +133,25 @@ pequeno e testável, com modo de degradação (seção 5).
 
 Legenda: ✅ documentado/estável · ⚠️ depende de comportamento não documentado · ❌ inviável
 
-| Funcionalidade | Status | Observação / alternativa |
-|---|---|---|
-| Login normal, 2FA, sessão persistente | ✅ | Feitos pelo próprio navegador |
-| Múltiplas contas | ✅ | Perfis do navegador e seletor de contas do Chat; a extensão informa o perfil de origem |
-| Não armazenar senhas | ✅ | O app nunca vê credenciais |
-| Detectar nova mensagem | ⚠️ | Depende de o Chat emitir uma Web Notification. **Validar com a sonda.** |
-| Remetente, conteúdo e horário | ⚠️ | Vêm do título e do corpo da notificação; o horário é o do recebimento |
-| Abrir a conversa ao clicar | ⚠️ | Reutiliza o `onclick` original; o fallback é só focar a aba do Chat |
-| Deduplicação | ✅ | Feita por nós: `tag` + hash (título, corpo) em uma janela de tempo; guardamos só o hash |
-| Não notificar as próprias mensagens | ✅ | O próprio Chat não notifica mensagens enviadas pelo usuário |
-| Sons por contato, grupo ou espaço | ⚠️ | A chave é o nome exibido no título; sem ID oficial, renomear o espaço quebra a regra |
-| Som de menção | ⚠️ | Detectado por heurística (`@nome` no corpo); configurável |
-| Silenciar conversa e horário de silêncio | ✅ | Regras locais do app |
-| Ocultar conteúdo | ✅ | O toast mostra "Nova mensagem de …" ou só "Nova mensagem" |
-| Importar MP3/WAV/OGG, volume, prévia | ✅ | Validação por *magic bytes* + limite de tamanho + cópia para o `userData` |
-| Bandeja, autostart, iniciar minimizado | ✅ | APIs do Electron (`Tray`, `app.setLoginItemSettings`) |
-| Contador de não lidas | ⚠️ | Lido do título da aba (`chrome.tabs`); o formato não é documentado. O fallback é contar as notificações não abertas |
-| Notificar com o app **e** o navegador fechados | ❌ | Sem o navegador aberto não há sessão. Alternativa: o app pode **abrir o PWA minimizado ao iniciar o Windows** |
-| Notificar com o navegador fechado (Workspace) | ✅ futuro | "Modo corporativo" via Workspace Events API (seção 2.3) |
+| Funcionalidade                                 | Status    | Observação / alternativa                                                                                            |
+| ---------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
+| Login normal, 2FA, sessão persistente          | ✅        | Feitos pelo próprio navegador                                                                                       |
+| Múltiplas contas                               | ✅        | Perfis do navegador e seletor de contas do Chat; a extensão informa o perfil de origem                              |
+| Não armazenar senhas                           | ✅        | O app nunca vê credenciais                                                                                          |
+| Detectar nova mensagem                         | ⚠️        | Depende de o Chat emitir uma Web Notification. **Validar com a sonda.**                                             |
+| Remetente, conteúdo e horário                  | ⚠️        | Vêm do título e do corpo da notificação; o horário é o do recebimento                                               |
+| Abrir a conversa ao clicar                     | ⚠️        | Reutiliza o `onclick` original; o fallback é só focar a aba do Chat                                                 |
+| Deduplicação                                   | ✅        | Feita por nós: `tag` + hash (título, corpo) em uma janela de tempo; guardamos só o hash                             |
+| Não notificar as próprias mensagens            | ✅        | O próprio Chat não notifica mensagens enviadas pelo usuário                                                         |
+| Sons por contato, grupo ou espaço              | ⚠️        | A chave é o nome exibido no título; sem ID oficial, renomear o espaço quebra a regra                                |
+| Som de menção                                  | ⚠️        | Detectado por heurística (`@nome` no corpo); configurável                                                           |
+| Silenciar conversa e horário de silêncio       | ✅        | Regras locais do app                                                                                                |
+| Ocultar conteúdo                               | ✅        | O toast mostra "Nova mensagem de …" ou só "Nova mensagem"                                                           |
+| Importar MP3/WAV/OGG, volume, prévia           | ✅        | Validação por _magic bytes_ + limite de tamanho + cópia para o `userData`                                           |
+| Bandeja, autostart, iniciar minimizado         | ✅        | APIs do Electron (`Tray`, `app.setLoginItemSettings`)                                                               |
+| Contador de não lidas                          | ⚠️        | Lido do título da aba (`chrome.tabs`); o formato não é documentado. O fallback é contar as notificações não abertas |
+| Notificar com o app **e** o navegador fechados | ❌        | Sem o navegador aberto não há sessão. Alternativa: o app pode **abrir o PWA minimizado ao iniciar o Windows**       |
+| Notificar com o navegador fechado (Workspace)  | ✅ futuro | "Modo corporativo" via Workspace Events API (seção 2.3)                                                             |
 
 ## 6. Validação pendente: sonda de notificações
 
@@ -176,13 +176,13 @@ será comunicado ao usuário.
 
 ## 7. Riscos e mitigação
 
-| Risco | Mitigação |
-|---|---|
-| O Google muda o formato das notificações | Hook isolado em um único arquivo, testes com fixtures e modo genérico de fallback |
-| Políticas corporativas bloqueiam extensões ou native hosts do usuário (`NativeMessagingUserLevelHosts`) | Instalador com opção "por máquina" (HKLM) e documentação para TI |
-| Script no world MAIN pode ser lido ou alterado pela página | O hook não carrega segredos nem permissões; toda validação acontece no lado isolado |
-| CSP da página afeta o script no world MAIN | Código autocontido, sem `eval` e sem carregar recursos externos |
-| Publicação na Chrome Web Store / Edge Add-ons | Política de privacidade explícita e permissões mínimas (`nativeMessaging`, `tabs` e host `chat.google.com`) |
+| Risco                                                                                                   | Mitigação                                                                                                   |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| O Google muda o formato das notificações                                                                | Hook isolado em um único arquivo, testes com fixtures e modo genérico de fallback                           |
+| Políticas corporativas bloqueiam extensões ou native hosts do usuário (`NativeMessagingUserLevelHosts`) | Instalador com opção "por máquina" (HKLM) e documentação para TI                                            |
+| Script no world MAIN pode ser lido ou alterado pela página                                              | O hook não carrega segredos nem permissões; toda validação acontece no lado isolado                         |
+| CSP da página afeta o script no world MAIN                                                              | Código autocontido, sem `eval` e sem carregar recursos externos                                             |
+| Publicação na Chrome Web Store / Edge Add-ons                                                           | Política de privacidade explícita e permissões mínimas (`nativeMessaging`, `tabs` e host `chat.google.com`) |
 
 ## 8. Fontes
 

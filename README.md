@@ -20,7 +20,8 @@ Detalhes em [docs/fase-1-viabilidade.md](docs/fase-1-viabilidade.md) e
 ## Status
 
 - [x] Fase 1: viabilidade (falta validar com `spikes/notification-probe`)
-- [ ] Fase 2: estrutura do monorepo
+- [x] Fase 2: estrutura do monorepo ([docs/desenvolvimento.md](docs/desenvolvimento.md))
+- [ ] Fase 3: conexão extensão ⇄ app
 
 ## Licença
 

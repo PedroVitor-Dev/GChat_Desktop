@@ -1,0 +1,33 @@
+{
+  "name": "@gchat/desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "GChat Desktop+ — app Windows",
+  "author": "Pedro Vitor",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
+    "dist": "electron-vite build && electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "@gchat/protocol": "*",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "lucide-react": "^1.78.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.5",
+    "vite": "^8.3.8"
+  },
+  "productName": "GChat Desktop+"
+}

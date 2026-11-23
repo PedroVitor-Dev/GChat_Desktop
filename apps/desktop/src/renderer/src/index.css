@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+
+/* Paleta neutra inspirada no Windows 11 (Fluent). Tema segue o sistema por padrão. */
+@theme {
+  --font-sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --color-surface: #f3f3f3;
+  --color-card: #ffffff;
+  --color-line: #e5e5e5;
+  --color-ink: #1b1b1b;
+  --color-muted: #616161;
+  --color-accent: #0f6cbd;
+  --color-accent-soft: #e8f1fb;
+}
+
+@layer base {
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-surface: #202020;
+      --color-card: #2b2b2b;
+      --color-line: #3a3a3a;
+      --color-ink: #f3f3f3;
+      --color-muted: #a8a8a8;
+      --color-accent: #4cc2ff;
+      --color-accent-soft: #233544;
+    }
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-surface text-ink font-sans antialiased select-none;
+    font-size: 14px;
+  }
+}
