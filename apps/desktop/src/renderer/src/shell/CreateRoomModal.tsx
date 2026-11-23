@@ -25,10 +25,10 @@ export function CreateRoomModal({
 
   useEffect(() => {
     input.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !busy && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose, busy]);
+  }, [onClose]);
 
   const submit = async () => {
     setBusy(true);
@@ -64,7 +64,7 @@ export function CreateRoomModal({
   return (
     <div
       className="absolute inset-0 z-20 flex animate-[fade-in_150ms_ease] items-center justify-center bg-black/70"
-      onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <form
         role="dialog"
@@ -147,16 +147,13 @@ export function CreateRoomModal({
             {mode === 'new'
               ? `Criada na conta ${accountName ?? 'ativa'}. O link é copiado para você colar no Chat.`
               : 'Use o link de uma sala que alguém já criou.'}
+            {busy &&
+              ' Se preferir, feche esta janela: a sala aparece na lista quando ficar pronta.'}
           </p>
         </div>
 
         <div className="bg-sidebar flex items-center justify-between px-4 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="text-ink text-sm hover:underline"
-          >
+          <button type="button" onClick={onClose} className="text-ink text-sm hover:underline">
             Voltar
           </button>
           <button

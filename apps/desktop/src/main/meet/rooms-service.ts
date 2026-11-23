@@ -13,7 +13,7 @@ import type { SettingsStore } from '../store/settings-store';
 
 export type RoomResult = { ok: true; room: Room } | { ok: false; error: string };
 
-const CREATE_TIMEOUT_MS = 25_000;
+const CREATE_TIMEOUT_MS = 15_000;
 
 /**
  * Salas do Meet. Criar usa o próprio meet.new do Google, numa página oculta com a
@@ -21,6 +21,9 @@ const CREATE_TIMEOUT_MS = 25_000;
  * que vira uma sala permanente. Nenhuma API ou credencial extra.
  */
 export class RoomsService {
+  /** Páginas ocultas em andamento (referência forte até terminarem). */
+  private readonly pending = new Set<WebContentsView>();
+
   constructor(private readonly settings: SettingsStore) {}
 
   list(): Room[] {
@@ -93,7 +96,13 @@ export class RoomsService {
     return { ok: true, room };
   }
 
-  /** Abre meet.new numa página oculta e captura o código da reunião criada. */
+  /**
+   * Abre meet.new numa página oculta e captura o código da reunião criada.
+   *
+   * A view fica referenciada em `pending` até terminar: uma WebContentsView
+   * solta (sem janela e sem referência) pode ser coletada pelo GC no meio do
+   * carregamento, e a criação ficava parada até o tempo limite.
+   */
   private newMeetingCode(accountId: string): Promise<string> {
     const view = new WebContentsView({
       webPreferences: {
@@ -103,22 +112,37 @@ export class RoomsService {
         nodeIntegration: false,
       },
     });
+    this.pending.add(view);
     const contents = view.webContents;
     contents.setAudioMuted(true);
     // A página oculta nunca abre janelas nem pede permissões.
     contents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
     return new Promise<string>((resolve, reject) => {
+      let settled = false;
       const finish = (err: Error | null, code?: string) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
-        if (!contents.isDestroyed()) contents.close();
+        this.pending.delete(view);
+        try {
+          if (!contents.isDestroyed()) contents.close();
+        } catch {
+          // já fechada
+        }
         if (err) reject(err);
         else resolve(code!);
       };
       const check = (url: string) => {
         const code = meetCodeFromUrl(url);
         if (code) return finish(null, code);
-        if (new URL(url).host === 'accounts.google.com') {
+        let host: string;
+        try {
+          host = new URL(url).host;
+        } catch {
+          return;
+        }
+        if (host === 'accounts.google.com') {
           finish(new Error('Faça login no Google Chat desta conta antes de criar salas.'));
         }
       };
@@ -128,12 +152,20 @@ export class RoomsService {
       );
       contents.on('did-navigate', (_e, url) => check(url));
       contents.on('did-navigate-in-page', (_e, url) => check(url));
-      contents.on('did-fail-load', (_e, code, desc, url, isMainFrame) => {
-        if (isMainFrame && code !== -3)
+      contents.on('did-fail-load', (_e, code, desc, _url, isMainFrame) => {
+        if (isMainFrame && code !== -3) {
           finish(new Error(`Não foi possível abrir o Meet (${desc}).`));
-        void url;
+        }
       });
-      void contents.loadURL('https://meet.new');
+      contents.once('destroyed', () =>
+        finish(new Error('A criação da sala foi interrompida. Tente de novo.')),
+      );
+      contents.on('render-process-gone', () =>
+        finish(new Error('A página do Meet fechou inesperadamente. Tente de novo.')),
+      );
+      contents.loadURL('https://meet.new').catch(() => {
+        // erros de carregamento chegam por did-fail-load
+      });
     });
   }
 }
