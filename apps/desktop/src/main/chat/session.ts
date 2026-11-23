@@ -1,4 +1,4 @@
-import { session, type Session } from 'electron';
+import { desktopCapturer, session, type Session } from 'electron';
 import { isPermissionAllowed } from './policy';
 
 /**
@@ -26,6 +26,14 @@ export function getChatSession(partition: string): Session {
   ses.setPermissionCheckHandler((_wc, permission, requestingOrigin) =>
     isPermissionAllowed(permission, requestingOrigin),
   );
+  // Compartilhar tela no Meet: usa a tela principal (com o áudio do sistema).
+  ses.setDisplayMediaRequestHandler((request, callback) => {
+    if (!isPermissionAllowed('display-capture', request.securityOrigin)) return callback({});
+    void desktopCapturer
+      .getSources({ types: ['screen'] })
+      .then((sources) => callback(sources[0] ? { video: sources[0], audio: 'loopback' } : {}))
+      .catch(() => callback({}));
+  });
   ses.setSpellCheckerLanguages(['pt-BR', 'en-US']);
   return ses;
 }

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ShellActionsContext } from './hooks/shellActions';
+import { useSettings } from './hooks/useSettings';
 import { useShellState } from './hooks/useShellState';
+import { CreateRoomModal } from './shell/CreateRoomModal';
+import { RoomsPanel } from './shell/RoomsPanel';
 import { AddAccountModal } from './shell/AddAccountModal';
 import { ChatPlaceholder } from './shell/ChatPlaceholder';
 import { Rail } from './shell/Rail';
@@ -15,6 +18,8 @@ import { TitleBar } from './shell/TitleBar';
 export function App() {
   const state = useShellState();
   const [adding, setAdding] = useState(false);
+  const [creatingRoom, setCreatingRoom] = useState(false);
+  const [settings] = useSettings();
   const { shell } = window.gchat;
 
   useEffect(() => {
@@ -33,6 +38,15 @@ export function App() {
     void shell.setModalOpen(false);
   }, [shell]);
 
+  const openCreateRoom = useCallback(() => {
+    setCreatingRoom(true);
+    void shell.setModalOpen(true);
+  }, [shell]);
+  const closeCreateRoom = useCallback(() => {
+    setCreatingRoom(false);
+    void shell.setModalOpen(false);
+  }, [shell]);
+
   const actions = useMemo(() => ({ openAddAccount: openAdd }), [openAdd]);
 
   if (!state) return <div className="bg-rail h-full" />;
@@ -46,7 +60,12 @@ export function App() {
   return (
     <ShellActionsContext.Provider value={actions}>
       <div className="flex h-full flex-col">
-        <TitleBar title={title} streamer={state.streamer} />
+        <TitleBar
+          title={title}
+          streamer={state.streamer}
+          call={state.call}
+          onShowCall={() => void window.gchat.call.show(true)}
+        />
         <div className="relative flex min-h-0 flex-1">
           <Rail
             accounts={state.accounts}
@@ -56,12 +75,21 @@ export function App() {
             onSelect={(id) => void shell.selectAccount(id)}
             onAdd={openAdd}
             onSettings={() => void shell.setSettingsOpen(!state.settingsOpen)}
+            roomsOpen={state.roomsPanelOpen}
+            inCall={!!state.call}
+            onRooms={() => void shell.setRoomsPanelOpen(!state.roomsPanelOpen)}
           />
+          {state.roomsPanelOpen && (
+            <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
+          )}
           <ChatPlaceholder loading={active?.loading ?? true} />
           {state.settingsOpen && (
             <SettingsScreen onClose={() => void shell.setSettingsOpen(false)} />
           )}
           {adding && <AddAccountModal onClose={closeAdd} />}
+          {creatingRoom && (
+            <CreateRoomModal accountName={active?.name ?? null} onClose={closeCreateRoom} />
+          )}
         </div>
       </div>
     </ShellActionsContext.Provider>

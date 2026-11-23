@@ -78,8 +78,13 @@ const ALLOWED_PERMISSIONS = new Set([
   'media', // chamadas/huddles
 ]);
 
+/** Só o Meet pode compartilhar a tela. */
+const MEET_ONLY_PERMISSIONS = new Set(['display-capture']);
+
 export function isPermissionAllowed(permission: string, origin: string): boolean {
-  if (!ALLOWED_PERMISSIONS.has(permission)) return false;
   const u = parse(origin);
-  return u?.protocol === 'https:' && (u.host === 'chat.google.com' || u.host === 'meet.google.com');
+  if (u?.protocol !== 'https:') return false;
+  if (MEET_ONLY_PERMISSIONS.has(permission)) return u.host === 'meet.google.com';
+  if (!ALLOWED_PERMISSIONS.has(permission)) return false;
+  return u.host === 'chat.google.com' || u.host === 'meet.google.com';
 }

@@ -23,6 +23,19 @@ const api: GChatApi = {
   removeSound: (id) => ipcRenderer.invoke(IpcChannel.SoundRemove, id),
   getAutostartStatus: () => ipcRenderer.invoke(IpcChannel.AutostartStatus),
   toggleStreamer: () => ipcRenderer.invoke(IpcChannel.StreamerToggle),
+  rooms: {
+    create: (name) => ipcRenderer.invoke(IpcChannel.RoomsCreate, name),
+    addFromLink: (name, link) => ipcRenderer.invoke(IpcChannel.RoomsAddLink, name, link),
+    rename: (id, name) => ipcRenderer.invoke(IpcChannel.RoomsRename, id, name),
+    remove: (id) => ipcRenderer.invoke(IpcChannel.RoomsRemove, id),
+    copyLink: (id) => ipcRenderer.invoke(IpcChannel.RoomsCopyLink, id),
+  },
+  call: {
+    join: (roomId) => ipcRenderer.invoke(IpcChannel.CallJoin, roomId),
+    show: (visible) => ipcRenderer.invoke(IpcChannel.CallShow, visible),
+    leave: () => ipcRenderer.invoke(IpcChannel.CallLeave),
+    toggle: (kind) => ipcRenderer.invoke(IpcChannel.CallShortcut, kind),
+  },
   accounts: {
     add: (name) => ipcRenderer.invoke(IpcChannel.AccountAdd, name),
     rename: (id, name) => ipcRenderer.invoke(IpcChannel.AccountRename, id, name),
@@ -38,6 +51,7 @@ const api: GChatApi = {
     },
     setSettingsOpen: (open) => ipcRenderer.invoke(ShellChannel.SetSettingsOpen, open),
     setModalOpen: (open) => ipcRenderer.invoke(ShellChannel.SetModalOpen, open),
+    setRoomsPanelOpen: (open) => ipcRenderer.invoke(ShellChannel.SetRoomsPanel, open),
     selectAccount: (id) => ipcRenderer.invoke(ShellChannel.SelectAccount, id),
     reloadChat: () => ipcRenderer.invoke(ShellChannel.ReloadChat),
   },

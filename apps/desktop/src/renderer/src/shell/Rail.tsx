@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Plus, Settings } from 'lucide-react';
+import { Headphones, Plus, Settings } from 'lucide-react';
 import logo from '../../../../resources/icon.png';
 import { ACCOUNT_COLORS, ACCOUNT_LIMITS, accountInitials } from '../../../shared/accounts';
 import { SHELL_LAYOUT, type AccountView } from '../../../shared/shell';
@@ -17,6 +17,9 @@ export function Rail({
   onSelect,
   onAdd,
   onSettings,
+  roomsOpen,
+  inCall,
+  onRooms,
 }: {
   accounts: AccountView[];
   activeAccount: string;
@@ -25,6 +28,9 @@ export function Rail({
   onSelect: (id: string) => void;
   onAdd: () => void;
   onSettings: () => void;
+  roomsOpen: boolean;
+  inCall: boolean;
+  onRooms: () => void;
 }) {
   const single = accounts.length === 1;
   const canAdd = accounts.length < ACCOUNT_LIMITS.max;
@@ -57,6 +63,22 @@ export function Rail({
       })}
 
       <div className="bg-line h-0.5 w-8 shrink-0 rounded-full" aria-hidden />
+
+      <RailItem
+        label={inCall ? 'Salas (em chamada)' : 'Salas de vídeo'}
+        active={roomsOpen}
+        badge={0}
+        variant="action"
+        onClick={onRooms}
+      >
+        <Headphones size={20} />
+        {inCall && (
+          <span
+            aria-hidden
+            className="bg-success border-rail absolute -right-0.5 -bottom-0.5 h-4 w-4 rounded-full border-[3px]"
+          />
+        )}
+      </RailItem>
 
       <RailItem
         label={canAdd ? 'Adicionar conta' : `Limite de ${ACCOUNT_LIMITS.max} contas`}

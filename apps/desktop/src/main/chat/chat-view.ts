@@ -8,7 +8,7 @@ const openExternal = (url: string): void => {
 };
 
 /** Aplica as regras de navegação a um webContents do Chat (janela principal ou popup). */
-function applyChatPolicy(contents: WebContents): void {
+export function applyChatPolicy(contents: WebContents): void {
   const onNavigate = (event: Electron.Event, url: string) => {
     const decision = decideNavigation(url, contents.getURL());
     if (decision === 'allow') return;

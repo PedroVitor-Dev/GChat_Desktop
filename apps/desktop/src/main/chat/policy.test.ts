@@ -58,5 +58,7 @@ describe('isPermissionAllowed', () => {
     expect(isPermissionAllowed('media', 'https://meet.google.com')).toBe(true);
     expect(isPermissionAllowed('geolocation', 'https://chat.google.com')).toBe(false);
     expect(isPermissionAllowed('notifications', 'https://evil.com')).toBe(false);
+    expect(isPermissionAllowed('display-capture', 'https://meet.google.com')).toBe(true);
+    expect(isPermissionAllowed('display-capture', 'https://chat.google.com')).toBe(false);
   });
 });

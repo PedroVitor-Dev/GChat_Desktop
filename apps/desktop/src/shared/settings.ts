@@ -5,6 +5,7 @@
 import { SOUND_EXTENSIONS, SOUND_LIMITS, isCustomSoundId, isSoundId } from './sounds';
 import type { CustomSound, SoundExtension, SoundId } from './sounds';
 import { DEFAULT_ACCOUNT, normalizeAccounts, type AccountsSettings } from './accounts';
+import { normalizeRooms, type Room } from './rooms';
 
 export const SETTINGS_VERSION = 2;
 
@@ -93,6 +94,8 @@ export interface Settings {
   sounds: SoundSettings;
   appearance: AppearanceSettings;
   streamer: StreamerSettings;
+  /** Salas do Meet salvas. Só o main altera. */
+  rooms: Room[];
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -128,6 +131,7 @@ export const DEFAULT_SETTINGS: Settings = {
     hideContent: true,
     muteSounds: true,
   },
+  rooms: [],
 };
 
 export const LIMITS = {
@@ -291,6 +295,7 @@ export function normalizeSettings(
       hideContent: bool(st['hideContent'], base.streamer.hideContent),
       muteSounds: bool(st['muteSounds'], base.streamer.muteSounds),
     },
+    rooms: allowLibrary ? normalizeRooms(raw['rooms'], base.rooms) : base.rooms,
   };
 }
 

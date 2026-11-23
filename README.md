@@ -11,6 +11,7 @@ conteúdo das mensagens.
 
 - Arquitetura: [docs/decisao-arquitetura.md](docs/decisao-arquitetura.md)
 - Estrutura: [docs/estrutura.md](docs/estrutura.md)
+- Salas de vídeo (Meet): [docs/salas.md](docs/salas.md)
 - Visual e atalhos: [docs/visual.md](docs/visual.md)
 - Instalador: [docs/instalador.md](docs/instalador.md)
 - Publicação (site e releases): [docs/publicacao.md](docs/publicacao.md)

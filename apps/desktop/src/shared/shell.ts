@@ -1,3 +1,4 @@
+import type { CallState } from './rooms';
 import type { StreamerStatus } from './streamer';
 
 /** Contrato entre o shell (barra de título + trilho + configurações) e o main. */
@@ -8,6 +9,8 @@ export const SHELL_LAYOUT = {
   railWidth: 72,
   /** Canto arredondado da área do Chat, como a área de conteúdo do Discord. */
   contentRadius: 8,
+  /** Painel de salas (como a lista de canais do Discord). */
+  roomsPanelWidth: 240,
 } as const;
 
 export const ShellChannel = {
@@ -17,6 +20,8 @@ export const ShellChannel = {
   SetModalOpen: 'shell:set-modal-open',
   /** renderer → main (invoke): mostrar o Chat de uma conta (clique no trilho). */
   SelectAccount: 'shell:select-account',
+  /** renderer → main (invoke): abrir/fechar o painel de salas. */
+  SetRoomsPanel: 'shell:set-rooms-panel',
   /** renderer → main (invoke): recarregar o Chat da conta ativa. */
   ReloadChat: 'shell:reload-chat',
   /** renderer → main (invoke): estado atual (na montagem). */
@@ -47,4 +52,7 @@ export interface ShellState {
   /** Tema efetivo (já resolvido quando a escolha é "sistema"). */
   theme: 'dark' | 'light';
   streamer: StreamerStatus;
+  roomsPanelOpen: boolean;
+  /** Chamada em andamento (null = nenhuma). */
+  call: CallState | null;
 }

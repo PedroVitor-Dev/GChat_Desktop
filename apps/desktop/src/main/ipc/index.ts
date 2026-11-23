@@ -8,6 +8,8 @@ import type { AccountsService } from '../accounts/accounts-service';
 import type { NotificationManager } from '../notifications/manager';
 import type { AppShell } from '../shell/app-shell';
 import type { StreamerMode } from '../system/streamer-mode';
+import type { RoomsService } from '../meet/rooms-service';
+import { isRoomId } from '../../shared/rooms';
 import { autostartStatus } from '../system/autostart';
 import type { ImportResult, SoundLibrary } from '../sounds/library';
 import type { SoundPlayer } from '../sounds/player';
@@ -22,6 +24,7 @@ interface IpcDeps {
   shell: AppShell;
   accounts: AccountsService;
   streamer: StreamerMode;
+  rooms: RoomsService;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -66,7 +69,42 @@ export function registerIpc({
   shell,
   accounts,
   streamer,
+  rooms,
 }: IpcDeps): void {
+  handle(ShellChannel.SetRoomsPanel, oneBoolean, (open) => shell.setRoomsPanelOpen(open));
+  const activeAccount = () => shell.getState().activeAccount;
+  /** Id de sala válido + argumento opcional. */
+  const roomArgs = (args: unknown[]): [string, unknown] => {
+    if (args.length < 1 || args.length > 2 || !isRoomId(args[0]))
+      throw new TypeError('sala inválida');
+    return [args[0], args[1]];
+  };
+  const twoArgs = (args: unknown[]): [unknown, unknown] => {
+    if (args.length !== 2) throw new TypeError('esperados dois argumentos');
+    return [args[0], args[1]];
+  };
+  handle(IpcChannel.RoomsCreate, oneArg, (name) => rooms.create(name, activeAccount()));
+  handle(IpcChannel.RoomsAddLink, twoArgs, ([name, link]) =>
+    rooms.addFromLink(name, link, activeAccount()),
+  );
+  handle(IpcChannel.RoomsRename, roomArgs, ([id, name]) => rooms.rename(id, name));
+  handle(IpcChannel.RoomsRemove, roomArgs, ([id]) => {
+    if (shell.getState().call?.roomId === id) shell.endCall();
+    return rooms.remove(id);
+  });
+  handle(IpcChannel.RoomsCopyLink, roomArgs, ([id]) => rooms.copyLink(id));
+  handle(IpcChannel.CallJoin, roomArgs, ([id]) => {
+    const room = rooms.get(id);
+    if (!room) return false;
+    shell.startCall(room);
+    return true;
+  });
+  handle(IpcChannel.CallShow, oneBoolean, (visible) => shell.showCall(visible));
+  handle(IpcChannel.CallLeave, noArgs, () => shell.endCall());
+  handle(IpcChannel.CallShortcut, oneArg, (kind) => {
+    if (kind !== 'mic' && kind !== 'cam') throw new TypeError('atalho inválido');
+    shell.sendCallShortcut(kind);
+  });
   handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
   handle(ShellChannel.GetState, noArgs, (): ShellState => shell.getState());
   handle(ShellChannel.SetSettingsOpen, oneBoolean, (open) => shell.setSettingsOpen(open));

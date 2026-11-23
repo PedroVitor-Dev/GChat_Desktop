@@ -2,6 +2,9 @@ import type { AppInfo, AutostartStatus } from '../shared/ipc';
 import type { Settings, SettingsPatch } from '../shared/settings';
 import type { ShellState } from '../shared/shell';
 import type { Account } from '../shared/accounts';
+import type { Room } from '../shared/rooms';
+
+export type RoomResult = { ok: true; room: Room } | { ok: false; error: string };
 
 export type AccountResult = { ok: true; account: Account } | { ok: false; error: string };
 import type { CustomSound, SoundId, SoundOption } from '../shared/sounds';
@@ -29,6 +32,24 @@ export interface GChatApi {
   getAutostartStatus(): Promise<AutostartStatus>;
   /** Liga/desliga o modo streamer (desligar numa transmissão vale até o programa fechar). */
   toggleStreamer(): Promise<void>;
+  /** Salas do Meet (lista em settings.rooms). */
+  rooms: {
+    /** Cria uma sala nova (meet.new) na conta ativa. */
+    create(name: string): Promise<RoomResult>;
+    /** Salva uma sala existente a partir do link. */
+    addFromLink(name: string, link: string): Promise<RoomResult>;
+    rename(id: string, name: string): Promise<RoomResult>;
+    remove(id: string): Promise<boolean>;
+    copyLink(id: string): Promise<boolean>;
+  };
+  call: {
+    join(roomId: string): Promise<boolean>;
+    /** Mostra a chamada (true) ou volta ao Chat mantendo-a (false). */
+    show(visible: boolean): Promise<void>;
+    leave(): Promise<void>;
+    /** Alterna microfone/câmera pelos atalhos do Meet. */
+    toggle(kind: 'mic' | 'cam'): Promise<void>;
+  };
   accounts: {
     add(name: string): Promise<AccountResult>;
     rename(id: string, name: string): Promise<AccountResult>;
@@ -43,6 +64,7 @@ export interface GChatApi {
     onState(listener: (state: ShellState) => void): () => void;
     setSettingsOpen(open: boolean): Promise<void>;
     setModalOpen(open: boolean): Promise<void>;
+    setRoomsPanelOpen(open: boolean): Promise<void>;
     /** Mostra o Chat de uma conta (fecha configurações/modal). */
     selectAccount(id: string): Promise<void>;
     reloadChat(): Promise<void>;

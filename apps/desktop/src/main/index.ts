@@ -12,6 +12,7 @@ import { appIcon } from './system/app-icon';
 import { HIDDEN_ARG, setJumpList, setLaunchAtLogin } from './system/autostart';
 import { WindowStateFile } from './system/window-state';
 import { StreamerMode } from './system/streamer-mode';
+import { RoomsService } from './meet/rooms-service';
 import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
@@ -72,7 +73,8 @@ if (!app.requestSingleInstanceLock()) {
     streamer.on('change', onStreamer);
     onStreamer();
 
-    registerIpc({ settings, notifications, library, player, shell, accounts, streamer });
+    const rooms = new RoomsService(settings);
+    registerIpc({ settings, notifications, library, player, shell, accounts, streamer, rooms });
     listenForCaptures(notifications, (contents) => shell.accountIdFor(contents));
 
     let launchAtLogin = settings.get().general.launchAtLogin;
