@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseProfileReport, photoUrlAtSize } from './profile';
+import { leadingEmoji, parseProfileReport, parseStatusReport, photoUrlAtSize } from './profile';
 
 const photo = 'https://lh3.googleusercontent.com/a/ACg8ocABC123=s32-c-mo';
 
@@ -28,5 +28,45 @@ describe('photoUrlAtSize', () => {
     expect(photoUrlAtSize('https://lh3.googleusercontent.com/a/X', 64)).toBe(
       'https://lh3.googleusercontent.com/a/X=s64-c',
     );
+  });
+});
+
+describe('parseStatusReport', () => {
+  it('reconhece a presença pelo rótulo do botão', () => {
+    expect(parseStatusReport({ label: 'Status: Ativo', text: 'Ativo' })).toEqual({
+      presence: 'active',
+    });
+    expect(parseStatusReport({ label: 'Status: Não perturbe', text: 'Não perturbe' })).toEqual({
+      presence: 'dnd',
+    });
+    expect(parseStatusReport({ label: 'Status: Away', text: 'Away' })).toEqual({
+      presence: 'away',
+    });
+  });
+
+  it('separa o status personalizado', () => {
+    expect(
+      parseStatusReport({ label: 'Status: Ativo, 🧪 Testando o app', text: '🧪 Testando o app' }),
+    ).toEqual({ presence: 'active', text: '🧪 Testando o app' });
+    expect(parseStatusReport({ label: 'Status: Ausente', text: '🍔 Almoçando' })).toEqual({
+      presence: 'away',
+      text: '🍔 Almoçando',
+    });
+  });
+
+  it('rejeita o que não reconhece', () => {
+    expect(parseStatusReport({ label: 'Configurações', text: '' })).toBeNull();
+    expect(parseStatusReport('Ativo')).toBeNull();
+    expect(parseStatusReport({ label: 'x'.repeat(600), text: '' })).toBeNull();
+  });
+});
+
+describe('leadingEmoji', () => {
+  it('pega o emoji do começo, com variação e ZWJ', () => {
+    expect(leadingEmoji('☀️ Praise the Sun!')).toBe('☀️');
+    expect(leadingEmoji('👩‍💻 Codando')).toBe('👩‍💻');
+    expect(leadingEmoji('🇧🇷 Jogo')).toBe('🇧🇷');
+    expect(leadingEmoji('Sem emoji')).toBeNull();
+    expect(leadingEmoji(undefined)).toBeNull();
   });
 });

@@ -3,6 +3,8 @@ import { Headphones, Plus, Settings } from 'lucide-react';
 import logo from '../../../../resources/icon.png';
 import { ACCOUNT_COLORS, ACCOUNT_LIMITS, accountInitials } from '../../../shared/accounts';
 import { SHELL_LAYOUT, type AccountView, type ShellView } from '../../../shared/shell';
+import { PRESENCE_LABEL, leadingEmoji } from '../../../shared/profile';
+import { PresenceDot } from '../components/PresenceDot';
 import { Tooltip } from '../components/Tooltip';
 
 /**
@@ -31,7 +33,7 @@ export function Rail({
   onAdd: () => void;
   onRooms: () => void;
   onSettings: () => void;
-  /** Abre o perfil (Configurações → Contas). */
+  /** Abre o menu de status do Google Chat. */
   onProfile: () => void;
 }) {
   const single = accounts.length === 1;
@@ -185,7 +187,8 @@ function RailItem({
 
 /**
  * Perfil da conta ativa, embaixo do trilho (como o painel de usuário do
- * Discord): foto do Google, ou as iniciais enquanto ela não foi lida.
+ * Discord): foto do Google com a bolinha de status e o emoji do status
+ * personalizado. O clique abre o menu de status do próprio Google Chat.
  */
 function ProfileButton({
   account,
@@ -196,11 +199,13 @@ function ProfileButton({
 }) {
   if (!account) return null;
   const name = account.displayName ?? account.name;
+  const status = account.statusText ?? (account.presence ? PRESENCE_LABEL[account.presence] : null);
+  const emoji = leadingEmoji(account.statusText);
   return (
-    <Tooltip label={`${name} · Perfil e contas`}>
+    <Tooltip label={status ? `${name} · ${status} — Mudar status` : `${name} · Mudar status`}>
       <button
         type="button"
-        aria-label={`Perfil de ${name}`}
+        aria-label={`Mudar status de ${name}${status ? ` (agora: ${status})` : ''}`}
         onClick={onClick}
         className="ring-rail hover:ring-accent relative h-10 w-10 shrink-0 rounded-full ring-2 transition-shadow"
       >
@@ -219,6 +224,15 @@ function ProfileButton({
             {accountInitials(name)}
           </span>
         )}
+        {emoji && (
+          <span
+            aria-hidden
+            className="bg-rail absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[13px] leading-none"
+          >
+            {emoji}
+          </span>
+        )}
+        {account.presence && <PresenceDot presence={account.presence} />}
       </button>
     </Tooltip>
   );

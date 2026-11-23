@@ -137,6 +137,7 @@ export function registerIpc({
     return r;
   });
   handle(ShellChannel.ReloadChat, noArgs, () => shell.reloadChat());
+  handle(ShellChannel.OpenChatStatus, noArgs, () => shell.openChatStatus());
 
   handle(IpcChannel.AppInfo, noArgs, (): AppInfo => ({
     name: app.getName(),

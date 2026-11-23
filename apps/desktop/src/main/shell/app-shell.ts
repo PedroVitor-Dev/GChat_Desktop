@@ -13,7 +13,8 @@ import {
 import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
-import type { AccountProfile } from '../../shared/profile';
+import type { AccountProfile, ChatStatus } from '../../shared/profile';
+import { OPEN_STATUS_CHANNEL } from '../../shared/profile';
 import { meetCodeFromUrl, meetUrl, type CallState, type Room } from '../../shared/rooms';
 import { createMeetView } from '../meet/meet-view';
 import {
@@ -105,6 +106,7 @@ export class AppShell {
   private lastTotalUnread = 0;
   private streamer: StreamerStatus = STREAMER_OFF;
   private profiles = new Map<string, AccountProfile>();
+  private statusOf: (accountId: string) => ChatStatus | undefined = () => undefined;
   private relayoutTimers: NodeJS.Timeout[] = [];
   private view: ShellView = 'chat';
   /** Chamada do Meet em andamento: view própria, continua tocando em segundo plano. */
@@ -352,17 +354,34 @@ export class AppShell {
     );
   }
 
-  setProfiles(profiles: Map<string, AccountProfile>): void {
+  setProfiles(
+    profiles: Map<string, AccountProfile>,
+    statusOf: (accountId: string) => ChatStatus | undefined,
+  ): void {
     this.profiles = profiles;
+    this.statusOf = statusOf;
     this.emitState();
   }
 
-  private profileFields(id: string): { photo?: string; displayName?: string } {
+  private profileFields(
+    id: string,
+  ): Pick<AccountView, 'photo' | 'displayName' | 'presence' | 'statusText'> {
     const p = this.profiles.get(id);
+    const status = this.statusOf(id);
     return {
       ...(p?.photo ? { photo: p.photo } : {}),
       ...(p?.displayName ? { displayName: p.displayName } : {}),
+      ...(status ? { presence: status.presence } : {}),
+      ...(status?.text ? { statusText: status.text } : {}),
     };
+  }
+
+  /** Abre o menu de status do próprio Google Chat (clique na foto do trilho). */
+  openChatStatus(): void {
+    const slot = this.activeSlot();
+    if (!slot || slot.loading) return this.focusChat();
+    this.focusChat();
+    slot.view.webContents.send(OPEN_STATUS_CHANNEL);
   }
 
   setStreamer(status: StreamerStatus): void {

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import type { ChatPresence } from '../../shared/profile';
 import { Notification, type WebFrameMain } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../../shared/notifications';
 import type { SoundId } from '../../shared/sounds';
@@ -37,6 +38,8 @@ interface ManagerDeps {
     accountCount(): number;
   };
   player: SoundPlayer;
+  /** Status da conta no Google Chat ("dnd" = Não perturbe). */
+  presence(accountId: string): ChatPresence | undefined;
 }
 
 /** Som usado se o escolhido não puder ser lido (ex.: arquivo apagado por fora). */
@@ -103,7 +106,10 @@ export class NotificationManager extends EventEmitter<Events> {
         : null;
     const title = accountName ? `${formatted.title} · ${accountName}` : formatted.title;
     const { body } = formatted;
-    const sound = streaming && streamer.muteSounds ? 'none' : chooseSound(n, all.sounds, mention);
+    // Não perturbe no Chat: o aviso (se o Chat ainda criar) chega sem som.
+    const dnd = accountId !== null && this.deps.presence(accountId) === 'dnd';
+    const sound =
+      dnd || (streaming && streamer.muteSounds) ? 'none' : chooseSound(n, all.sounds, mention);
     if (diagnosticsEnabled) {
       console.error(`[diag] menção: ${mention ? 'sim' : 'não'} · som: ${sound}`);
     }

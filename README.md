@@ -67,7 +67,8 @@ link aos amigos e fique em chamada **com cronômetro**, mesmo voltando ao Chat.
 ### 👥 Várias contas
 
 Até **5 contas Google** com sessões isoladas, alternando com `Ctrl + 1…5`. A foto do
-seu perfil fica no trilho.
+seu perfil fica no trilho, com a **bolinha de status e o emoji** do seu status do Chat.
+Um clique nela muda o status (Não perturbe, Ausente ou uma frase com emoji e prazo).
 
 ### 🧊 Quietinho na bandeja
 
@@ -139,8 +140,8 @@ que recolore o próprio Google Chat.
   usuário.
 - 🙈 **Nada de mensagens em disco ou em logs.** Para montar o aviso, o app lê apenas o
   título e o texto da notificação que o próprio Chat cria.
-- 🖼️ **Do seu perfil, só a foto e o nome** que o Chat mostra, guardados localmente. O
-  e-mail não é lido.
+- 🖼️ **Do seu perfil, só a foto e o nome** que o Chat mostra, guardados localmente, e o
+  seu status, só em memória. O e-mail não é lido.
 - 🌐 **Nada é enviado a outros servidores** além dos do Google (e do GitHub, para
   checar atualizações).
 - 🛡️ Electron com `sandbox`, `contextIsolation`, sem Node na página, IPC validado,
@@ -250,8 +251,8 @@ sozinhos. O site é publicado pelo workflow **Landing page** a cada push em `sit
 
 ## 🗺️ Próximos passos
 
-- [ ] Perfil personalizável estilo Discord (banner com imagem/GIF, bio, status), público
-      entre usuários do app
+- [ ] Perfil personalizável estilo Discord (banner com imagem/GIF, bio), público entre
+      usuários do app
 - [ ] "Não perturbe" com tempo (30 min, 1 h, até amanhã) pela bandeja
 - [ ] Pessoas prioritárias que sempre avisam, mesmo no silêncio
 - [ ] Miniplayer flutuante da chamada

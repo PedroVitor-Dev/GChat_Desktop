@@ -32,7 +32,7 @@ lógica foi revisada, mas o teste de ponta a ponta usou uma conta só).
 O preload do Chat lê, no botão da conta (canto superior do Chat), **só** a foto e
 o nome exibidos. O e-mail, que também está no rótulo do botão, é descartado ali
 mesmo. A foto é baixada em 128 px pela sessão da própria conta e salva como data
-URL em `%APPDATA%\GChat Desktop+\profiles\<conta>.json`. Aparece embaixo do trilho (perfil da conta ativa, acima da engrenagem; o clique abre Configurações → Contas) e na tela Contas, e é apagada ao sair da conta ou remover a conta.
+URL em `%APPDATA%\GChat Desktop+\profiles\<conta>.json`. Aparece embaixo do trilho (perfil da conta ativa, acima da engrenagem; o clique abre o menu de status do Chat, ver abaixo) e na tela Contas, e é apagada ao sair da conta ou remover a conta.
 
 O modelo (`shared/profile.ts`) já tem os campos do futuro perfil estilo Discord
 (banner com imagem/GIF, cor, bio e status), ainda sem uso. Um perfil **público**
@@ -40,3 +40,22 @@ exigirá servidor e login com Google.
 
 **Status com frase:** use o recurso nativo do Google Chat ("Ativo ▾" → "Adicionar
 um status"), que todos os contatos veem, inclusive no navegador e no celular.
+
+## Status (do próprio Google Chat)
+
+O status é o **oficial do Google Chat** (botão "Ativo ▾": Automático, Não perturbe,
+Definir como ausente e **Adicionar um status**, com emoji e "Limpar após"), que todos
+os contatos veem, no navegador e no celular também. O app não cria um status próprio:
+
+- **Clique na foto do trilho** → abre esse menu do Chat da conta ativa.
+- **Bolinha de presença** na foto (verde Ativo, amarela Ausente, vermelha Não perturbe)
+  e o **emoji** do status personalizado no canto, como no Discord. O texto aparece na
+  dica da foto e na tela Contas.
+- **Não perturbe** vale também para o app: se ainda chegar algum aviso dessa conta, ele
+  vem **sem som**.
+
+Como funciona: o preload do Chat lê, a cada 2 s, só o rótulo e o texto visíveis do
+botão de status (`[role=button][aria-label^="Status:"]`) e manda ao main
+(`chat:status`), que valida com `parseStatusReport` e guarda **só em memória**. Para
+abrir o menu, o main manda `chat:open-status` e o preload clica nesse botão. Se o
+Google mudar o botão, a foto fica sem bolinha e o clique só mostra o Chat. Nada quebra.

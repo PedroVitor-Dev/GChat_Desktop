@@ -6,7 +6,10 @@ import { app, ipcMain } from 'electron';
 import { isAccountId } from '../../shared/accounts';
 import {
   PROFILE_CHANNEL,
+  STATUS_CHANNEL,
   parseProfileReport,
+  parseStatusReport,
+  type ChatStatus,
   photoUrlAtSize,
   type AccountProfile,
   type ProfileReport,
@@ -27,6 +30,8 @@ export class ProfileService extends EventEmitter<{ change: [Map<string, AccountP
   private readonly dir = join(app.getPath('userData'), 'profiles');
   private readonly profiles = new Map<string, AccountProfile>();
   private readonly inFlight = new Set<string>();
+  /** Status do Chat por conta (só em memória: muda o tempo todo e é do Google). */
+  private readonly statuses = new Map<string, ChatStatus>();
 
   constructor(private readonly accountOf: (contents: Electron.WebContents) => string | null) {
     super();
@@ -40,6 +45,23 @@ export class ProfileService extends EventEmitter<{ change: [Map<string, AccountP
       if (!accountId || !report) return;
       void this.update(accountId, report, event.sender.session);
     });
+    ipcMain.on(STATUS_CHANNEL, (event, raw: unknown) => {
+      const frame = event.senderFrame;
+      if (!frame || frame !== event.sender.mainFrame || frame.origin !== CHAT_ORIGIN) return;
+      if (!isChatSession(event.sender.session)) return;
+      const accountId = this.accountOf(event.sender);
+      const status = parseStatusReport(raw);
+      if (!accountId || !status) return;
+      const current = this.statuses.get(accountId);
+      if (current?.presence === status.presence && current.text === status.text) return;
+      this.statuses.set(accountId, status);
+      this.emit('change', this.profiles);
+    });
+  }
+
+  /** Status atual do Chat de cada conta (o que o botão "Ativo ▾" mostra). */
+  statusOf(accountId: string): ChatStatus | undefined {
+    return this.statuses.get(accountId);
   }
 
   all(): Map<string, AccountProfile> {
@@ -48,7 +70,8 @@ export class ProfileService extends EventEmitter<{ change: [Map<string, AccountP
 
   /** Esquece o perfil (sair da conta ou remover a conta). */
   async clear(accountId: string): Promise<void> {
-    if (!this.profiles.delete(accountId)) return;
+    this.statuses.delete(accountId);
+    if (!this.profiles.delete(accountId)) return void this.emit('change', this.profiles);
     await rm(this.file(accountId), { force: true });
     this.emit('change', this.profiles);
   }

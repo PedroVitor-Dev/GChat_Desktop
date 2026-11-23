@@ -60,7 +60,14 @@ if (!app.requestSingleInstanceLock()) {
     const library = new SoundLibrary(settings, (bytes) => player.probe(bytes));
     player.attach(library);
     const streamer = new StreamerMode(settings);
-    const notifications = new NotificationManager({ settings, player, shell, streamer });
+    const notifications = new NotificationManager({
+      settings,
+      player,
+      shell,
+      streamer,
+      // "Não perturbe" no Chat vale também para os sons do app (perfil criado abaixo).
+      presence: (id) => profiles.statusOf(id)?.presence,
+    });
 
     tray = new AppTray(settings, {
       openChat: () => shell.focusChat(),
@@ -79,8 +86,9 @@ if (!app.requestSingleInstanceLock()) {
     const rooms = new RoomsService(settings);
     const updater = new AppUpdater(settings);
     const profiles = new ProfileService((contents) => shell.accountIdFor(contents));
-    shell.setProfiles(profiles.all());
-    profiles.on('change', (all) => shell.setProfiles(all));
+    const statusOf = (id: string) => profiles.statusOf(id);
+    shell.setProfiles(profiles.all(), statusOf);
+    profiles.on('change', (all) => shell.setProfiles(all, statusOf));
     registerIpc({
       settings,
       notifications,

@@ -1,3 +1,4 @@
+import type { ChatPresence } from './profile';
 import type { CallState } from './rooms';
 import type { StreamerStatus } from './streamer';
 
@@ -22,6 +23,8 @@ export const ShellChannel = {
   SelectAccount: 'shell:select-account',
   /** renderer → main (invoke): trocar de destino (Chat ou Salas). */
   SetView: 'shell:set-view',
+  /** renderer → main (invoke): abrir o menu de status do Chat da conta ativa. */
+  OpenChatStatus: 'shell:open-chat-status',
   /** renderer → main (invoke): recarregar o Chat da conta ativa. */
   ReloadChat: 'shell:reload-chat',
   /** renderer → main (invoke): estado atual (na montagem). */
@@ -46,6 +49,10 @@ export interface AccountView {
   photo?: string;
   /** Nome exibido pelo Google. */
   displayName?: string;
+  /** Status no Google Chat (Ativo, Ausente, Não perturbe), quando já lido. */
+  presence?: ChatPresence;
+  /** Status personalizado do Chat (ex.: "🧪 Testando o app"). */
+  statusText?: string;
 }
 
 export interface ShellState {

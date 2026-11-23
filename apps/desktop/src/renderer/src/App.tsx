@@ -88,10 +88,7 @@ export function App() {
               setSettingsSection('notificacoes');
               void shell.setSettingsOpen(!state.settingsOpen);
             }}
-            onProfile={() => {
-              setSettingsSection('contas');
-              void shell.setSettingsOpen(true);
-            }}
+            onProfile={() => void shell.openChatStatus()}
           />
           {inRooms ? (
             <>

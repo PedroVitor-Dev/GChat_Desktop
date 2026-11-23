@@ -64,6 +64,7 @@ const api: GChatApi = {
     setView: (view) => ipcRenderer.invoke(ShellChannel.SetView, view),
     selectAccount: (id) => ipcRenderer.invoke(ShellChannel.SelectAccount, id),
     reloadChat: () => ipcRenderer.invoke(ShellChannel.ReloadChat),
+    openChatStatus: () => ipcRenderer.invoke(ShellChannel.OpenChatStatus),
   },
 };
 

@@ -77,6 +77,8 @@ export interface GChatApi {
     /** Mostra o Chat de uma conta (fecha configurações/modal). */
     selectAccount(id: string): Promise<void>;
     reloadChat(): Promise<void>;
+    /** Abre o menu de status do Google Chat (Ativo, Não perturbe, Adicionar um status). */
+    openChatStatus(): Promise<void>;
   };
 }
 

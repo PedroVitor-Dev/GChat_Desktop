@@ -13,7 +13,7 @@
  */
 import { contextBridge, ipcRenderer } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../shared/notifications';
-import { PROFILE_CHANNEL } from '../shared/profile';
+import { OPEN_STATUS_CHANNEL, PROFILE_CHANNEL, STATUS_CHANNEL } from '../shared/profile';
 
 const CHAT_ORIGIN = 'https://chat.google.com';
 
@@ -52,7 +52,40 @@ function watchProfile(): void {
   else start();
 }
 
-if (location.origin === CHAT_ORIGIN && window === window.top) watchProfile();
+/**
+ * Status do Chat (botão "Ativo ▾" no topo): lê só o rótulo e o texto visíveis do
+ * botão, para o app mostrar na foto do trilho, e abre esse menu quando o usuário
+ * clica na foto. Quem define o status é sempre o próprio Chat.
+ */
+const STATUS_BUTTON =
+  '[role="button"][aria-label^="Status:"], [role="button"][aria-label^="Status :"]';
+
+function watchStatus(): void {
+  let last = '';
+  const report = () => {
+    const button = document.querySelector<HTMLElement>(STATUS_BUTTON);
+    if (!button) return;
+    const label = button.getAttribute('aria-label') ?? '';
+    const text = (button.textContent ?? '').trim();
+    const key = `${label}|${text}`;
+    if (key === last) return;
+    last = key;
+    ipcRenderer.send(STATUS_CHANNEL, { label, text });
+  };
+  // Uma consulta a cada 2 s é bem mais leve que observar o DOM inteiro do Chat.
+  setInterval(report, 2000);
+  ipcRenderer.on(OPEN_STATUS_CHANNEL, () => {
+    const button = document.querySelector<HTMLElement>(STATUS_BUTTON);
+    if (!button) return;
+    button.focus();
+    button.click();
+  });
+}
+
+if (location.origin === CHAT_ORIGIN && window === window.top) {
+  watchProfile();
+  watchStatus();
+}
 
 if (location.origin === CHAT_ORIGIN) {
   let clickListener: ((id: string) => void) | null = null;
