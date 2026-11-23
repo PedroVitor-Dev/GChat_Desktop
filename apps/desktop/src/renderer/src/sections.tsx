@@ -4,6 +4,7 @@ import {
   Info,
   type LucideIcon,
   Palette,
+  Radio,
   Settings,
   Shield,
   Users,
@@ -16,9 +17,10 @@ import { GeneralPage } from './pages/GeneralPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { SoundsPage } from './pages/SoundsPage';
+import { StreamerPage } from './pages/StreamerPage';
 
 export type SectionId =
-  'geral' | 'notificacoes' | 'sons' | 'contas' | 'aparencia' | 'privacidade' | 'sobre';
+  'geral' | 'notificacoes' | 'sons' | 'streamer' | 'contas' | 'aparencia' | 'privacidade' | 'sobre';
 
 interface Section {
   id: SectionId;
@@ -46,6 +48,7 @@ export const sections: Section[] = [
     icon: Volume2,
     page: SoundsPage,
   },
+  { id: 'streamer', label: 'Modo streamer', icon: Radio, page: StreamerPage },
   {
     id: 'contas',
     label: 'Contas',

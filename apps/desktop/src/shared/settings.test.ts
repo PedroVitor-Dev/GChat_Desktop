@@ -65,6 +65,24 @@ describe('aparência', () => {
   });
 });
 
+describe('modo streamer', () => {
+  it('padrão: automático, protegendo tudo', () => {
+    expect(normalizeSettings({}).streamer).toEqual({
+      enabled: false,
+      auto: true,
+      pauseNotifications: true,
+      hideContent: true,
+      muteSounds: true,
+    });
+  });
+
+  it('patch parcial mantém o resto', () => {
+    const s = applyPatch(DEFAULT_SETTINGS, { streamer: { pauseNotifications: false, auto: 'x' } });
+    expect(s.streamer.pauseNotifications).toBe(false);
+    expect(s.streamer.auto).toBe(true);
+  });
+});
+
 describe('migração v1 → v2', () => {
   it('preserva a escolha de som do Windows', () => {
     const v1 = (systemSound: boolean) => ({

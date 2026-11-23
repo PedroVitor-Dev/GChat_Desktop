@@ -1,3 +1,5 @@
+import type { StreamerStatus } from './streamer';
+
 /** Contrato entre o shell (barra de título + trilho + configurações) e o main. */
 
 /** Medidas do layout. O main posiciona as views do Chat a partir delas. */
@@ -44,4 +46,5 @@ export interface ShellState {
   unread: number;
   /** Tema efetivo (já resolvido quando a escolha é "sistema"). */
   theme: 'dark' | 'light';
+  streamer: StreamerStatus;
 }

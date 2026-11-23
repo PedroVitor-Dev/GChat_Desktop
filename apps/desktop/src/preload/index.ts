@@ -22,6 +22,7 @@ const api: GChatApi = {
   importSound: () => ipcRenderer.invoke(IpcChannel.SoundImport),
   removeSound: (id) => ipcRenderer.invoke(IpcChannel.SoundRemove, id),
   getAutostartStatus: () => ipcRenderer.invoke(IpcChannel.AutostartStatus),
+  toggleStreamer: () => ipcRenderer.invoke(IpcChannel.StreamerToggle),
   accounts: {
     add: (name) => ipcRenderer.invoke(IpcChannel.AccountAdd, name),
     rename: (id, name) => ipcRenderer.invoke(IpcChannel.AccountRename, id, name),

@@ -12,6 +12,7 @@ export const IpcChannel = {
   SoundImport: 'sounds:import',
   SoundRemove: 'sounds:remove',
   AutostartStatus: 'system:autostart-status',
+  StreamerToggle: 'streamer:toggle',
   AccountAdd: 'accounts:add',
   AccountRename: 'accounts:rename',
   AccountSignOut: 'accounts:sign-out',

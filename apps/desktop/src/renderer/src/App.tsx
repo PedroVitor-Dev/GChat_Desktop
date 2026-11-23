@@ -46,7 +46,7 @@ export function App() {
   return (
     <ShellActionsContext.Provider value={actions}>
       <div className="flex h-full flex-col">
-        <TitleBar title={title} />
+        <TitleBar title={title} streamer={state.streamer} />
         <div className="relative flex min-h-0 flex-1">
           <Rail
             accounts={state.accounts}

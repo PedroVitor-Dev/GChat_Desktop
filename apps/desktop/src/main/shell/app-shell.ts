@@ -12,6 +12,7 @@ import {
 } from 'electron';
 import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
+import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
 import { SHELL_LAYOUT, ShellChannel, type AccountView, type ShellState } from '../../shared/shell';
 import chatThemeCss from '../chat/chat-theme.css?raw';
 import { createChatView } from '../chat/chat-view';
@@ -93,6 +94,7 @@ export class AppShell {
   private badge: NativeImage | null = null;
   private quitting = false;
   private lastTotalUnread = 0;
+  private streamer: StreamerStatus = STREAMER_OFF;
   private relayoutTimers: NodeJS.Timeout[] = [];
 
   constructor(private readonly options: ShellOptions) {
@@ -158,6 +160,7 @@ export class AppShell {
       activeAccount: this.active,
       unread: accounts.reduce((sum, a) => sum + a.unread, 0),
       theme: this.theme,
+      streamer: this.streamer,
     };
   }
 
@@ -276,6 +279,11 @@ export class AppShell {
         s.view.webContents.session.cookies.flushStore().catch(() => undefined),
       ),
     );
+  }
+
+  setStreamer(status: StreamerStatus): void {
+    this.streamer = status;
+    this.emitState();
   }
 
   markQuitting(): void {

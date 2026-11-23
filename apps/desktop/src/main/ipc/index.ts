@@ -7,6 +7,7 @@ import { isAccountId } from '../../shared/accounts';
 import type { AccountsService } from '../accounts/accounts-service';
 import type { NotificationManager } from '../notifications/manager';
 import type { AppShell } from '../shell/app-shell';
+import type { StreamerMode } from '../system/streamer-mode';
 import { autostartStatus } from '../system/autostart';
 import type { ImportResult, SoundLibrary } from '../sounds/library';
 import type { SoundPlayer } from '../sounds/player';
@@ -20,6 +21,7 @@ interface IpcDeps {
   player: SoundPlayer;
   shell: AppShell;
   accounts: AccountsService;
+  streamer: StreamerMode;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -63,7 +65,9 @@ export function registerIpc({
   player,
   shell,
   accounts,
+  streamer,
 }: IpcDeps): void {
+  handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
   handle(ShellChannel.GetState, noArgs, (): ShellState => shell.getState());
   handle(ShellChannel.SetSettingsOpen, oneBoolean, (open) => shell.setSettingsOpen(open));
   handle(ShellChannel.SetModalOpen, oneBoolean, (open) => shell.setModalOpen(open));

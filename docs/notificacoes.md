@@ -43,3 +43,21 @@ Sem precisar de login: um cliente do DevTools Protocol intercepta
 `https://chat.google.com/__e2e`, serve uma página de teste e cria notificações.
 Validado em 23/11/2026: captura, `instanceof`, evento `show`, deduplicação e
 duas conversas distintas, todas exibidas.
+
+## Modo streamer
+
+Como no Discord: protege a tela enquanto você transmite ou grava.
+
+- **Liga sozinho** enquanto um programa de transmissão estiver aberto: OBS Studio,
+  Streamlabs, XSplit, Twitch Studio, PRISM Live Studio, vMix e Meld Studio. A
+  detecção lê só os nomes dos processos (`tasklist`) a cada ~8 s, e só roda com
+  "Ligar automaticamente" ativo. Gravadores que ficam sempre abertos (GeForce
+  Experience, Xbox Game Bar, Medal) ficam de fora de propósito.
+- **Também liga à mão:** página "Modo streamer" nas configurações, ou menu da
+  bandeja.
+- **Desligar durante uma transmissão detectada** vale até o programa fechar
+  (não religa sozinho no meio da live).
+- **Enquanto ativo** (cada item é configurável): pausa as notificações (padrão);
+  ou, se continuarem, esconde o remetente e o texto e silencia os sons.
+- **Indicadores:** selo roxo "MODO STREAMER" na barra de título (clique desliga) e
+  aviso no tooltip da bandeja.

@@ -70,6 +70,20 @@ export interface GeneralSettings {
   trayHintShown: boolean;
 }
 
+/** Modo streamer: protege a tela enquanto você transmite ou grava. */
+export interface StreamerSettings {
+  /** Ligado manualmente (independe da detecção). */
+  enabled: boolean;
+  /** Liga sozinho enquanto um programa de transmissão/gravação estiver aberto. */
+  auto: boolean;
+  /** Não mostra notificação nenhuma. */
+  pauseNotifications: boolean;
+  /** Se as notificações continuarem, esconde remetente e texto. */
+  hideContent: boolean;
+  /** Sem sons. */
+  muteSounds: boolean;
+}
+
 export interface Settings {
   version: typeof SETTINGS_VERSION;
   general: GeneralSettings;
@@ -78,6 +92,7 @@ export interface Settings {
   notifications: NotificationSettings;
   sounds: SoundSettings;
   appearance: AppearanceSettings;
+  streamer: StreamerSettings;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -106,6 +121,13 @@ export const DEFAULT_SETTINGS: Settings = {
     library: [],
   },
   appearance: { theme: 'dark', chatTheme: false },
+  streamer: {
+    enabled: false,
+    auto: true,
+    pauseNotifications: true,
+    hideContent: true,
+    muteSounds: true,
+  },
 };
 
 export const LIMITS = {
@@ -198,6 +220,7 @@ export function normalizeSettings(
   const m = isObj(n['mentions']) ? n['mentions'] : {};
   const s = isObj(raw['sounds']) ? raw['sounds'] : {};
   const a = isObj(raw['appearance']) ? raw['appearance'] : {};
+  const st = isObj(raw['streamer']) ? raw['streamer'] : {};
   const g = isObj(raw['general']) ? raw['general'] : {};
   const bg = base.general;
   const bn = base.notifications;
@@ -260,6 +283,13 @@ export function normalizeSettings(
         ? (a['theme'] as ThemeChoice)
         : base.appearance.theme,
       chatTheme: bool(a['chatTheme'], base.appearance.chatTheme),
+    },
+    streamer: {
+      enabled: bool(st['enabled'], base.streamer.enabled),
+      auto: bool(st['auto'], base.streamer.auto),
+      pauseNotifications: bool(st['pauseNotifications'], base.streamer.pauseNotifications),
+      hideContent: bool(st['hideContent'], base.streamer.hideContent),
+      muteSounds: bool(st['muteSounds'], base.streamer.muteSounds),
     },
   };
 }

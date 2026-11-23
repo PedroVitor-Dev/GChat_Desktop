@@ -27,6 +27,8 @@ export interface GChatApi {
   importSound(): Promise<ImportSoundResult | null>;
   removeSound(id: SoundId): Promise<boolean>;
   getAutostartStatus(): Promise<AutostartStatus>;
+  /** Liga/desliga o modo streamer (desligar numa transmissão vale até o programa fechar). */
+  toggleStreamer(): Promise<void>;
   accounts: {
     add(name: string): Promise<AccountResult>;
     rename(id: string, name: string): Promise<AccountResult>;

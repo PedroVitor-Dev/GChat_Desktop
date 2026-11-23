@@ -11,6 +11,7 @@ import { SettingsStore } from './store/settings-store';
 import { appIcon } from './system/app-icon';
 import { HIDDEN_ARG, setJumpList, setLaunchAtLogin } from './system/autostart';
 import { WindowStateFile } from './system/window-state';
+import { StreamerMode } from './system/streamer-mode';
 import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
@@ -55,15 +56,23 @@ if (!app.requestSingleInstanceLock()) {
     const player = new SoundPlayer();
     const library = new SoundLibrary(settings, (bytes) => player.probe(bytes));
     player.attach(library);
-    const notifications = new NotificationManager({ settings, player, shell });
+    const streamer = new StreamerMode(settings);
+    const notifications = new NotificationManager({ settings, player, shell, streamer });
 
     tray = new AppTray(settings, {
       openChat: () => shell.focusChat(),
       openSettings: () => shell.openSettings(),
       quit: () => app.quit(),
+      toggleStreamer: () => streamer.toggle(),
     });
+    const onStreamer = () => {
+      shell.setStreamer(streamer.status());
+      tray?.setStreamer(streamer.status());
+    };
+    streamer.on('change', onStreamer);
+    onStreamer();
 
-    registerIpc({ settings, notifications, library, player, shell, accounts });
+    registerIpc({ settings, notifications, library, player, shell, accounts, streamer });
     listenForCaptures(notifications, (contents) => shell.accountIdFor(contents));
 
     let launchAtLogin = settings.get().general.launchAtLogin;
@@ -95,6 +104,7 @@ if (!app.requestSingleInstanceLock()) {
       event.preventDefault();
       flushed = true;
       tray?.destroy();
+      streamer.dispose();
       player.destroy();
       void Promise.all([settings.flush(), shell.flushSessions()]).finally(() => app.quit());
     });

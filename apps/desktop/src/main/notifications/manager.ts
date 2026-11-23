@@ -17,7 +17,8 @@ import {
 } from './rules';
 
 /** Motivo pelo qual uma notificação não virou toast (para estatísticas, sem conteúdo). */
-export type DropReason = 'disabled' | 'duplicate' | 'muted' | 'quiet-hours' | 'unsupported';
+export type DropReason =
+  'disabled' | 'duplicate' | 'muted' | 'quiet-hours' | 'streamer' | 'unsupported';
 
 interface Events {
   shown: [CapturedNotification];
@@ -27,6 +28,8 @@ interface Events {
 interface ManagerDeps {
   settings: SettingsStore;
   /** Janela principal: foco no clique e contador de não lidas. */
+  /** Modo streamer: pausa, esconde conteúdo e/ou silencia enquanto ativo. */
+  streamer: { status(): { active: boolean } };
   shell: {
     focusChat(accountId?: string): void;
     onNotificationShown(accountId: string | null): void;
@@ -81,12 +84,18 @@ export class NotificationManager extends EventEmitter<Events> {
     if (this.recent.size > 30) this.recent.delete(this.recent.keys().next().value!);
 
     if (isMuted(n, settings)) return this.drop('muted');
+    const streaming = this.deps.streamer.status().active;
+    const streamer = all.streamer;
+    if (streaming && streamer.pauseNotifications) return this.drop('streamer');
     const mention = isMention(n, settings.mentions.keywords);
     const bypass = mention && settings.mentions.bypassQuietHours;
     if (!bypass && isInQuietHours(new Date(), settings.quietHours)) return this.drop('quiet-hours');
     if (!Notification.isSupported()) return this.drop('unsupported');
 
-    const formatted = formatToast(n, settings);
+    // Transmitindo: nunca mostra remetente nem texto na tela, se assim configurado.
+    const privacy =
+      streaming && streamer.hideContent ? { showSender: false, showPreview: false } : settings;
+    const formatted = formatToast(n, privacy);
     // Com mais de uma conta, o toast diz de qual conta é a mensagem.
     const accountName =
       accountId && this.deps.shell.accountCount() > 1
@@ -94,7 +103,7 @@ export class NotificationManager extends EventEmitter<Events> {
         : null;
     const title = accountName ? `${formatted.title} · ${accountName}` : formatted.title;
     const { body } = formatted;
-    const sound = chooseSound(n, all.sounds, mention);
+    const sound = streaming && streamer.muteSounds ? 'none' : chooseSound(n, all.sounds, mention);
     if (diagnosticsEnabled) {
       console.error(`[diag] menção: ${mention ? 'sim' : 'não'} · som: ${sound}`);
     }

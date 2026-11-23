@@ -1,8 +1,10 @@
 import { Menu, Tray, nativeImage, type NativeImage } from 'electron';
+import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
 import type { SettingsStore } from '../store/settings-store';
 import { appIcon } from '../system/app-icon';
 
 interface TrayActions {
+  toggleStreamer(): void;
   openChat(): void;
   openSettings(): void;
   quit(): void;
@@ -50,6 +52,7 @@ export class AppTray {
   private readonly tray: Tray;
   private readonly images: { normal: NativeImage; badge: NativeImage };
   private unread = 0;
+  private streamer: StreamerStatus = STREAMER_OFF;
 
   constructor(
     private readonly settings: SettingsStore,
@@ -68,6 +71,11 @@ export class AppTray {
     this.refresh();
   }
 
+  setStreamer(status: StreamerStatus): void {
+    this.streamer = status;
+    this.refresh();
+  }
+
   destroy(): void {
     this.tray.destroy();
   }
@@ -83,6 +91,7 @@ export class AppTray {
           ? `${this.unread} ${this.unread === 1 ? 'nova mensagem' : 'novas mensagens'}`
           : null,
         paused ? 'Notificações pausadas' : null,
+        this.streamer.active ? 'Modo streamer' : null,
       ]
         .filter(Boolean)
         .join(' — '),
@@ -105,6 +114,15 @@ export class AppTray {
           checked: sounds.enabled,
           enabled: !paused,
           click: (item) => this.settings.update({ sounds: { enabled: item.checked } }),
+        },
+        {
+          label:
+            this.streamer.reason === 'auto'
+              ? `Modo streamer (automático: ${this.streamer.apps.join(', ')})`
+              : 'Modo streamer',
+          type: 'checkbox',
+          checked: this.streamer.active,
+          click: () => this.actions.toggleStreamer(),
         },
         { type: 'separator' },
         { label: 'Sair do GChat Desktop+', click: () => this.actions.quit() },
