@@ -47,8 +47,6 @@ export interface GChatApi {
     /** Mostra a chamada (true) ou volta ao Chat mantendo-a (false). */
     show(visible: boolean): Promise<void>;
     leave(): Promise<void>;
-    /** Alterna microfone/câmera pelos atalhos do Meet. */
-    toggle(kind: 'mic' | 'cam'): Promise<void>;
   };
   accounts: {
     add(name: string): Promise<AccountResult>;

@@ -313,16 +313,6 @@ export class AppShell {
     this.emitState();
   }
 
-  /** Atalhos oficiais do Meet: Ctrl+D (microfone) e Ctrl+E (câmera). */
-  sendCallShortcut(kind: 'mic' | 'cam'): void {
-    const contents = this.call?.view.webContents;
-    if (!contents || contents.isDestroyed()) return;
-    const keyCode = kind === 'mic' ? 'D' : 'E';
-    contents.focus();
-    contents.sendInputEvent({ type: 'keyDown', keyCode, modifiers: ['control'] });
-    contents.sendInputEvent({ type: 'keyUp', keyCode, modifiers: ['control'] });
-  }
-
   reloadChat(accountId: string = this.active): void {
     this.slots.get(accountId)?.view.webContents.reload();
   }

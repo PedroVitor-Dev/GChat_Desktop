@@ -101,10 +101,6 @@ export function registerIpc({
   });
   handle(IpcChannel.CallShow, oneBoolean, (visible) => shell.showCall(visible));
   handle(IpcChannel.CallLeave, noArgs, () => shell.endCall());
-  handle(IpcChannel.CallShortcut, oneArg, (kind) => {
-    if (kind !== 'mic' && kind !== 'cam') throw new TypeError('atalho inválido');
-    shell.sendCallShortcut(kind);
-  });
   handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
   handle(ShellChannel.GetState, noArgs, (): ShellState => shell.getState());
   handle(ShellChannel.SetSettingsOpen, oneBoolean, (open) => shell.setSettingsOpen(open));

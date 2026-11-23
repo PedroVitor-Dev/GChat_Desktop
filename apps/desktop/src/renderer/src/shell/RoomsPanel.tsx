@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react';
 import {
   Check,
   Copy,
-  Mic,
   MessageSquare,
   Pencil,
   PhoneOff,
@@ -215,25 +214,22 @@ function CallCard({ state }: { state: ShellState }) {
           <PhoneOff size={17} />
         </CallButton>
       </div>
-      <div className="mt-2 grid grid-cols-3 gap-1.5">
-        <CallButton label="Microfone (Ctrl+D)" onClick={() => void api.toggle('mic')} wide>
-          <Mic size={16} />
-        </CallButton>
-        <CallButton label="Câmera (Ctrl+E)" onClick={() => void api.toggle('cam')} wide>
-          <Video size={16} />
-        </CallButton>
-        <CallButton
-          label={call.visible ? 'Voltar ao Chat (a chamada continua)' : 'Ver chamada'}
-          onClick={() => void api.show(!call.visible)}
-          wide
-        >
-          {call.visible ? (
-            <MessageSquare size={16} />
-          ) : (
-            <Video size={16} className="text-success" />
-          )}
-        </CallButton>
-      </div>
+      {/* Microfone, câmera e tela ficam nos controles do próprio Meet. */}
+      <button
+        type="button"
+        onClick={() => void api.show(!call.visible)}
+        className="bg-selected text-header hover:bg-switch-off/60 mt-2 flex h-8 w-full items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors"
+      >
+        {call.visible ? (
+          <>
+            <MessageSquare size={15} aria-hidden /> Voltar ao Chat
+          </>
+        ) : (
+          <>
+            <Video size={15} aria-hidden className="text-success" /> Ver chamada
+          </>
+        )}
+      </button>
     </div>
   );
 }
@@ -242,13 +238,11 @@ function CallButton({
   label,
   onClick,
   danger = false,
-  wide = false,
   children,
 }: {
   label: string;
   onClick: () => void;
   danger?: boolean;
-  wide?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -257,7 +251,7 @@ function CallButton({
         type="button"
         aria-label={label}
         onClick={onClick}
-        className={`flex items-center justify-center rounded-md transition-colors ${wide ? 'h-8 w-full' : 'h-8 w-8'} ${
+        className={`flex items-center justify-center rounded-md transition-colors h-8 w-8 ${
           danger
             ? 'text-interactive hover:bg-danger hover:text-white'
             : 'bg-selected text-header hover:bg-switch-off/60'

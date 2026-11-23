@@ -4,8 +4,7 @@ import { getChatSession } from '../chat/session';
 
 /**
  * View do Google Meet na sessão da conta (já logada). Sem preload: o app não
- * interfere na página do Meet; só envia os atalhos oficiais de teclado para
- * microfone e câmera.
+ * interfere na página do Meet (microfone, câmera e tela ficam nos controles dele).
  */
 export function createMeetView(partition: string): WebContentsView {
   const view = new WebContentsView({

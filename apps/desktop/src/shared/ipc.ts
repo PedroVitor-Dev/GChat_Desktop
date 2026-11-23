@@ -21,7 +21,6 @@ export const IpcChannel = {
   CallJoin: 'call:join',
   CallShow: 'call:show',
   CallLeave: 'call:leave',
-  CallShortcut: 'call:shortcut',
   AccountAdd: 'accounts:add',
   AccountRename: 'accounts:rename',
   AccountSignOut: 'accounts:sign-out',
