@@ -50,5 +50,9 @@ Com o app empacotado (`electron-builder --dir`, sem gerar instalador):
    "Versão 0.0.2 pronta para instalar", com o selo na barra de título. A
    instalação não foi executada, de propósito.
 
-**Não verificado:** a instalação silenciosa e a reabertura depois de "Reiniciar e
-atualizar". Isso só dá para testar com duas versões publicadas de verdade.
+### Teste real de ponta a ponta (23/11/2026)
+
+Com o app 0.0.1 (já com o atualizador) instalado no Windows e o **Release v0.0.2
+publicado pelo workflow**, o app encontrou a 0.0.2, baixou e conferiu o SHA-512.
+Em "Reiniciar e atualizar", ele instalou em silêncio e reabriu como **0.0.2**,
+mantendo o login, as contas, as salas, o som de menção e os sons importados.
