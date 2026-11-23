@@ -1,27 +1,23 @@
 # GChat Desktop+
 
-Companheiro para Windows do Google Chat, com notificações nativas e sons
-personalizáveis.
+Cliente do Google Chat para Windows, com notificações nativas e sons personalizáveis.
 
-## Como funciona
+O app carrega o Google Chat oficial em uma janela própria, com login normal do
+Google (incluindo verificação em duas etapas) e sessão persistente. Não usa extensão
+nem precisa do navegador aberto, e não altera a identidade do navegador nem o
+conteúdo das mensagens.
 
-O Google bloqueia login em navegadores incorporados (Electron/CEF). Por isso o
-projeto **não** reempacota o Chat. Em vez disso:
-
-- o Chat roda no **app instalável oficial (PWA)** do Chrome ou Edge, com login
-  100% oficial;
-- uma **extensão** lê as notificações que o Chat já emite;
-- o **app Windows** (Electron + React) aplica regras, sons, horários de silêncio e
-  bandeja, e mostra os toasts nativos.
-
-Detalhes em [docs/fase-1-viabilidade.md](docs/fase-1-viabilidade.md) e
-[docs/estrutura.md](docs/estrutura.md).
+- Arquitetura: [docs/decisao-arquitetura.md](docs/decisao-arquitetura.md)
+- Estrutura: [docs/estrutura.md](docs/estrutura.md)
+- Desenvolvimento: [docs/desenvolvimento.md](docs/desenvolvimento.md)
+- Pesquisa inicial: [docs/fase-1-viabilidade.md](docs/fase-1-viabilidade.md)
 
 ## Status
 
-- [x] Fase 1: viabilidade (falta validar com `spikes/notification-probe`)
-- [x] Fase 2: estrutura do monorepo ([docs/desenvolvimento.md](docs/desenvolvimento.md))
-- [ ] Fase 3: conexão extensão ⇄ app
+- [x] Fase 1: viabilidade (revista: só o app)
+- [x] Fase 2: estrutura do projeto
+- [x] Fase 3: cliente Google Chat (janela, sessão persistente, navegação segura)
+- [ ] Fase 4: notificações
 
 ## Licença
 

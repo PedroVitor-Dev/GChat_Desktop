@@ -12,6 +12,10 @@ export default defineConfig({
       outDir: 'out/preload',
       // Preload em sandbox não suporta ESM: gera um único arquivo CommonJS.
       rollupOptions: {
+        input: {
+          index: resolve(import.meta.dirname, 'src/preload/index.ts'), // janela de configurações
+          chat: resolve(import.meta.dirname, 'src/preload/chat.ts'), // janela do Google Chat
+        },
         output: { format: 'cjs', entryFileNames: '[name].cjs' },
       },
     },

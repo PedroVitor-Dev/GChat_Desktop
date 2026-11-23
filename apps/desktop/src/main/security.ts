@@ -1,8 +1,11 @@
 import { app, session, shell, type WebContents } from 'electron';
+import { isChatSession } from './chat/session';
 
 /**
- * Endurecimento global. O app nunca carrega conteúdo remoto: toda navegação fora
- * do renderer local é bloqueada, e links https explícitos abrem no navegador padrão.
+ * Endurecimento das janelas locais (configurações): nenhum conteúdo remoto, toda
+ * navegação fora do renderer local é bloqueada e links https abrem no navegador.
+ *
+ * A janela do Google Chat (sessão própria) segue as regras de chat/policy.ts.
  */
 
 const DEV_URL = process.env['ELECTRON_RENDERER_URL'];
@@ -35,9 +38,11 @@ function harden(contents: WebContents): void {
 }
 
 export function applySecurityPolicies(): void {
-  app.on('web-contents-created', (_event, contents) => harden(contents));
+  app.on('web-contents-created', (_event, contents) => {
+    if (!isChatSession(contents.session)) harden(contents);
+  });
 
-  // Nenhuma permissão de navegador (câmera, microfone, geolocalização...) é necessária.
+  // Janelas locais não precisam de nenhuma permissão de navegador.
   session.defaultSession.setPermissionRequestHandler((_wc, _permission, callback) =>
     callback(false),
   );

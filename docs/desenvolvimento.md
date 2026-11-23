@@ -3,34 +3,56 @@
 Requisitos: Windows 10/11 x64, Node.js ≥ 22.12 e npm ≥ 11.
 
 ```bash
-npm install          # instala todos os workspaces (o Electron é baixado no primeiro uso)
-npm run dev          # app Windows em modo desenvolvimento (HMR no renderer)
-npm run build        # gera app, extensão (apps/extension/dist) e native host
+npm install          # instala as dependências (o Electron é baixado no primeiro uso)
+npm run dev          # app em modo desenvolvimento (HMR nas configurações)
+npm run build        # build de produção em apps/desktop/out
 npm run check        # typecheck + lint + formatação + testes
 ```
 
-## Workspaces
+Instalador (Fase 10): `npm run dist -w @gchat/desktop` → `apps/desktop/release/`.
 
-| Pacote              | Saída                                   | Observação                                                                      |
-| ------------------- | --------------------------------------- | ------------------------------------------------------------------------------- |
-| `packages/protocol` | — (consumido como fonte)                | Mensagens, validadores e codec do Native Messaging                              |
-| `apps/desktop`      | `apps/desktop/out`                      | Electron + React + Tailwind; `npm run dist -w @gchat/desktop` gera o instalador |
-| `apps/extension`    | `apps/extension/dist`                   | Carregar sem compactação em `chrome://extensions` / `edge://extensions`         |
-| `apps/native-host`  | `apps/native-host/dist/native-host.cjs` | Vira executável e é registrado no Windows na Fase 4                             |
+## Diagnóstico de notificações
+
+Mostra no terminal **apenas metadados** de cada notificação que o Google Chat cria:
+qual API foi usada e o tipo/tamanho de cada campo, nunca o texto.
+
+```bash
+npm run build -w @gchat/desktop
+```
+
+```powershell
+$env:GCHAT_DIAG = '1'; npx electron apps/desktop
+```
+
+## Onde ficam os dados
+
+`%APPDATA%\GChat Desktop+`. A sessão do Google fica em `Partitions\account-1`,
+criptografada pelo Chromium com a proteção de dados do Windows (DPAPI). O app não
+lê nem copia esses dados. Para "deslogar tudo", apague a pasta `Partitions`.
 
 ## Scripts de instalação
 
 O npm 11 bloqueia scripts de instalação por padrão. As decisões ficam em
 `allowScripts` no `package.json` da raiz:
 
-- `esbuild`: **permitido** (instala o binário nativo).
+- `esbuild`: **permitido** (instala o binário nativo usado pelo Vite).
 - `electron-winstaller`: **negado** (é do Squirrel; usamos NSIS).
 
-## Segurança da janela
+## Segurança
 
-- `sandbox`, `contextIsolation`, sem `nodeIntegration` e sem `<webview>`.
-- CSP restrita no `index.html`; navegação e `window.open` bloqueados (links https
-  explícitos abrem no navegador padrão).
-- O IPC só aceita canais da lista em `src/shared/ipc.ts`, vindos do renderer local,
-  e com argumentos validados (`src/main/ipc/handle.ts`).
-- Todas as permissões de navegador (câmera, microfone etc.) são negadas.
+**Janela do Google Chat** (`src/main/chat/`):
+
+- `sandbox`, `contextIsolation`, sem Node e sem `<webview>`.
+- Sessão própria e persistente, separada da janela de configurações.
+- Navegação na janela restrita a domínios do Google. Provedores de SSO externos só
+  são aceitos durante o login. O resto abre no navegador padrão.
+- Permissões em lista branca: notificações, escrita na área de transferência, tela
+  cheia e mídia (chamadas), apenas para `chat.google.com` e `meet.google.com`.
+- User-agent padrão do Electron, sem falsificação.
+
+**Janela de configurações:**
+
+- O mesmo isolamento, mais uma CSP restrita.
+- Nenhuma navegação ou permissão.
+- O IPC só aceita canais da lista em `src/shared/ipc.ts`, vindos do renderer local e
+  com argumentos validados.
