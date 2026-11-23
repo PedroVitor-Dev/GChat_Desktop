@@ -1,0 +1,5 @@
+{
+  "name": "spike-electron-login",
+  "private": true,
+  "main": "main.cjs"
+}

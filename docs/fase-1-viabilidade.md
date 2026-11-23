@@ -1,7 +1,10 @@
 # Fase 1 — Pesquisa de viabilidade
 
-> Status: concluída na parte documental. **Pendente:** validação prática com a sonda
-> `spikes/notification-probe` (seção 6) antes de começar a Fase 4.
+> **⚠️ Decisão revista em 23/11/2026.** O teste prático mostrou que o login do Google
+> funciona dentro do Electron com o user-agent padrão, sem falsificação. A arquitetura
+> passou a ser **só o app**. Veja [decisao-arquitetura.md](decisao-arquitetura.md).
+> Este documento fica como registro da pesquisa e do plano B (extensão + native host).
+>
 > Data: 23/11/2026
 
 ## 1. Resumo executivo
