@@ -6,8 +6,14 @@ import { sections, type SectionId } from '../sections';
  * Configurações em tela cheia, no estilo das configurações de usuário do Discord:
  * navegação à esquerda (alinhada à direita), conteúdo à direita, fechar com Esc.
  */
-export function SettingsScreen({ onClose }: { onClose: () => void }) {
-  const [active, setActive] = useState<SectionId>('notificacoes');
+export function SettingsScreen({
+  onClose,
+  initialSection = 'notificacoes',
+}: {
+  onClose: () => void;
+  initialSection?: SectionId;
+}) {
+  const [active, setActive] = useState<SectionId>(initialSection);
   const current = sections.find((s) => s.id === active) ?? sections[0]!;
   const Page = current.page;
 

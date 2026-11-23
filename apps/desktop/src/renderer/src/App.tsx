@@ -9,6 +9,7 @@ import { AddAccountModal } from './shell/AddAccountModal';
 import { ChatPlaceholder } from './shell/ChatPlaceholder';
 import { Rail } from './shell/Rail';
 import { SettingsScreen } from './shell/SettingsScreen';
+import type { SectionId } from './sections';
 import { TitleBar } from './shell/TitleBar';
 
 /**
@@ -20,6 +21,7 @@ export function App() {
   const state = useShellState();
   const [adding, setAdding] = useState(false);
   const [creatingRoom, setCreatingRoom] = useState(false);
+  const [settingsSection, setSettingsSection] = useState<SectionId>('notificacoes');
   const [settings] = useSettings();
   const { shell } = window.gchat;
 
@@ -82,7 +84,14 @@ export function App() {
             onSelect={(id) => void shell.selectAccount(id)}
             onAdd={openAdd}
             onRooms={() => void shell.setView('rooms')}
-            onSettings={() => void shell.setSettingsOpen(!state.settingsOpen)}
+            onSettings={() => {
+              setSettingsSection('notificacoes');
+              void shell.setSettingsOpen(!state.settingsOpen);
+            }}
+            onProfile={() => {
+              setSettingsSection('contas');
+              void shell.setSettingsOpen(true);
+            }}
           />
           {inRooms ? (
             <>
@@ -102,7 +111,11 @@ export function App() {
             <ChatPlaceholder loading={active?.loading ?? true} />
           )}
           {state.settingsOpen && (
-            <SettingsScreen onClose={() => void shell.setSettingsOpen(false)} />
+            <SettingsScreen
+              key={settingsSection}
+              initialSection={settingsSection}
+              onClose={() => void shell.setSettingsOpen(false)}
+            />
           )}
           {adding && <AddAccountModal onClose={closeAdd} />}
           {creatingRoom && (

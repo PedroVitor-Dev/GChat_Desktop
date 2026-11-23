@@ -20,6 +20,7 @@ export function Rail({
   onAdd,
   onRooms,
   onSettings,
+  onProfile,
 }: {
   accounts: AccountView[];
   activeAccount: string;
@@ -30,6 +31,8 @@ export function Rail({
   onAdd: () => void;
   onRooms: () => void;
   onSettings: () => void;
+  /** Abre o perfil (Configurações → Contas). */
+  onProfile: () => void;
 }) {
   const single = accounts.length === 1;
   const canAdd = accounts.length < ACCOUNT_LIMITS.max;
@@ -56,15 +59,7 @@ export function Rail({
             activeColor={single ? undefined : ACCOUNT_COLORS[a.color % ACCOUNT_COLORS.length]}
             onClick={() => onSelect(a.id)}
           >
-            {a.photo ? (
-              // Foto do Google: herda o formato do ícone (redondo → quadrado no hover/ativo)
-              <img
-                src={a.photo}
-                alt=""
-                className="h-full w-full rounded-[inherit] object-cover"
-                draggable={false}
-              />
-            ) : single ? (
+            {single ? (
               <img src={logo} alt="" className="h-8 w-8" draggable={false} />
             ) : (
               <span className="text-[17px] font-semibold">{accountInitials(a.name)}</span>
@@ -101,6 +96,8 @@ export function Rail({
       </RailItem>
 
       <div className="flex-1" />
+
+      <ProfileButton account={accounts.find((a) => a.id === activeAccount)} onClick={onProfile} />
 
       <RailItem
         label="Configurações (Ctrl+,)"
@@ -183,5 +180,46 @@ function RailItem({
         </button>
       </Tooltip>
     </div>
+  );
+}
+
+/**
+ * Perfil da conta ativa, embaixo do trilho (como o painel de usuário do
+ * Discord): foto do Google, ou as iniciais enquanto ela não foi lida.
+ */
+function ProfileButton({
+  account,
+  onClick,
+}: {
+  account: AccountView | undefined;
+  onClick: () => void;
+}) {
+  if (!account) return null;
+  const name = account.displayName ?? account.name;
+  return (
+    <Tooltip label={`${name} · Perfil e contas`}>
+      <button
+        type="button"
+        aria-label={`Perfil de ${name}`}
+        onClick={onClick}
+        className="ring-rail hover:ring-accent relative h-10 w-10 shrink-0 rounded-full ring-2 transition-shadow"
+      >
+        {account.photo ? (
+          <img
+            src={account.photo}
+            alt=""
+            className="h-full w-full rounded-full object-cover"
+            draggable={false}
+          />
+        ) : (
+          <span
+            className="flex h-full w-full items-center justify-center rounded-full text-sm font-semibold text-white"
+            style={{ background: ACCOUNT_COLORS[account.color % ACCOUNT_COLORS.length] }}
+          >
+            {accountInitials(name)}
+          </span>
+        )}
+      </button>
+    </Tooltip>
   );
 }
