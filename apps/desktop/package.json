@@ -1,7 +1,7 @@
 {
   "name": "@gchat/desktop",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "GChat Desktop+ — Google Chat para Windows com notificações e sons personalizáveis",
   "author": "Pedro Vitor",
   "license": "GPL-3.0-only",
