@@ -10,7 +10,9 @@ import {
   Volume2,
 } from 'lucide-react';
 import { AboutPage } from './pages/AboutPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { PlannedPage } from './pages/PlannedPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 
 export type SectionId =
   'geral' | 'notificacoes' | 'sons' | 'contas' | 'aparencia' | 'privacidade' | 'sobre';
@@ -41,11 +43,7 @@ export const sections: Section[] = [
     id: 'notificacoes',
     label: 'Notificações',
     icon: Bell,
-    page: planned('Fase 4', [
-      'Notificações nativas',
-      'Horários de silêncio',
-      'Conversas silenciadas',
-    ]),
+    page: NotificationsPage,
   },
   {
     id: 'sons',
@@ -57,7 +55,7 @@ export const sections: Section[] = [
     id: 'contas',
     label: 'Contas',
     icon: Users,
-    page: planned('Fase 3', ['Perfis do navegador conectados', 'Status da extensão']),
+    page: planned('Fase 7', ['Várias contas Google, cada uma com sua sessão', 'Sair da conta']),
   },
   {
     id: 'aparencia',
@@ -69,7 +67,7 @@ export const sections: Section[] = [
     id: 'privacidade',
     label: 'Privacidade',
     icon: Shield,
-    page: planned('Fase 7', ['Ocultar conteúdo das mensagens', 'Ocultar remetente']),
+    page: PrivacyPage,
   },
   { id: 'sobre', label: 'Sobre', icon: Info, page: AboutPage },
 ];

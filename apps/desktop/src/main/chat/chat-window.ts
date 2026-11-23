@@ -1,7 +1,6 @@
 import { join } from 'node:path';
 import { BrowserWindow, Menu, nativeTheme, shell, type WebContents } from 'electron';
 import { CHAT_URL, LOGIN_URL, decideNavigation, decidePopup, isLoggedOutLanding } from './policy';
-import { diagnosticsArgs } from './diagnostics';
 import { getChatSession } from './session';
 
 const openExternal = (url: string): void => {
@@ -102,7 +101,8 @@ export function createChatWindow(): BrowserWindow {
       nodeIntegration: false,
       webviewTag: false,
       spellcheck: true,
-      additionalArguments: diagnosticsArgs(),
+      // O preload também roda em iframes do Chat (ele mesmo ignora outras origens).
+      nodeIntegrationInSubFrames: true,
     },
   });
 

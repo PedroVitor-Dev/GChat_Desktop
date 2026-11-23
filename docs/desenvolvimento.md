@@ -13,16 +13,14 @@ Instalador (Fase 10): `npm run dist -w @gchat/desktop` → `apps/desktop/release
 
 ## Diagnóstico de notificações
 
-Mostra no terminal **apenas metadados** de cada notificação que o Google Chat cria:
-qual API foi usada e o tipo/tamanho de cada campo, nunca o texto.
-
-```bash
-npm run build -w @gchat/desktop
-```
+Mostra no terminal **apenas metadados** de cada notificação capturada (API, tipo e
+tamanho dos campos) e o que o app fez com ela (exibida, duplicada, silenciada...).
 
 ```powershell
-$env:GCHAT_DIAG = '1'; npx electron apps/desktop
+npm run build -w @gchat/desktop; $env:GCHAT_DIAG = '1'; npx electron apps/desktop
 ```
+
+Para abrir direto nas configurações: `npx electron apps/desktop --settings`.
 
 ## Onde ficam os dados
 

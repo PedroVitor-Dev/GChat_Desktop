@@ -17,7 +17,8 @@ conteúdo das mensagens.
 - [x] Fase 1: viabilidade (revista: só o app)
 - [x] Fase 2: estrutura do projeto
 - [x] Fase 3: cliente Google Chat (janela, sessão persistente, navegação segura)
-- [ ] Fase 4: notificações
+- [x] Fase 4: notificações nativas ([docs/notificacoes.md](docs/notificacoes.md))
+- [ ] Fase 5: sons personalizados
 
 ## Licença
 

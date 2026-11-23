@@ -1,10 +1,12 @@
 import { join } from 'node:path';
 import { BrowserWindow, app, nativeTheme } from 'electron';
 import { createChatWindow } from './chat/chat-window';
-import { registerChatDiagnostics } from './chat/diagnostics';
 import { registerIpc } from './ipc';
 import { buildAppMenu } from './menu';
+import { listenForCaptures } from './notifications/capture-listener';
+import { NotificationManager } from './notifications/manager';
 import { applySecurityPolicies } from './security';
+import { SettingsStore } from './store/settings-store';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
 
@@ -63,6 +65,8 @@ function showChat(): void {
     chatWindow.on('closed', () => {
       chatWindow = null;
     });
+    // Para o alerta da barra de tarefas quando o usuário volta ao Chat.
+    chatWindow.on('focus', () => chatWindow?.flashFrame(false));
   }
   reveal(chatWindow);
 }
@@ -71,15 +75,30 @@ function showChat(): void {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', showChat);
+  // `--settings` abre as configurações (usado por atalhos e, na Fase 6, pela Jump List).
+  const route = (argv: string[]) => (argv.includes('--settings') ? showSettings() : showChat());
+  app.on('second-instance', (_event, argv) => route(argv));
   app.setAppUserModelId(APP_ID); // necessário para toasts nativos no Windows
 
   void app.whenReady().then(() => {
+    const settings = new SettingsStore();
+    const notifications = new NotificationManager({ settings, getChatWindow: () => chatWindow });
+
     applySecurityPolicies();
-    registerIpc();
-    registerChatDiagnostics();
+    registerIpc({ settings, notifications });
+    listenForCaptures(notifications);
     buildAppMenu({ showSettings, showChat });
-    showChat();
+    showChat(); // a janela do Chat é necessária para receber mensagens
+    if (process.argv.includes('--settings')) showSettings();
+
+    // Garante que a última alteração de configuração chegue ao disco.
+    let flushed = false;
+    app.on('before-quit', (event) => {
+      if (flushed) return;
+      event.preventDefault();
+      flushed = true;
+      void settings.flush().finally(() => app.quit());
+    });
   });
 
   // Fase 6 trocará isto por "continuar na bandeja".
