@@ -1,5 +1,7 @@
 # GChat Desktop+
 
+**Site e download:** https://pedrovitor-dev.github.io/GChat_Desktop/
+
 Cliente do Google Chat para Windows, com notificações nativas e sons personalizáveis.
 
 O app carrega o Google Chat oficial em uma janela própria, com login normal do
@@ -11,6 +13,7 @@ conteúdo das mensagens.
 - Estrutura: [docs/estrutura.md](docs/estrutura.md)
 - Visual e atalhos: [docs/visual.md](docs/visual.md)
 - Instalador: [docs/instalador.md](docs/instalador.md)
+- Publicação (site e releases): [docs/publicacao.md](docs/publicacao.md)
 - Desenvolvimento: [docs/desenvolvimento.md](docs/desenvolvimento.md)
 - Pesquisa inicial: [docs/fase-1-viabilidade.md](docs/fase-1-viabilidade.md)
 

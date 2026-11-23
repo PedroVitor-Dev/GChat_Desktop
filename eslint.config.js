@@ -24,8 +24,14 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
+    // Landing page: JavaScript de navegador, sem build.
+    files: ['site/**/*.js'],
+    languageOptions: { globals: globals.browser, sourceType: 'script' },
+  },
+  {
     // Scripts de build e configs rodam em Node e podem escrever no console.
     files: ['**/*.{js,mjs,cjs}', '**/*.config.ts'],
+    ignores: ['site/**'],
     languageOptions: { globals: globals.node },
     rules: { 'no-console': 'off', '@typescript-eslint/no-require-imports': 'off' },
   },

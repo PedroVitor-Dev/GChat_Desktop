@@ -1,0 +1,58 @@
+# Gera o instalador do Windows e publica num Release ao enviar uma tag v*.
+#   git tag v0.0.1 && git push origin v0.0.1
+# O arquivo fica em /releases/download/v<versão>/GChat-Desktop-Plus-Setup-<versão>-x64.exe,
+# o endereço usado pelo botão "Baixar" da landing page.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Conferir versão da tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          pkg=$(node -p "require('./apps/desktop/package.json').version")
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$pkg" != "$tag" ]; then
+            echo "Tag v$tag não bate com a versão do app ($pkg)." && exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Testes e verificações
+        run: npm run check
+
+      - name: Gerar instalador
+        run: npm run dist -w @gchat/desktop
+
+      - name: Publicar no Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: GChat Desktop+ ${{ github.ref_name }}
+          draft: false
+          files: |
+            apps/desktop/release/*/GChat-Desktop-Plus-Setup-*.exe
+            apps/desktop/release/*/GChat-Desktop-Plus-Setup-*.exe.blockmap
+          body: |
+            ## Instalação
+            1. Baixe **o arquivo GChat-Desktop-Plus-Setup-…-x64.exe** abaixo.
+            2. Se aparecer “O Windows protegeu o computador”, clique em *Mais informações → Executar assim mesmo* (o instalador ainda não tem assinatura digital).
+            3. Entre com sua conta Google na página oficial.
+
+            Windows 10/11 · 64 bits · não requer administrador.
