@@ -3,6 +3,8 @@ import { IpcChannel, type AppInfo } from '../../shared/ipc';
 import type { Settings } from '../../shared/settings';
 import { ShellChannel, type ShellState } from '../../shared/shell';
 import { isSoundId, type SoundId } from '../../shared/sounds';
+import { isAccountId } from '../../shared/accounts';
+import type { AccountsService } from '../accounts/accounts-service';
 import type { NotificationManager } from '../notifications/manager';
 import type { AppShell } from '../shell/app-shell';
 import { autostartStatus } from '../system/autostart';
@@ -17,6 +19,7 @@ interface IpcDeps {
   library: SoundLibrary;
   player: SoundPlayer;
   shell: AppShell;
+  accounts: AccountsService;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -39,10 +42,37 @@ const oneBoolean = (args: unknown[]): boolean => {
   return args[0];
 };
 
-export function registerIpc({ settings, notifications, library, player, shell }: IpcDeps): void {
+/** Um id de conta válido (e, opcionalmente, um segundo argumento qualquer). */
+const accountArgs = (args: unknown[]): [string, unknown] => {
+  if (args.length < 1 || args.length > 2 || !isAccountId(args[0])) {
+    throw new TypeError('id de conta inválido');
+  }
+  return [args[0], args[1]];
+};
+
+/** Um único argumento qualquer (validado pelo serviço). */
+const oneArg = (args: unknown[]): unknown => {
+  if (args.length !== 1) throw new TypeError('esperado um argumento');
+  return args[0];
+};
+
+export function registerIpc({
+  settings,
+  notifications,
+  library,
+  player,
+  shell,
+  accounts,
+}: IpcDeps): void {
   handle(ShellChannel.GetState, noArgs, (): ShellState => shell.getState());
   handle(ShellChannel.SetSettingsOpen, oneBoolean, (open) => shell.setSettingsOpen(open));
-  handle(ShellChannel.FocusChat, noArgs, () => shell.focusChat());
+  handle(ShellChannel.SetModalOpen, oneBoolean, (open) => shell.setModalOpen(open));
+  handle(ShellChannel.SelectAccount, accountArgs, ([id]) => shell.focusChat(id));
+
+  handle(IpcChannel.AccountAdd, oneArg, (name) => accounts.add(name));
+  handle(IpcChannel.AccountRename, accountArgs, ([id, name]) => accounts.rename(id, name));
+  handle(IpcChannel.AccountSignOut, accountArgs, ([id]) => accounts.signOut(id));
+  handle(IpcChannel.AccountRemove, accountArgs, ([id]) => accounts.remove(id));
   handle(ShellChannel.ReloadChat, noArgs, () => shell.reloadChat());
 
   handle(IpcChannel.AppInfo, noArgs, (): AppInfo => ({

@@ -1,6 +1,6 @@
 /** Contrato entre o shell (barra de título + trilho + configurações) e o main. */
 
-/** Medidas do layout. O main posiciona a view do Chat a partir delas. */
+/** Medidas do layout. O main posiciona as views do Chat a partir delas. */
 export const SHELL_LAYOUT = {
   titleBarHeight: 32,
   railWidth: 72,
@@ -11,9 +11,11 @@ export const SHELL_LAYOUT = {
 export const ShellChannel = {
   /** renderer → main (invoke): abrir/fechar as configurações em tela cheia. */
   SetSettingsOpen: 'shell:set-settings-open',
-  /** renderer → main (invoke): focar o Chat (clique no trilho). */
-  FocusChat: 'shell:focus-chat',
-  /** renderer → main (invoke): recarregar o Chat. */
+  /** renderer → main (invoke): um modal do shell cobre a área do Chat. */
+  SetModalOpen: 'shell:set-modal-open',
+  /** renderer → main (invoke): mostrar o Chat de uma conta (clique no trilho). */
+  SelectAccount: 'shell:select-account',
+  /** renderer → main (invoke): recarregar o Chat da conta ativa. */
   ReloadChat: 'shell:reload-chat',
   /** renderer → main (invoke): estado atual (na montagem). */
   GetState: 'shell:get-state',
@@ -21,14 +23,25 @@ export const ShellChannel = {
   State: 'shell:state',
 } as const;
 
+export interface AccountView {
+  id: string;
+  name: string;
+  color: number;
+  /** Notificações desde a última vez que o usuário olhou esta conta. */
+  unread: number;
+  /** Primeiro carregamento ainda em andamento. */
+  loading: boolean;
+  /** Título da página (ex.: "Chat"). */
+  title: string;
+}
+
 export interface ShellState {
   settingsOpen: boolean;
-  /** Notificações exibidas desde a última vez que o usuário olhou o Chat. */
+  modalOpen: boolean;
+  accounts: AccountView[];
+  activeAccount: string;
+  /** Total de não lidas (bandeja e barra de tarefas). */
   unread: number;
-  /** Título da página do Chat (ex.: "Chat"), exibido na barra de título. */
-  chatTitle: string;
-  /** Primeiro carregamento do Chat ainda em andamento. */
-  chatLoading: boolean;
   /** Tema efetivo (já resolvido quando a escolha é "sistema"). */
   theme: 'dark' | 'light';
 }

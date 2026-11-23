@@ -4,17 +4,19 @@ import {
   app,
   nativeImage,
   nativeTheme,
+  screen,
   type Input,
   type NativeImage,
   type WebContents,
   type WebContentsView,
-  screen,
 } from 'electron';
-import { SHELL_LAYOUT, ShellChannel, type ShellState } from '../../shared/shell';
+import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
+import { SHELL_LAYOUT, ShellChannel, type AccountView, type ShellState } from '../../shared/shell';
 import chatThemeCss from '../chat/chat-theme.css?raw';
 import { createChatView } from '../chat/chat-view';
 import { diagnosticsEnabled } from '../chat/diagnostics';
+import { CHAT_URL } from '../chat/policy';
 import { appIcon } from '../system/app-icon';
 import {
   MIN_SIZE,
@@ -25,6 +27,7 @@ import {
 
 export interface ShellOptions {
   appearance: AppearanceSettings;
+  accounts: AccountsSettings;
   /** Abrir sem mostrar a janela (início com o Windows → só bandeja). */
   startHidden: boolean;
   windowState: WindowStateFile;
@@ -32,8 +35,10 @@ export interface ShellOptions {
   shouldHideOnClose: () => boolean;
   /** Chamado na primeira vez que a janela vai para a bandeja ao fechar. */
   onHiddenToTray: () => void;
-  /** Mudança no número de não lidas (bandeja). */
+  /** Mudança no total de não lidas (bandeja). */
   onUnreadChange: (count: number) => void;
+  /** O usuário trocou de conta no trilho (para persistir). */
+  onActiveAccountChange: (id: string) => void;
 }
 
 /** Cores da barra de título nativa (botões minimizar/maximizar/fechar do Windows). */
@@ -49,8 +54,7 @@ function badgeImage(): NativeImage {
   const c = (size - 1) / 2;
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const d = Math.hypot(x - c, y - c);
-      const alpha = Math.max(0, Math.min(1, 7.5 - d)); // borda suavizada
+      const alpha = Math.max(0, Math.min(1, 7.5 - Math.hypot(x - c, y - c)));
       const i = (y * size + x) * 4;
       px[i] = 0x3c; // B
       px[i + 1] = 0x37; // G
@@ -61,31 +65,39 @@ function badgeImage(): NativeImage {
   return nativeImage.createFromBitmap(px, { width: size, height: size });
 }
 
+/** Uma conta aberta: sua view do Chat e o estado exibido no trilho. */
+interface ChatSlot {
+  account: Account;
+  view: WebContentsView;
+  unread: number;
+  loading: boolean;
+  title: string;
+  cssKey: string | null;
+}
+
 /**
  * Janela principal no estilo Discord:
  * - barra de título própria (botões nativos do Windows via titleBarOverlay);
- * - trilho de ícones à esquerda e configurações em tela cheia (renderer local);
- * - o Google Chat numa WebContentsView isolada, com canto arredondado.
+ * - trilho com uma entrada por conta e configurações em tela cheia (renderer local);
+ * - uma WebContentsView isolada do Google Chat por conta. Todas ficam carregadas
+ *   (para receber notificações); só a da conta ativa aparece.
  */
 export class AppShell {
   readonly window: BrowserWindow;
-  readonly chat: WebContentsView;
-  private state: ShellState;
-  private chatCssKey: string | null = null;
+  private readonly slots = new Map<string, ChatSlot>();
+  private active: string;
+  private settingsOpen = false;
+  private modalOpen = false;
+  private theme: 'dark' | 'light';
   private appearance: AppearanceSettings;
   private badge: NativeImage | null = null;
   private quitting = false;
+  private lastTotalUnread = 0;
 
   constructor(private readonly options: ShellOptions) {
-    const { appearance } = options;
-    this.appearance = appearance;
-    this.state = {
-      settingsOpen: false,
-      unread: 0,
-      chatTitle: 'Google Chat',
-      chatLoading: true,
-      theme: this.resolveTheme(appearance),
-    };
+    this.appearance = options.appearance;
+    this.theme = this.resolveTheme(options.appearance);
+    this.active = options.accounts.active;
 
     const bounds = fitToDisplays(
       options.windowState.load(),
@@ -101,9 +113,9 @@ export class AppShell {
       minHeight: MIN_SIZE.height,
       show: false,
       title: 'GChat Desktop+',
-      backgroundColor: TITLE_BAR[this.state.theme].color,
+      backgroundColor: TITLE_BAR[this.theme].color,
       titleBarStyle: 'hidden',
-      titleBarOverlay: { ...TITLE_BAR[this.state.theme], height: SHELL_LAYOUT.titleBarHeight },
+      titleBarOverlay: { ...TITLE_BAR[this.theme], height: SHELL_LAYOUT.titleBarHeight },
       webPreferences: {
         preload: join(import.meta.dirname, '../preload/index.cjs'),
         sandbox: true,
@@ -114,15 +126,9 @@ export class AppShell {
       },
     });
 
-    this.chat = createChatView();
-    this.chat.setBorderRadius(SHELL_LAYOUT.contentRadius);
-    this.chat.setBackgroundColor(this.state.theme === 'dark' ? '#313338' : '#ffffff');
-    this.chat.setVisible(false); // aparece após o primeiro carregamento (sem flash branco)
-    this.window.contentView.addChildView(this.chat);
-
-    this.wireChat();
+    nativeTheme.themeSource = options.appearance.theme;
+    this.syncAccounts(options.accounts);
     this.wireWindow();
-    nativeTheme.themeSource = appearance.theme;
 
     const devUrl = process.env['ELECTRON_RENDERER_URL'];
     if (!app.isPackaged && devUrl) void this.window.loadURL(devUrl);
@@ -133,25 +139,82 @@ export class AppShell {
     });
   }
 
-  /** Chamado em before-quit: a partir daqui, fechar a janela encerra de verdade. */
-  markQuitting(): void {
-    this.quitting = true;
-  }
-
-  /** Esconde a janela (continua rodando na bandeja). */
-  hide(): void {
-    this.window.hide();
-  }
+  // ───────────────────────────── API pública ─────────────────────────────
 
   getState(): ShellState {
-    return this.state;
+    const accounts: AccountView[] = [...this.slots.values()].map((s) => ({
+      id: s.account.id,
+      name: s.account.name,
+      color: s.account.color,
+      unread: s.unread,
+      loading: s.loading,
+      title: s.title,
+    }));
+    return {
+      settingsOpen: this.settingsOpen,
+      modalOpen: this.modalOpen,
+      accounts,
+      activeAccount: this.active,
+      unread: accounts.reduce((sum, a) => sum + a.unread, 0),
+      theme: this.theme,
+    };
   }
 
-  /** Traz a janela para frente e mostra o Chat (fecha as configurações). */
-  focusChat(): void {
+  /** Cria/remove/atualiza views conforme a lista de contas das configurações. */
+  syncAccounts(accounts: AccountsSettings): void {
+    for (const [id, slot] of this.slots) {
+      if (!accounts.list.some((a) => a.id === id)) this.destroySlot(slot);
+    }
+    for (const account of accounts.list) {
+      const slot = this.slots.get(account.id);
+      if (slot) slot.account = account;
+      else this.createSlot(account);
+    }
+    // Mantém a ordem das configurações (Map preserva ordem de inserção).
+    const ordered = accounts.list.map((a) => this.slots.get(a.id)!);
+    this.slots.clear();
+    for (const s of ordered) this.slots.set(s.account.id, s);
+
+    if (!this.slots.has(this.active)) this.active = accounts.active;
+    if (!this.slots.has(this.active)) this.active = accounts.list[0]!.id;
+    this.layout();
+    this.refreshVisibility();
+    this.emitState();
+  }
+
+  /** Conta dona de um webContents (usado para atribuir notificações). */
+  accountIdFor(contents: WebContents): string | null {
+    for (const [id, slot] of this.slots) if (slot.view.webContents === contents) return id;
+    return null;
+  }
+
+  accountName(id: string): string | null {
+    return this.slots.get(id)?.account.name ?? null;
+  }
+
+  accountCount(): number {
+    return this.slots.size;
+  }
+
+  /** Mostra o Chat de uma conta (fecha as configurações e traz a janela). */
+  focusChat(accountId: string = this.active): void {
     this.reveal();
-    if (this.state.settingsOpen) this.setSettingsOpen(false);
-    this.chat.webContents.focus();
+    this.settingsOpen = false;
+    this.modalOpen = false;
+    this.selectAccount(accountId);
+  }
+
+  selectAccount(id: string): void {
+    const slot = this.slots.get(id);
+    if (!slot) return;
+    if (this.active !== id) {
+      this.active = id;
+      this.options.onActiveAccountChange(id);
+    }
+    slot.unread = 0;
+    this.refreshVisibility();
+    if (!this.overlayOpen()) slot.view.webContents.focus();
+    this.emitState();
   }
 
   openSettings(): void {
@@ -160,21 +223,54 @@ export class AppShell {
   }
 
   setSettingsOpen(open: boolean): void {
-    this.update({ settingsOpen: open });
-    this.chat.setVisible(!open && !this.state.chatLoading);
+    this.settingsOpen = open;
+    this.refreshVisibility();
     if (open) this.window.webContents.focus();
-    else this.chat.webContents.focus();
+    else this.activeSlot()?.view.webContents.focus();
+    this.emitState();
   }
 
-  reloadChat(): void {
-    this.chat.webContents.reload();
+  setModalOpen(open: boolean): void {
+    this.modalOpen = open;
+    this.refreshVisibility();
+    if (open) this.window.webContents.focus();
+    this.emitState();
+  }
+
+  reloadChat(accountId: string = this.active): void {
+    this.slots.get(accountId)?.view.webContents.reload();
+  }
+
+  /** Encerra a sessão Google de uma conta (apaga cookies e dados) e volta ao login. */
+  async signOut(accountId: string): Promise<void> {
+    const slot = this.slots.get(accountId);
+    if (!slot) return;
+    const ses = slot.view.webContents.session;
+    await ses.clearStorageData();
+    await ses.clearCache();
+    slot.loading = true;
+    this.refreshVisibility();
+    this.emitState();
+    void slot.view.webContents.loadURL(CHAT_URL);
   }
 
   /** Chamado pelo Notification Manager a cada toast exibido. */
-  onNotificationShown(): void {
-    if (this.isLookingAtChat()) return;
-    this.update({ unread: this.state.unread + 1 });
-    this.window.flashFrame(true);
+  onNotificationShown(accountId: string | null): void {
+    const slot = (accountId && this.slots.get(accountId)) || this.activeSlot();
+    if (!slot) return;
+    const lookingAtIt = this.isLookingAtChat() && slot.account.id === this.active;
+    if (lookingAtIt) return;
+    slot.unread += 1;
+    if (!this.window.isFocused()) this.window.flashFrame(true);
+    this.emitState();
+  }
+
+  markQuitting(): void {
+    this.quitting = true;
+  }
+
+  hide(): void {
+    this.window.hide();
   }
 
   applyAppearance(appearance: AppearanceSettings): void {
@@ -184,17 +280,83 @@ export class AppShell {
     if (nativeTheme.themeSource !== appearance.theme) {
       nativeTheme.themeSource = appearance.theme; // o Chat (tema "sistema") acompanha
     }
-    if (themeChanged || !this.window.isVisible()) this.refreshTheme();
-    if (chatThemeChanged) void this.applyChatTheme();
+    if (themeChanged) this.refreshTheme();
+    if (chatThemeChanged) for (const slot of this.slots.values()) void this.applyChatTheme(slot);
   }
 
-  /** Recalcula o tema efetivo e repinta a moldura (sem mexer em nativeTheme). */
+  // ───────────────────────────── contas/views ─────────────────────────────
+
+  private createSlot(account: Account): ChatSlot {
+    const view = createChatView(partitionOf(account.id));
+    view.setBorderRadius(SHELL_LAYOUT.contentRadius);
+    view.setBackgroundColor(this.theme === 'dark' ? '#313338' : '#ffffff');
+    view.setVisible(false); // aparece após o primeiro carregamento (sem flash branco)
+    this.window.contentView.addChildView(view);
+
+    const slot: ChatSlot = {
+      account,
+      view,
+      unread: 0,
+      loading: true,
+      title: 'Google Chat',
+      cssKey: null,
+    };
+    this.slots.set(account.id, slot);
+
+    const contents = view.webContents;
+    contents.on('page-title-updated', (_e, title) => {
+      slot.title = title;
+      this.emitState();
+    });
+    contents.on('did-finish-load', () => {
+      if (slot.loading) {
+        slot.loading = false;
+        this.refreshVisibility();
+        this.emitState();
+      }
+      // O CSS injetado se perde a cada carregamento: reaplica se estiver ligado.
+      slot.cssKey = null;
+      if (this.appearance.chatTheme) void this.applyChatTheme(slot);
+      if (diagnosticsEnabled) void this.logThemeTokens(contents);
+    });
+    contents.on('before-input-event', (e, input) => this.onKey(e, input));
+    return slot;
+  }
+
+  private destroySlot(slot: ChatSlot): void {
+    this.window.contentView.removeChildView(slot.view);
+    slot.view.webContents.close();
+    this.slots.delete(slot.account.id);
+  }
+
+  private activeSlot(): ChatSlot | undefined {
+    return this.slots.get(this.active);
+  }
+
+  private overlayOpen(): boolean {
+    return this.settingsOpen || this.modalOpen;
+  }
+
+  /** Só a view da conta ativa aparece, e só sem configurações/modal por cima. */
+  private refreshVisibility(): void {
+    for (const [id, slot] of this.slots) {
+      slot.view.setVisible(id === this.active && !slot.loading && !this.overlayOpen());
+    }
+  }
+
+  // ───────────────────────────── aparência ─────────────────────────────
+
   private refreshTheme(): void {
     const theme = this.resolveTheme(this.appearance);
     this.window.setTitleBarOverlay({ ...TITLE_BAR[theme], height: SHELL_LAYOUT.titleBarHeight });
     this.window.setBackgroundColor(TITLE_BAR[theme].color);
-    this.chat.setBackgroundColor(theme === 'dark' ? '#313338' : '#ffffff');
-    if (theme !== this.state.theme) this.update({ theme });
+    for (const slot of this.slots.values()) {
+      slot.view.setBackgroundColor(theme === 'dark' ? '#313338' : '#ffffff');
+    }
+    if (theme !== this.theme) {
+      this.theme = theme;
+      this.emitState();
+    }
   }
 
   private resolveTheme(appearance: AppearanceSettings): 'dark' | 'light' {
@@ -202,20 +364,40 @@ export class AppShell {
     return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
   }
 
-  /** Aplica ou remove o tema experimental conforme a configuração atual. */
-  private async applyChatTheme(): Promise<void> {
-    const contents = this.chat.webContents;
-    if (this.chatCssKey) {
-      await contents.removeInsertedCSS(this.chatCssKey).catch(() => undefined);
-      this.chatCssKey = null;
+  /** Aplica ou remove o tema experimental numa conta. */
+  private async applyChatTheme(slot: ChatSlot): Promise<void> {
+    const contents = slot.view.webContents;
+    if (contents.isDestroyed()) return;
+    if (slot.cssKey) {
+      await contents.removeInsertedCSS(slot.cssKey).catch(() => undefined);
+      slot.cssKey = null;
     }
     if (this.appearance.chatTheme && !contents.isLoading()) {
-      this.chatCssKey = await contents.insertCSS(chatThemeCss, { cssOrigin: 'user' });
+      slot.cssKey = await contents.insertCSS(chatThemeCss, { cssOrigin: 'user' });
     }
   }
 
+  /** Diagnóstico do tema experimental: os tokens M3 existem na página? (sem conteúdo) */
+  private async logThemeTokens(contents: WebContents): Promise<void> {
+    const found = await contents
+      .executeJavaScript(
+        `getComputedStyle(document.documentElement).getPropertyValue('--gm3-sys-color-surface') !== ''`,
+      )
+      .catch(() => null);
+    console.error(
+      `[diag] tokens Material 3 na página: ${found === null ? 'erro' : found ? 'presentes' : 'ausentes'}`,
+    );
+  }
+
+  // ───────────────────────────── janela ─────────────────────────────
+
   private isLookingAtChat(): boolean {
-    return this.window.isFocused() && !this.window.isMinimized() && !this.state.settingsOpen;
+    return (
+      this.window.isVisible() &&
+      this.window.isFocused() &&
+      !this.window.isMinimized() &&
+      !this.overlayOpen()
+    );
   }
 
   private reveal(): void {
@@ -227,12 +409,13 @@ export class AppShell {
   private layout(): void {
     const { width, height } = this.window.getContentBounds();
     const { railWidth, titleBarHeight } = SHELL_LAYOUT;
-    this.chat.setBounds({
+    const bounds = {
       x: railWidth,
       y: titleBarHeight,
       width: Math.max(0, width - railWidth),
       height: Math.max(0, height - titleBarHeight),
-    });
+    };
+    for (const slot of this.slots.values()) slot.view.setBounds(bounds);
   }
 
   private wireWindow(): void {
@@ -252,70 +435,52 @@ export class AppShell {
       this.options.onHiddenToTray();
     });
     this.window.on('focus', () => {
-      if (!this.state.settingsOpen) this.clearUnread();
+      this.window.flashFrame(false);
+      const slot = this.activeSlot();
+      if (slot && slot.unread > 0 && !this.overlayOpen()) {
+        slot.unread = 0;
+        this.emitState();
+      }
     });
     // Atalhos valem em qualquer parte da janela (shell ou Chat).
     this.window.webContents.on('before-input-event', (e, input) => this.onKey(e, input));
-    this.chat.webContents.on('before-input-event', (e, input) => this.onKey(e, input));
     // Tema "sistema": acompanha a troca de claro/escuro do Windows.
     nativeTheme.on('updated', () => this.refreshTheme());
-  }
-
-  private wireChat(): void {
-    const contents = this.chat.webContents;
-    contents.on('page-title-updated', (_e, title) => this.update({ chatTitle: title }));
-    contents.on('did-finish-load', () => {
-      if (this.state.chatLoading) {
-        this.update({ chatLoading: false });
-        this.chat.setVisible(!this.state.settingsOpen);
-      }
-      // O CSS injetado se perde a cada carregamento: reaplica se estiver ligado.
-      this.chatCssKey = null;
-      if (this.appearance.chatTheme) void this.applyChatTheme();
-      if (diagnosticsEnabled) void this.logThemeTokens(contents);
-    });
-  }
-
-  /** Diagnóstico do tema experimental: os tokens M3 existem na página? (sem conteúdo) */
-  private async logThemeTokens(contents: WebContents): Promise<void> {
-    const found = await contents
-      .executeJavaScript(
-        `getComputedStyle(document.documentElement).getPropertyValue('--gm3-sys-color-surface') !== ''`,
-      )
-      .catch(() => null);
-    console.error(
-      `[diag] tokens Material 3 na página: ${found === null ? 'erro' : found ? 'presentes' : 'ausentes'}`,
-    );
   }
 
   private onKey(event: Electron.Event, input: Input): void {
     if (input.type !== 'keyDown') return;
     const ctrl = input.control || input.meta;
     const key = input.key.toLowerCase();
+    const chat = this.activeSlot()?.view.webContents;
     const handled = (fn: () => void) => {
       event.preventDefault();
       fn();
     };
 
     if (ctrl && key === 'q') return handled(() => app.quit());
-    if (ctrl && key === ',') return handled(() => this.setSettingsOpen(!this.state.settingsOpen));
-    if (key === 'escape' && this.state.settingsOpen)
+    if (ctrl && key === ',') return handled(() => this.setSettingsOpen(!this.settingsOpen));
+    // Com um modal aberto, o Esc é dele (o renderer trata).
+    if (key === 'escape' && this.settingsOpen && !this.modalOpen)
       return handled(() => this.setSettingsOpen(false));
-    if (key === 'f5' || (ctrl && key === 'r')) return handled(() => this.reloadChat());
-    if (ctrl && (key === '=' || key === '+')) return handled(() => this.zoom(0.5));
-    if (ctrl && key === '-') return handled(() => this.zoom(-0.5));
-    if (ctrl && key === '0') return handled(() => this.chat.webContents.setZoomLevel(0));
-    if (input.alt && key === 'arrowleft') {
-      return handled(() => this.chat.webContents.navigationHistory.goBack());
+    // Ctrl+1…5 troca de conta, como Ctrl+Alt+↑/↓ entre servidores no Discord.
+    if (ctrl && /^[1-5]$/.test(key)) {
+      const target = [...this.slots.keys()][Number(key) - 1];
+      if (target) return handled(() => this.focusChat(target));
     }
+    if (!chat) return;
+    if (key === 'f5' || (ctrl && key === 'r')) return handled(() => chat.reload());
+    if (ctrl && (key === '=' || key === '+')) return handled(() => this.zoom(chat, 0.5));
+    if (ctrl && key === '-') return handled(() => this.zoom(chat, -0.5));
+    if (ctrl && key === '0') return handled(() => chat.setZoomLevel(0));
+    if (input.alt && key === 'arrowleft') return handled(() => chat.navigationHistory.goBack());
     if (!app.isPackaged && ctrl && input.shift && key === 'i') {
-      return handled(() =>
-        (this.state.settingsOpen
-          ? this.window.webContents
-          : this.chat.webContents
-        ).toggleDevTools(),
-      );
+      return handled(() => (this.settingsOpen ? this.window.webContents : chat).toggleDevTools());
     }
+  }
+
+  private zoom(contents: WebContents, delta: number): void {
+    contents.setZoomLevel(Math.max(-3, Math.min(3, contents.getZoomLevel() + delta)));
   }
 
   private saveBounds(delayMs?: number): void {
@@ -327,28 +492,19 @@ export class AppShell {
     this.options.windowState.save(state, delayMs);
   }
 
-  private zoom(delta: number): void {
-    const level = this.chat.webContents.getZoomLevel() + delta;
-    this.chat.webContents.setZoomLevel(Math.max(-3, Math.min(3, level)));
-  }
-
-  private clearUnread(): void {
-    this.window.flashFrame(false);
-    if (this.state.unread > 0) this.update({ unread: 0 });
-  }
-
-  private update(patch: Partial<ShellState>): void {
-    this.state = { ...this.state, ...patch };
-    if ('unread' in patch) {
-      this.options.onUnreadChange(this.state.unread);
+  private emitState(): void {
+    const state = this.getState();
+    if (state.unread !== this.lastTotalUnread) {
+      this.lastTotalUnread = state.unread;
+      this.options.onUnreadChange(state.unread);
       this.badge ??= badgeImage();
       this.window.setOverlayIcon(
-        this.state.unread > 0 ? this.badge : null,
-        this.state.unread > 0 ? `${this.state.unread} novas mensagens` : '',
+        state.unread > 0 ? this.badge : null,
+        state.unread > 0 ? `${state.unread} novas mensagens` : '',
       );
     }
     if (!this.window.webContents.isDestroyed()) {
-      this.window.webContents.send(ShellChannel.State, this.state);
+      this.window.webContents.send(ShellChannel.State, state);
     }
   }
 }

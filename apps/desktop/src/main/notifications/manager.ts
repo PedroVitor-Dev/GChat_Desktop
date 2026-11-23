@@ -26,7 +26,12 @@ interface Events {
 interface ManagerDeps {
   settings: SettingsStore;
   /** Janela principal: foco no clique e contador de não lidas. */
-  shell: { focusChat(): void; onNotificationShown(): void };
+  shell: {
+    focusChat(accountId?: string): void;
+    onNotificationShown(accountId: string | null): void;
+    accountName(accountId: string): string | null;
+    accountCount(): number;
+  };
   player: SoundPlayer;
 }
 
@@ -55,7 +60,14 @@ export class NotificationManager extends EventEmitter<Events> {
     return [...this.recent.entries()].sort((a, b) => b[1] - a[1]).map(([key]) => key);
   }
 
-  handle(n: CapturedNotification, frame: WebFrameMain | null): 'shown' | DropReason {
+  /**
+   * @param accountId conta (view) de onde veio a notificação; null se desconhecida
+   */
+  handle(
+    n: CapturedNotification,
+    frame: WebFrameMain | null,
+    accountId: string | null = null,
+  ): 'shown' | DropReason {
     const all = this.deps.settings.get();
     const settings = all.notifications;
 
@@ -73,7 +85,14 @@ export class NotificationManager extends EventEmitter<Events> {
     if (!bypass && isInQuietHours(new Date(), settings.quietHours)) return this.drop('quiet-hours');
     if (!Notification.isSupported()) return this.drop('unsupported');
 
-    const { title, body } = formatToast(n, settings);
+    const formatted = formatToast(n, settings);
+    // Com mais de uma conta, o toast diz de qual conta é a mensagem.
+    const accountName =
+      accountId && this.deps.shell.accountCount() > 1
+        ? this.deps.shell.accountName(accountId)
+        : null;
+    const title = accountName ? `${formatted.title} · ${accountName}` : formatted.title;
+    const { body } = formatted;
     const sound = chooseSound(n, all.sounds, mention);
     const toast = new Notification({
       title,
@@ -87,7 +106,7 @@ export class NotificationManager extends EventEmitter<Events> {
     const release = () => this.active.delete(n.id);
     toast.on('click', () => {
       release();
-      this.focusChat();
+      this.deps.shell.focusChat(accountId ?? undefined);
       // Devolve o clique ao Chat, que abre a conversa (comportamento dele).
       if (frame && !frame.isDestroyed()) frame.send(NotificationChannel.Clicked, n.id);
     });
@@ -106,7 +125,7 @@ export class NotificationManager extends EventEmitter<Events> {
     toast.show();
     this.playSound(sound);
 
-    this.deps.shell.onNotificationShown();
+    this.deps.shell.onNotificationShown(accountId);
     this.emit('shown', n);
     return 'shown';
   }
@@ -147,10 +166,6 @@ export class NotificationManager extends EventEmitter<Events> {
     const current = this.deps.settings.get().notifications.mutedConversations;
     if (current.includes(key)) return;
     this.deps.settings.update({ notifications: { mutedConversations: [...current, key] } });
-  }
-
-  private focusChat(): void {
-    this.deps.shell.focusChat();
   }
 
   private drop(reason: DropReason): DropReason {

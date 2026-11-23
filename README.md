@@ -22,7 +22,8 @@ conteúdo das mensagens.
 - [x] Fase 5: sons personalizados ([docs/sons.md](docs/sons.md))
 - [x] Visual estilo Discord (shell, trilho, configurações em tela cheia, temas)
 - [x] Fase 6: bandeja e segundo plano ([docs/segundo-plano.md](docs/segundo-plano.md))
-- [ ] Fase 7: configurações (contas múltiplas, ajustes finais)
+- [x] Fase 7: configurações e várias contas ([docs/contas.md](docs/contas.md))
+- [ ] Fase 8: revisão de segurança
 
 ## Licença
 

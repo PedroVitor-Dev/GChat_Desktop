@@ -10,10 +10,10 @@ import {
   Volume2,
 } from 'lucide-react';
 import { AboutPage } from './pages/AboutPage';
+import { AccountsPage } from './pages/AccountsPage';
 import { AppearancePage } from './pages/AppearancePage';
 import { GeneralPage } from './pages/GeneralPage';
 import { NotificationsPage } from './pages/NotificationsPage';
-import { PlannedPage } from './pages/PlannedPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { SoundsPage } from './pages/SoundsPage';
 
@@ -26,10 +26,6 @@ interface Section {
   icon: LucideIcon;
   page: ComponentType;
 }
-
-const planned = (phase: string, items: string[]) => () => (
-  <PlannedPage phase={phase} items={items} />
-);
 
 export const sections: Section[] = [
   {
@@ -54,7 +50,7 @@ export const sections: Section[] = [
     id: 'contas',
     label: 'Contas',
     icon: Users,
-    page: planned('Fase 7', ['Várias contas Google, cada uma com sua sessão', 'Sair da conta']),
+    page: AccountsPage,
   },
   {
     id: 'aparencia',

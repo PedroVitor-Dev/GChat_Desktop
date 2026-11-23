@@ -1,4 +1,5 @@
 import { Menu, Notification, app } from 'electron';
+import { AccountsService } from './accounts/accounts-service';
 import { registerIpc } from './ipc';
 import { listenForCaptures } from './notifications/capture-listener';
 import { NotificationManager } from './notifications/manager';
@@ -32,6 +33,7 @@ if (!app.requestSingleInstanceLock()) {
     let tray: AppTray | null = null;
     const shell = new AppShell({
       appearance: settings.get().appearance,
+      accounts: settings.get().accounts,
       startHidden,
       windowState: new WindowStateFile(app.getPath('userData')),
       shouldHideOnClose: () => settings.get().general.closeToTray,
@@ -46,7 +48,9 @@ if (!app.requestSingleInstanceLock()) {
         settings.updateInternal({ general: { trayHintShown: true } });
       },
       onUnreadChange: (count) => tray?.setUnread(count),
+      onActiveAccountChange: (id) => accounts.setActive(id),
     });
+    const accounts = new AccountsService(settings, shell);
 
     const player = new SoundPlayer();
     const library = new SoundLibrary(settings, (bytes) => player.probe(bytes));
@@ -59,14 +63,15 @@ if (!app.requestSingleInstanceLock()) {
       quit: () => app.quit(),
     });
 
-    registerIpc({ settings, notifications, library, player, shell });
-    listenForCaptures(notifications);
+    registerIpc({ settings, notifications, library, player, shell, accounts });
+    listenForCaptures(notifications, (contents) => shell.accountIdFor(contents));
 
     let launchAtLogin = settings.get().general.launchAtLogin;
     setLaunchAtLogin(launchAtLogin);
     setJumpList();
     settings.on('change', (next) => {
       shell.applyAppearance(next.appearance);
+      shell.syncAccounts(next.accounts);
       if (next.general.launchAtLogin !== launchAtLogin) {
         launchAtLogin = next.general.launchAtLogin;
         setLaunchAtLogin(launchAtLogin);

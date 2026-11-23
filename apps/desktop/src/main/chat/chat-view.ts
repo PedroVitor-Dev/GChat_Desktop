@@ -83,11 +83,11 @@ function showContextMenu(contents: WebContents, params: Electron.ContextMenuPara
   if (items.length > 0) Menu.buildFromTemplate(items).popup();
 }
 
-/** Cria a view do Google Chat (sessão persistente, sandbox, regras de navegação). */
-export function createChatView(): WebContentsView {
+/** Cria a view do Google Chat de uma conta (sessão persistente própria, sandbox, regras). */
+export function createChatView(partition: string): WebContentsView {
   const view = new WebContentsView({
     webPreferences: {
-      session: getChatSession(),
+      session: getChatSession(partition),
       preload: join(import.meta.dirname, '../preload/chat.cjs'),
       sandbox: true,
       contextIsolation: true,

@@ -1,45 +1,80 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Plus, Settings } from 'lucide-react';
 import logo from '../../../../resources/icon.png';
-import { SHELL_LAYOUT } from '../../../shared/shell';
+import { ACCOUNT_COLORS, ACCOUNT_LIMITS, accountInitials } from '../../../shared/accounts';
+import { SHELL_LAYOUT, type AccountView } from '../../../shared/shell';
 import { Tooltip } from '../components/Tooltip';
 
 /**
  * Trilho de ícones à esquerda (como a lista de servidores do Discord):
- * conta do Google Chat no topo, espaço para mais contas e configurações embaixo.
+ * uma entrada por conta, "+" para adicionar e configurações embaixo.
  */
 export function Rail({
-  chatActive,
+  accounts,
+  activeAccount,
+  overlay,
   settingsActive,
-  unread,
-  onChat,
+  onSelect,
+  onAdd,
   onSettings,
 }: {
-  chatActive: boolean;
+  accounts: AccountView[];
+  activeAccount: string;
+  overlay: boolean;
   settingsActive: boolean;
-  unread: number;
-  onChat: () => void;
+  onSelect: (id: string) => void;
+  onAdd: () => void;
   onSettings: () => void;
 }) {
+  const single = accounts.length === 1;
+  const canAdd = accounts.length < ACCOUNT_LIMITS.max;
+
   return (
     <nav
-      aria-label="Navegação principal"
-      className="bg-rail flex shrink-0 flex-col items-center gap-2 pt-1 pb-3"
+      aria-label="Contas"
+      className="bg-rail flex shrink-0 flex-col items-center gap-2 overflow-y-auto pt-1 pb-3"
       style={{ width: SHELL_LAYOUT.railWidth }}
     >
-      <RailItem label="Google Chat" active={chatActive} badge={unread} onClick={onChat}>
-        <img src={logo} alt="" className="h-8 w-8" draggable={false} />
-      </RailItem>
+      {accounts.map((a, i) => {
+        const active = !overlay && a.id === activeAccount;
+        // Com uma conta só, o ícone é o logo do app; com várias, as iniciais da conta.
+        return (
+          <RailItem
+            key={a.id}
+            label={single ? 'Google Chat' : `${a.name}${i < 5 ? ` (Ctrl+${i + 1})` : ''}`}
+            active={active}
+            badge={a.unread}
+            activeColor={single ? undefined : ACCOUNT_COLORS[a.color % ACCOUNT_COLORS.length]}
+            onClick={() => onSelect(a.id)}
+          >
+            {single ? (
+              <img src={logo} alt="" className="h-8 w-8" draggable={false} />
+            ) : (
+              <span className="text-[17px] font-semibold">{accountInitials(a.name)}</span>
+            )}
+          </RailItem>
+        );
+      })}
 
-      <div className="bg-line h-0.5 w-8 rounded-full" aria-hidden />
+      <div className="bg-line h-0.5 w-8 shrink-0 rounded-full" aria-hidden />
 
-      <RailItem label="Adicionar conta (em breve)" disabled variant="action">
+      <RailItem
+        label={canAdd ? 'Adicionar conta' : `Limite de ${ACCOUNT_LIMITS.max} contas`}
+        disabled={!canAdd}
+        variant="action"
+        onClick={onAdd}
+      >
         <Plus size={22} />
       </RailItem>
 
       <div className="flex-1" />
 
-      <RailItem label="Configurações" active={settingsActive} variant="action" onClick={onSettings}>
+      <RailItem
+        label="Configurações (Ctrl+,)"
+        active={settingsActive}
+        variant="action"
+        onClick={onSettings}
+      >
         <Settings size={20} />
       </RailItem>
     </nav>
@@ -52,6 +87,7 @@ function RailItem({
   badge = 0,
   disabled = false,
   variant = 'default',
+  activeColor,
   onClick,
   children,
 }: {
@@ -60,6 +96,8 @@ function RailItem({
   badge?: number;
   disabled?: boolean;
   variant?: 'default' | 'action';
+  /** Cor da conta: fundo quando ativa ou no hover. */
+  activeColor?: string | undefined;
   onClick?: () => void;
   children: ReactNode;
 }) {
@@ -69,17 +107,19 @@ function RailItem({
       ? active
         ? 'bg-success text-white'
         : 'bg-surface text-success hover:bg-success hover:text-white'
-      : active
-        ? 'bg-accent'
-        : 'bg-surface hover:bg-accent';
+      : activeColor
+        ? 'text-header hover:text-white'
+        : active
+          ? 'bg-accent'
+          : 'bg-surface hover:bg-accent';
 
   return (
-    <div className="group/rail relative flex w-full justify-center">
-      {/* Indicador à esquerda: ponto no hover, barra alta quando ativo */}
+    <div className="group/rail relative flex w-full shrink-0 justify-center">
+      {/* Indicador à esquerda: ponto no hover/não lidas, barra alta quando ativo */}
       <span
         aria-hidden
         className={`bg-header ease-snappy absolute top-1/2 left-0 w-1 -translate-y-1/2 rounded-r-full transition-all duration-200 ${
-          active ? 'h-10' : badge > 0 ? 'h-2' : 'h-0 group-hover/rail:h-5'
+          active ? 'h-10' : badge > 0 ? 'h-2 group-hover/rail:h-5' : 'h-0 group-hover/rail:h-5'
         }`}
       />
       <Tooltip label={label}>
@@ -89,7 +129,14 @@ function RailItem({
           aria-current={active ? 'page' : undefined}
           disabled={disabled}
           onClick={onClick}
-          className={`ease-snappy relative flex h-12 w-12 items-center justify-center transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${shape} ${colors}`}
+          style={activeColor ? ({ '--account': activeColor } as CSSProperties) : undefined}
+          className={`ease-snappy relative flex h-12 w-12 items-center justify-center transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${shape} ${colors} ${
+            activeColor
+              ? active
+                ? 'bg-[var(--account)] text-white'
+                : 'bg-surface hover:bg-[var(--account)]'
+              : ''
+          }`}
         >
           {children}
           {badge > 0 && (

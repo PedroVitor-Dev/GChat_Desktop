@@ -22,6 +22,12 @@ const api: GChatApi = {
   importSound: () => ipcRenderer.invoke(IpcChannel.SoundImport),
   removeSound: (id) => ipcRenderer.invoke(IpcChannel.SoundRemove, id),
   getAutostartStatus: () => ipcRenderer.invoke(IpcChannel.AutostartStatus),
+  accounts: {
+    add: (name) => ipcRenderer.invoke(IpcChannel.AccountAdd, name),
+    rename: (id, name) => ipcRenderer.invoke(IpcChannel.AccountRename, id, name),
+    signOut: (id) => ipcRenderer.invoke(IpcChannel.AccountSignOut, id),
+    remove: (id) => ipcRenderer.invoke(IpcChannel.AccountRemove, id),
+  },
   shell: {
     getState: () => ipcRenderer.invoke(ShellChannel.GetState),
     onState: (listener) => {
@@ -30,7 +36,8 @@ const api: GChatApi = {
       return () => ipcRenderer.removeListener(ShellChannel.State, wrapped);
     },
     setSettingsOpen: (open) => ipcRenderer.invoke(ShellChannel.SetSettingsOpen, open),
-    focusChat: () => ipcRenderer.invoke(ShellChannel.FocusChat),
+    setModalOpen: (open) => ipcRenderer.invoke(ShellChannel.SetModalOpen, open),
+    selectAccount: (id) => ipcRenderer.invoke(ShellChannel.SelectAccount, id),
     reloadChat: () => ipcRenderer.invoke(ShellChannel.ReloadChat),
   },
 };

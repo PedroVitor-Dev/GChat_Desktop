@@ -4,6 +4,7 @@
  */
 import { SOUND_EXTENSIONS, SOUND_LIMITS, isCustomSoundId, isSoundId } from './sounds';
 import type { CustomSound, SoundExtension, SoundId } from './sounds';
+import { DEFAULT_ACCOUNT, normalizeAccounts, type AccountsSettings } from './accounts';
 
 export const SETTINGS_VERSION = 2;
 
@@ -72,6 +73,8 @@ export interface GeneralSettings {
 export interface Settings {
   version: typeof SETTINGS_VERSION;
   general: GeneralSettings;
+  /** Só o main altera (ciclo de vida das sessões). */
+  accounts: AccountsSettings;
   notifications: NotificationSettings;
   sounds: SoundSettings;
   appearance: AppearanceSettings;
@@ -85,6 +88,7 @@ export const DEFAULT_SETTINGS: Settings = {
     closeToTray: true,
     trayHintShown: false,
   },
+  accounts: { list: [DEFAULT_ACCOUNT], active: DEFAULT_ACCOUNT.id },
   notifications: {
     enabled: true,
     showSender: true,
@@ -212,6 +216,7 @@ export function normalizeSettings(
       closeToTray: bool(g['closeToTray'], bg.closeToTray),
       trayHintShown: allowLibrary ? bool(g['trayHintShown'], bg.trayHintShown) : bg.trayHintShown,
     },
+    accounts: allowLibrary ? normalizeAccounts(raw['accounts'], base.accounts) : base.accounts,
     notifications: {
       enabled: bool(n['enabled'], bn.enabled),
       showSender: bool(n['showSender'], bn.showSender),

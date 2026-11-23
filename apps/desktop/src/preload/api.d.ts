@@ -1,6 +1,9 @@
 import type { AppInfo, AutostartStatus } from '../shared/ipc';
 import type { Settings, SettingsPatch } from '../shared/settings';
 import type { ShellState } from '../shared/shell';
+import type { Account } from '../shared/accounts';
+
+export type AccountResult = { ok: true; account: Account } | { ok: false; error: string };
 import type { CustomSound, SoundId, SoundOption } from '../shared/sounds';
 
 export type ImportSoundResult = { ok: true; sound: CustomSound } | { ok: false; error: string };
@@ -24,12 +27,22 @@ export interface GChatApi {
   importSound(): Promise<ImportSoundResult | null>;
   removeSound(id: SoundId): Promise<boolean>;
   getAutostartStatus(): Promise<AutostartStatus>;
+  accounts: {
+    add(name: string): Promise<AccountResult>;
+    rename(id: string, name: string): Promise<AccountResult>;
+    /** Apaga a sessão Google da conta (volta ao login). */
+    signOut(id: string): Promise<boolean>;
+    /** Remove a conta e os dados da sessão. */
+    remove(id: string): Promise<{ ok: boolean; error?: string }>;
+  };
   /** Janela principal (barra de título, trilho, configurações em tela cheia). */
   shell: {
     getState(): Promise<ShellState>;
     onState(listener: (state: ShellState) => void): () => void;
     setSettingsOpen(open: boolean): Promise<void>;
-    focusChat(): Promise<void>;
+    setModalOpen(open: boolean): Promise<void>;
+    /** Mostra o Chat de uma conta (fecha configurações/modal). */
+    selectAccount(id: string): Promise<void>;
     reloadChat(): Promise<void>;
   };
 }
