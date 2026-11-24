@@ -42,7 +42,7 @@ export function Rail({
   return (
     <nav
       aria-label="Contas"
-      className="bg-shell flex shrink-0 flex-col items-center gap-2 overflow-y-auto pt-1 pb-3"
+      className="bg-shell flex shrink-0 flex-col items-center gap-2 overflow-x-hidden overflow-y-auto pt-1 pb-3 [scrollbar-width:none]"
       style={{ width: SHELL_LAYOUT.railWidth }}
     >
       {accounts.map((a, i) => {
