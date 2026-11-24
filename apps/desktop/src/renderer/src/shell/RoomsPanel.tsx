@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import {
+  AudioWaveform,
   Check,
   Copy,
   Eye,
@@ -16,6 +17,7 @@ import { SHELL_LAYOUT, type ShellState } from '../../../shared/shell';
 import { inputClass } from '../components/controls';
 import { Tooltip } from '../components/Tooltip';
 import { useElapsed } from '../hooks/useElapsed';
+import { useSettings } from '../hooks/useSettings';
 
 /**
  * Painel de salas (como os canais de voz do Discord): lista as salas do Meet,
@@ -222,6 +224,8 @@ function CallCard({ state }: { state: ShellState }) {
   const call = state.call!;
   const elapsed = useElapsed(call.startedAt);
   const { call: api } = window.gchat;
+  const [settings, update] = useSettings();
+  const noise = settings?.calls.noiseSuppression ?? false;
   return (
     <div className="border-rail bg-rail/60 border-t px-2 py-2">
       <div className="flex items-center gap-2 px-1">
@@ -232,6 +236,17 @@ function CallCard({ state }: { state: ShellState }) {
             {call.name} · <span className="tabular-nums">{elapsed}</span>
           </p>
         </div>
+        <CallButton
+          label={
+            noise
+              ? 'Supressor de ruído ligado (clique para desligar)'
+              : 'Ligar o supressor de ruído (vale ao entrar na sala ou trocar o microfone)'
+          }
+          active={noise}
+          onClick={() => update({ calls: { noiseSuppression: !noise } })}
+        >
+          <AudioWaveform size={17} />
+        </CallButton>
         <CallButton label="Sair da chamada" danger onClick={() => void api.leave()}>
           <PhoneOff size={17} />
         </CallButton>
@@ -246,28 +261,34 @@ function CallButton({
   label,
   onClick,
   danger = false,
+  active = false,
   children,
 }: {
   label: string;
   onClick: () => void;
   danger?: boolean;
+  /** Botão de liga/desliga aceso (ex.: supressor de ruído ligado). */
+  active?: boolean;
   children: ReactNode;
 }) {
+  // Dica nativa (title): um balão do app ficaria atrás do vídeo do Meet.
   return (
-    <Tooltip label={label}>
-      <button
-        type="button"
-        aria-label={label}
-        onClick={onClick}
-        className={`flex items-center justify-center rounded-md transition-colors h-8 w-8 ${
-          danger
-            ? 'text-interactive hover:bg-danger hover:text-white'
-            : 'bg-selected text-header hover:bg-switch-off/60'
-        }`}
-      >
-        {children}
-      </button>
-    </Tooltip>
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={danger ? undefined : active}
+      onClick={onClick}
+      className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors ${
+        danger
+          ? 'text-interactive hover:bg-danger hover:text-white'
+          : active
+            ? 'bg-success/20 text-success hover:bg-success/30'
+            : 'bg-selected text-interactive hover:text-header hover:bg-switch-off/60'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

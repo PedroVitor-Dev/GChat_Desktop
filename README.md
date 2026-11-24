@@ -67,7 +67,8 @@ título, como no Discord.
 
 Salas permanentes, como os **canais de voz do Discord**. Crie com um clique, mande o
 link aos amigos e fique em chamada **com cronômetro**. Ao voltar ao Chat, a chamada vira
-um **miniplayer flutuante**; na tela dela, **modo foco** e **tela cheia**.
+um **miniplayer flutuante**; na tela dela, **modo foco** e **tela cheia**. **Supressor de ruído**
+opcional, com IA rodando no seu computador.
 
 ### 📌 Conversas fixadas
 

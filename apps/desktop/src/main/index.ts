@@ -1,4 +1,4 @@
-import { Menu, Notification, app } from 'electron';
+import { Menu, Notification, app, ipcMain } from 'electron';
 import { AccountsService } from './accounts/accounts-service';
 import { registerIpc } from './ipc';
 import { listenForCaptures } from './notifications/capture-listener';
@@ -17,6 +17,8 @@ import { AppUpdater } from './system/updater';
 import { ProfileService } from './profile/profile-service';
 import { DndService } from './system/dnd';
 import { PinsService } from './pins/pins-service';
+import { registerNoiseScheme } from './meet/noise-assets';
+import { NOISE_SET_CHANNEL, NOISE_STATE_CHANNEL } from '../shared/noise';
 import { NotificationHistory } from './notifications/history';
 import { AppTray } from './tray/tray';
 
@@ -30,6 +32,8 @@ if (!app.requestSingleInstanceLock()) {
   // Sem menu nativo: a janela tem barra de título própria e os atalhos são do shell.
   Menu.setApplicationMenu(null);
 
+  // Esquema dos arquivos do supressor de ruído: precisa ser registrado antes do ready.
+  registerNoiseScheme();
   void app.whenReady().then(() => {
     const settings = new SettingsStore();
     applySecurityPolicies();
@@ -147,7 +151,18 @@ if (!app.requestSingleInstanceLock()) {
     let launchAtLogin = settings.get().general.launchAtLogin;
     setLaunchAtLogin(launchAtLogin);
     setJumpList();
+    // Supressor de ruído: o preload do Meet pergunta o estado e recebe as mudanças ao vivo.
+    ipcMain.handle(NOISE_STATE_CHANNEL, (event) => {
+      if (!shell.isMeetContents(event.sender)) return false;
+      if (event.senderFrame?.origin !== 'https://meet.google.com') return false;
+      return settings.get().calls.noiseSuppression;
+    });
+    let noiseOn = settings.get().calls.noiseSuppression;
     settings.on('change', (next) => {
+      if (next.calls.noiseSuppression !== noiseOn) {
+        noiseOn = next.calls.noiseSuppression;
+        shell.sendToMeet(NOISE_SET_CHANNEL, noiseOn);
+      }
       shell.applyAppearance(next.appearance);
       shell.syncAccounts(next.accounts);
       if (next.general.launchAtLogin !== launchAtLogin) {

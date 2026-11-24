@@ -101,3 +101,34 @@ chamada iria para o mini e voltaria).
 Verificado em 24/11/2026: esconder a lista, modo foco (Esc sai), tela cheia (Esc sai);
 mini ao ir para o Chat (mesma página do Meet, sem recarregar) e ao minimizar; Voltar,
 Fechar o mini e Sair da chamada.
+
+## Supressor de ruído (opcional)
+
+Tira ventilador, teclado, latido e barulho de rua do **seu microfone** nas salas.
+Desligado por padrão; liga no botão de onda sonora do cartão "Em chamada" ou em
+Configurações → Sons → Chamadas.
+
+- **Modelo:** GTCRN (rede neural leve de realce de fala, MIT) do pacote
+  `@sapphi-red/web-noise-suppressor` **0.4.1** (versão fixada, publicada há meses; a 0.4.2
+  saiu dias antes e foi evitada por cautela). WASM de ~196 KB, a 48 kHz, num AudioWorklet.
+- **Como entra:** o Meet agora tem um preload (`preload/meet.ts`) que envolve só
+  `navigator.mediaDevices.getUserMedia`. Ligado, o áudio pedido pelo Meet passa pelo
+  filtro e o Meet recebe a faixa limpa, que se apresenta como o mesmo microfone (nome e
+  ajustes). O cancelamento de eco do navegador continua antes do filtro. Desligado na
+  hora de pegar o microfone, o Meet recebe o microfone puro (custo zero).
+- **Ao vivo:** desligar no meio da chamada vale na hora (o áudio passa direto); ligar
+  vale para o microfone que o Meet pegar depois (ao entrar na sala ou trocar o microfone).
+  O estado chega à página por eventos próprios (`gchat-noise-on/off`), porque o Meet tem
+  ouvintes de `postMessage` que param a propagação.
+- **Arquivos:** servidos do disco do app pelo esquema `gchat-audio://` (privilegiado,
+  `bypassCSP`, só os dois arquivos do filtro), porque a CSP do Meet bloqueia scripts de
+  fora. Nada é baixado da internet e nenhum áudio sai do computador por causa do filtro.
+- **Conta Google:** o filtro só muda o som do próprio microfone, no computador, como
+  Krisp, NVIDIA Broadcast ou extensões de supressão para o Meet. Não toca em login,
+  cookies nem na API do Google, e não automatiza nada no Meet.
+- **Falha:** qualquer erro no filtro devolve o microfone puro; a chamada segue.
+
+Verificado em 24/11/2026: ligado, o microfone entregue ao Meet é o filtrado (com o nome
+do headset); desligado, o puro; ligar/desligar pelo app chega à página na hora. **A
+medição de qualidade (ruído com e sem filtro) ficou pendente:** o headset estava
+mandando silêncio total (desligado ou mudo).

@@ -201,6 +201,16 @@ export function SoundsPage() {
           </p>
         )}
       </Card>
+
+      <SectionTitle>Chamadas</SectionTitle>
+      <Card>
+        <Toggle
+          label="Supressor de ruído no microfone"
+          description="Tira ventilador, teclado, latido e barulho de rua da sua voz nas salas do Meet. A IA (GTCRN) roda no seu computador; nenhum áudio sai dele por isso. Vale ao entrar na sala ou trocar o microfone no Meet; desligar vale na hora."
+          checked={settings.calls.noiseSuppression}
+          onChange={(noiseSuppression) => update({ calls: { noiseSuppression } })}
+        />
+      </Card>
     </div>
   );
 }

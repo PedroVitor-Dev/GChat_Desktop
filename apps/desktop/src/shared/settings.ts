@@ -131,6 +131,12 @@ export interface Settings {
   rooms: Room[];
   /** Conversas fixadas (painel ao lado do Chat). Só o main altera. */
   pins: PinsSettings;
+  calls: CallSettings;
+}
+
+export interface CallSettings {
+  /** Supressor de ruído (IA no próprio computador) no microfone das chamadas. */
+  noiseSuppression: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -180,6 +186,7 @@ export const DEFAULT_SETTINGS: Settings = {
   updates: { auto: true },
   rooms: [],
   pins: DEFAULT_PINS,
+  calls: { noiseSuppression: false },
 };
 
 export const LIMITS = {
@@ -390,6 +397,12 @@ export function normalizeSettings(
           accounts.list.map((a) => a.id),
         )
       : base.pins,
+    calls: {
+      noiseSuppression: bool(
+        isObj(raw['calls']) ? raw['calls']['noiseSuppression'] : undefined,
+        base.calls.noiseSuppression,
+      ),
+    },
   };
 }
 

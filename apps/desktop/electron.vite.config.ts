@@ -16,6 +16,7 @@ export default defineConfig({
           index: resolve(import.meta.dirname, 'src/preload/index.ts'), // janela de configurações
           chat: resolve(import.meta.dirname, 'src/preload/chat.ts'), // janela do Google Chat
           audio: resolve(import.meta.dirname, 'src/preload/audio.ts'), // player de sons (oculto)
+          meet: resolve(import.meta.dirname, 'src/preload/meet.ts'), // Meet: supressor de ruído
         },
         output: { format: 'cjs', entryFileNames: '[name].cjs' },
       },

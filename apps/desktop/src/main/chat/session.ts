@@ -1,5 +1,6 @@
 import { desktopCapturer, session, type Session } from 'electron';
 import { isPermissionAllowed } from './policy';
+import { serveNoiseAssets } from '../meet/noise-assets';
 
 /**
  * Sessão persistente do Google Chat. Cookies e armazenamento ficam em
@@ -35,5 +36,7 @@ export function getChatSession(partition: string): Session {
       .catch(() => callback({}));
   });
   ses.setSpellCheckerLanguages(['pt-BR', 'en-US']);
+  // Arquivos locais do supressor de ruído para o Meet (gchat-audio://).
+  serveNoiseAssets(ses);
   return ses;
 }

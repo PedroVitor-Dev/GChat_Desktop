@@ -572,6 +572,18 @@ export class AppShell {
     return { path: slot.path, name: chatNameFromTitle(slot.title) };
   }
 
+  /** Envia uma mensagem às páginas do Meet abertas (chamada e sala espiada). */
+  sendToMeet(channel: string, ...args: unknown[]): void {
+    for (const view of [this.call?.view, this.preview?.view]) {
+      if (view && !view.webContents.isDestroyed()) view.webContents.send(channel, ...args);
+    }
+  }
+
+  /** É uma das páginas do Meet do app (chamada ou sala espiada)? */
+  isMeetContents(contents: WebContents): boolean {
+    return contents === this.call?.view.webContents || contents === this.preview?.view.webContents;
+  }
+
   /** Pede ao Chat de uma conta a lista da barra lateral (resposta chega por IPC). */
   requestConversations(accountId: string, requestId: string): boolean {
     const slot = this.slots.get(accountId);

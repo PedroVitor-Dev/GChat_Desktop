@@ -33,6 +33,7 @@
   },
   "productName": "GChat Desktop+",
   "dependencies": {
+    "@sapphi-red/web-noise-suppressor": "0.4.1",
     "electron-updater": "^6.8.11"
   }
 }
