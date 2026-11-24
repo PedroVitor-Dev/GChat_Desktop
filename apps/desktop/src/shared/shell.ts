@@ -21,6 +21,30 @@ export const SHELL_LAYOUT = {
   previewBarHeight: 52,
 } as const;
 
+/** Miniplayer da chamada (janelinha flutuante). */
+export const MINIPLAYER = {
+  width: 400,
+  height: 262,
+  minWidth: 300,
+  minHeight: 200,
+  /** Faixa do app em cima do vídeo (nome, tempo, voltar, sair). */
+  headerHeight: 36,
+  /** Distância da borda da tela. */
+  margin: 24,
+  /** Zoom do Meet dentro do mini (layout de tela maior, encolhido). */
+  zoom: 0.67,
+} as const;
+
+/** Disposição da tela da chamada. */
+export interface CallLayout {
+  /** Lista de salas visível ao lado do vídeo. */
+  panel: boolean;
+  /** Modo foco: só o vídeo, sem trilho nem lista. */
+  focus: boolean;
+  /** Tela cheia do Windows (sempre com o modo foco). */
+  fullscreen: boolean;
+}
+
 export const ShellChannel = {
   /** renderer → main (invoke): abrir/fechar as configurações em tela cheia. */
   SetSettingsOpen: 'shell:set-settings-open',
@@ -95,6 +119,10 @@ export interface ShellState {
   call: CallState | null;
   /** Sala aberta para espiar durante outra chamada (null = nenhuma). */
   preview: { roomId: string; name: string } | null;
+  /** Disposição da tela da chamada (lista de salas, foco, tela cheia). */
+  callLayout: CallLayout;
+  /** A chamada está no miniplayer (janelinha flutuante). */
+  miniplayer: boolean;
   /** "Não perturbe" do app (notificações pausadas, com ou sem prazo). */
   dnd: DndStatus;
   /** Painel de conversas fixadas. */

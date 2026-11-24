@@ -72,6 +72,8 @@ export function App() {
   if (!state) return <div className="bg-rail h-full" />;
   const active = state.accounts.find((a) => a.id === state.activeAccount);
   const inRooms = state.view === 'rooms';
+  // Modo foco da chamada: só o vídeo (sem trilho nem lista de salas).
+  const callFocus = inRooms && !!state.call && state.callLayout.focus;
   const title = state.settingsOpen
     ? 'Configurações'
     : inRooms
@@ -104,6 +106,7 @@ export function App() {
           }
           call={state.call}
           onShowCall={() => void shell.setView('rooms')}
+          callLayout={inRooms && state.call && !state.settingsOpen ? state.callLayout : null}
           inbox={{
             unseen: state.inbox.unseen,
             open: inboxOpen,
@@ -114,25 +117,33 @@ export function App() {
           {/* Configurações em tela cheia cobrem tudo: com fundo translúcido, o trilho
               e o Chat não podem aparecer por trás delas. */}
           <div className={`contents ${state.settingsOpen ? 'invisible' : ''}`}>
-            <Rail
-              accounts={state.accounts}
-              activeAccount={state.activeAccount}
-              view={state.view}
-              settingsOpen={state.settingsOpen}
-              inCall={!!state.call}
-              onSelect={(id) => void shell.selectAccount(id)}
-              onAdd={openAdd}
-              onRooms={() => void shell.setView('rooms')}
-              onSettings={() => {
-                setSettingsSection('notificacoes');
-                void shell.setSettingsOpen(!state.settingsOpen);
-              }}
-              onProfile={() => void shell.openChatStatus()}
-              dnd={state.dnd}
-            />
+            {!callFocus && (
+              <Rail
+                accounts={state.accounts}
+                activeAccount={state.activeAccount}
+                view={state.view}
+                settingsOpen={state.settingsOpen}
+                inCall={!!state.call}
+                onSelect={(id) => void shell.selectAccount(id)}
+                onAdd={openAdd}
+                onRooms={() => void shell.setView('rooms')}
+                onSettings={() => {
+                  setSettingsSection('notificacoes');
+                  void shell.setSettingsOpen(!state.settingsOpen);
+                }}
+                onProfile={() => void shell.openChatStatus()}
+                dnd={state.dnd}
+              />
+            )}
             {inRooms ? (
               <>
-                <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
+                {(!state.call || (state.callLayout.panel && !callFocus)) && (
+                  <RoomsPanel
+                    rooms={settings?.rooms ?? []}
+                    state={state}
+                    onCreate={openCreateRoom}
+                  />
+                )}
                 {/* Com chamada, o main posiciona a view do Meet aqui; sem chamada, o saguão. */}
                 {state.preview ? (
                   // Sala espiada: a faixa em cima e a view do Meet logo abaixo.

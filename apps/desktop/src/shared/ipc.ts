@@ -33,6 +33,10 @@ export const IpcChannel = {
   /** Trocar para a sala espiada / fechar a sala espiada. */
   CallSwitch: 'call:switch',
   CallClosePreview: 'call:close-preview',
+  /** Disposição da tela da chamada e miniplayer. */
+  CallSetLayout: 'call:set-layout',
+  MiniBack: 'call:mini-back',
+  MiniHide: 'call:mini-hide',
   AccountAdd: 'accounts:add',
   AccountRename: 'accounts:rename',
   AccountSignOut: 'accounts:sign-out',

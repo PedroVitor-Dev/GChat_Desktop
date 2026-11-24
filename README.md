@@ -66,7 +66,8 @@ título, como no Discord.
 ### 🎧 Salas de vídeo (Google Meet)
 
 Salas permanentes, como os **canais de voz do Discord**. Crie com um clique, mande o
-link aos amigos e fique em chamada **com cronômetro**, mesmo voltando ao Chat.
+link aos amigos e fique em chamada **com cronômetro**. Ao voltar ao Chat, a chamada vira
+um **miniplayer flutuante**; na tela dela, **modo foco** e **tela cheia**.
 
 ### 📌 Conversas fixadas
 
@@ -267,7 +268,6 @@ sozinhos. O site é publicado pelo workflow **Landing page** a cada push em `sit
 
 - [ ] Perfil personalizável estilo Discord (banner com imagem/GIF, bio), público entre
       usuários do app
-- [ ] Miniplayer flutuante da chamada
 - [ ] Atalho global para mostrar/esconder o app
 - [ ] Assinatura digital do instalador
 - [ ] Testes de ponta a ponta automatizados

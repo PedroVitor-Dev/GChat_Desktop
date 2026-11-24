@@ -7,6 +7,7 @@ import type { UpdateStatus } from '../shared/updates';
 import type { DndDuration } from '../shared/dnd';
 import type { PinGroup } from '../shared/pins';
 import type { InboxEntry } from '../shared/inbox';
+import type { CallLayout } from '../shared/shell';
 
 export type RoomResult = { ok: true; room: Room } | { ok: false; error: string };
 
@@ -72,6 +73,11 @@ export interface GChatApi {
     switchToPreview(): Promise<void>;
     /** Fecha a sala espiada e volta para a chamada. */
     closePreview(): Promise<void>;
+    /** Lista de salas, modo foco e tela cheia da chamada. */
+    setLayout(change: Partial<CallLayout>): Promise<void>;
+    /** Miniplayer: voltar para a tela da chamada / fechar a janelinha. */
+    backFromMini(): Promise<void>;
+    hideMini(): Promise<void>;
   };
   accounts: {
     add(name: string): Promise<AccountResult>;

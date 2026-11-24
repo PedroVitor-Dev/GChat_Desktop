@@ -15,6 +15,7 @@ import type { AppearanceSettings } from '../../shared/settings';
 import { DND_OFF, type DndStatus } from '../../shared/dnd';
 import { INBOX_EMPTY, type InboxStatus } from '../../shared/inbox';
 import { chatNameFromTitle, chatPathFromUrl, isChatPath } from '../../shared/pins';
+import { MiniPlayer } from './miniplayer';
 import { chatThemeCss, resolveTheme, titleBarColors, type ResolvedTheme } from '../../shared/theme';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
 import type { AccountProfile, ChatStatus } from '../../shared/profile';
@@ -25,6 +26,7 @@ import {
   SHELL_LAYOUT,
   ShellChannel,
   type AccountView,
+  type CallLayout,
   type ShellState,
   type ShellView,
 } from '../../shared/shell';
@@ -122,6 +124,17 @@ export class AppShell {
   private call: { view: WebContentsView; state: CallState } | null = null;
   /** Sala aberta para espiar (tela de espera do Meet) durante outra chamada. */
   private preview: { view: WebContentsView; room: Room } | null = null;
+  private callLayout: CallLayout = { panel: true, focus: false, fullscreen: false };
+  /** Janelinha flutuante da chamada; a view da chamada muda para lá e volta. */
+  private readonly mini = new MiniPlayer({
+    near: () => this.window.getBounds(),
+    onUserClose: () => this.hideMiniplayer(),
+  });
+  private callInMini = false;
+  /** Entrando/saindo da tela cheia: o Windows reporta a janela oculta por instantes. */
+  private fullscreenTransition: NodeJS.Timeout | null = null;
+  /** O usuário fechou o mini nesta chamada: não reabre sozinho até a próxima. */
+  private miniDismissed = false;
 
   constructor(private readonly options: ShellOptions) {
     this.appearance = options.appearance;
@@ -193,6 +206,8 @@ export class AppShell {
       view: this.view,
       call: this.call?.state ?? null,
       preview: this.preview ? { roomId: this.preview.room.id, name: this.preview.room.name } : null,
+      callLayout: this.callLayout,
+      miniplayer: this.callInMini,
       dnd: this.dnd,
       inbox: this.inbox,
       pins: {
@@ -285,6 +300,7 @@ export class AppShell {
   setView(view: ShellView): void {
     this.view = view;
     this.settingsOpen = false;
+    this.refreshMini();
     this.layout();
     this.refreshVisibility();
     const target =
@@ -355,6 +371,7 @@ export class AppShell {
   }
 
   private attachCall(view: WebContentsView, room: Room): void {
+    this.miniDismissed = false;
     this.call = {
       view,
       state: {
@@ -372,6 +389,9 @@ export class AppShell {
       if (new URL(url).host === 'meet.google.com' && !meetCodeFromUrl(url)) this.endCall();
     });
     contents.on('render-process-gone', () => this.call?.view === view && this.endCall());
+    // Já na tela das Salas antes de mostrar a janela: senão, por um instante, a
+    // chamada contaria como "fora da tela" e iria para o miniplayer.
+    this.view = 'rooms';
     this.layout();
     this.reveal();
     this.setView('rooms');
@@ -382,10 +402,80 @@ export class AppShell {
     if (!this.call) return;
     const { view } = this.call;
     this.call = null;
-    this.window.contentView.removeChildView(view);
+    if (this.callInMini) {
+      this.mini.take();
+      this.callInMini = false;
+    } else {
+      this.window.contentView.removeChildView(view);
+    }
     if (!view.webContents.isDestroyed()) view.webContents.close();
+    // Sem chamada não há o que focar: volta o trilho, a lista e sai da tela cheia.
+    if (this.callLayout.fullscreen) this.window.setFullScreen(false);
+    this.callLayout = { panel: this.callLayout.panel, focus: false, fullscreen: false };
+    this.layout();
     this.refreshVisibility();
     this.emitState();
+  }
+
+  // ───────────────────────────── tela da chamada ─────────────────────────────
+
+  /** Lista de salas, modo foco e tela cheia (só durante uma chamada). */
+  setCallLayout(change: Partial<CallLayout>): void {
+    if (!this.call) return;
+    const next = { ...this.callLayout, ...change };
+    // Tela cheia sempre com o modo foco; sair do foco sai da tela cheia.
+    if (change.fullscreen) next.focus = true;
+    if (change.focus === false) next.fullscreen = false;
+    if (next.fullscreen !== this.window.isFullScreen()) {
+      // Durante a transição a janela "pisca" como oculta/minimizada: sem isso, a
+      // chamada iria para o miniplayer e voltaria.
+      if (this.fullscreenTransition) clearTimeout(this.fullscreenTransition);
+      this.fullscreenTransition = setTimeout(() => {
+        this.fullscreenTransition = null;
+        this.refreshMini();
+      }, 1000);
+      this.window.setFullScreen(next.fullscreen);
+    }
+    this.callLayout = next;
+    this.layout();
+    this.emitState();
+  }
+
+  /**
+   * Miniplayer: fora da tela da chamada (no Chat, minimizado ou na bandeja), a
+   * chamada vai para a janelinha flutuante; ao voltar, a mesma view volta para
+   * a janela principal. Fechar o mini vale até a próxima chamada.
+   */
+  private refreshMini(): void {
+    if (this.quitting || this.fullscreenTransition) return;
+    const away = this.view !== 'rooms' || !this.window.isVisible() || this.window.isMinimized();
+    const want = !!this.call && !this.miniDismissed && away;
+    if (want && !this.callInMini && this.call) {
+      this.window.contentView.removeChildView(this.call.view);
+      this.mini.show(this.call.view);
+      this.callInMini = true;
+      this.emitState();
+    } else if (!want && this.callInMini) {
+      const view = this.mini.take();
+      this.callInMini = false;
+      if (view) this.window.contentView.addChildView(view);
+      this.layout();
+      this.refreshVisibility();
+      this.emitState();
+    }
+  }
+
+  /** Botão "Voltar para a chamada" do mini. */
+  backToCall(): void {
+    this.miniDismissed = false;
+    this.reveal();
+    this.setView('rooms');
+  }
+
+  /** Fecha o mini (a chamada continua; volta pelo selo da barra de título). */
+  hideMiniplayer(): void {
+    this.miniDismissed = true;
+    this.refreshMini();
   }
 
   reloadChat(accountId: string = this.active): void {
@@ -548,6 +638,7 @@ export class AppShell {
     this.quitting = true;
     this.closePreview();
     this.endCall();
+    this.mini.destroy();
   }
 
   hide(): void {
@@ -646,6 +737,8 @@ export class AppShell {
 
   /** Só a view da conta ativa aparece, e só sem configurações/modal por cima. */
   private refreshVisibility(): void {
+    // Qualquer troca de tela pode levar a chamada para o mini ou trazer de volta.
+    this.refreshMini();
     // Nas Salas, a sala espiada fica por cima; a chamada continua tocando por trás.
     const previewShown = this.view === 'rooms' && !!this.preview;
     const callShown = this.view === 'rooms' && !!this.call && !previewShown;
@@ -654,7 +747,7 @@ export class AppShell {
         this.view === 'chat' && id === this.active && !slot.loading && !this.overlayOpen(),
       );
     }
-    this.call?.view.setVisible(callShown && !this.overlayOpen());
+    if (!this.callInMini) this.call?.view.setVisible(callShown && !this.overlayOpen());
     this.preview?.view.setVisible(previewShown && !this.overlayOpen());
     // O Chat voltou a aparecer (fechou configurações, saiu das Salas, trocou de
     // conta): a conversa aberta conta como lida.
@@ -755,8 +848,13 @@ export class AppShell {
     if (this.window.isDestroyed()) return true;
     const { width, height } = this.window.getContentBounds();
     const { railWidth, titleBarHeight, roomsPanelWidth, pinsPanelWidth } = SHELL_LAYOUT;
-    const panel = this.view === 'rooms' ? roomsPanelWidth : this.pinsOpen ? pinsPanelWidth : 0;
-    const left = railWidth + panel;
+    // Na chamada: modo foco tira o trilho e a lista; a lista também pode ser escondida.
+    const inCall = this.view === 'rooms' && !!this.call;
+    const focus = inCall && this.callLayout.focus;
+    const roomsPanel = inCall && !this.callLayout.panel ? 0 : roomsPanelWidth;
+    const panel =
+      this.view === 'rooms' ? (focus ? 0 : roomsPanel) : this.pinsOpen ? pinsPanelWidth : 0;
+    const left = (focus ? 0 : railWidth) + panel;
     const bounds = {
       x: left,
       y: titleBarHeight,
@@ -765,7 +863,7 @@ export class AppShell {
     };
     if (bounds.width < 100 || bounds.height < 100) return false;
     for (const slot of this.slots.values()) slot.view.setBounds(bounds);
-    this.call?.view.setBounds(bounds);
+    if (!this.callInMini) this.call?.view.setBounds(bounds);
     // A sala espiada deixa espaço em cima para a faixa "Espiando… / Trocar".
     const bar = SHELL_LAYOUT.previewBarHeight;
     this.preview?.view.setBounds({ ...bounds, y: bounds.y + bar, height: bounds.height - bar });
@@ -810,6 +908,17 @@ export class AppShell {
     this.window.on('unmaximize', () => {
       this.scheduleRelayout();
       this.saveBounds();
+    });
+    // Janela principal minimizada/escondida durante a chamada: vai para o mini.
+    for (const event of ['minimize', 'restore', 'hide', 'show'] as const) {
+      this.window.on(event as 'show', () => this.refreshMini());
+    }
+    // Saiu da tela cheia pelo Windows (F11/Esc do sistema): acompanha.
+    this.window.on('leave-full-screen', () => {
+      if (this.callLayout.fullscreen) {
+        this.callLayout = { ...this.callLayout, fullscreen: false };
+        this.emitState();
+      }
     });
     // Eventos em que o tamanho real pode mudar sem um 'resize' confiável.
     for (const event of [
@@ -874,6 +983,9 @@ export class AppShell {
     // Com um modal aberto, o Esc é dele (o renderer trata).
     if (key === 'escape' && this.settingsOpen && !this.modalOpen)
       return handled(() => this.setSettingsOpen(false));
+    // Esc sai do modo foco / tela cheia da chamada.
+    if (key === 'escape' && this.view === 'rooms' && this.callLayout.focus)
+      return handled(() => this.setCallLayout({ focus: false }));
     // Ctrl+1…5 troca de conta, como Ctrl+Alt+↑/↓ entre servidores no Discord.
     if (ctrl && /^[1-5]$/.test(key)) {
       const target = [...this.slots.keys()][Number(key) - 1];
@@ -922,5 +1034,6 @@ export class AppShell {
     if (!this.window.webContents.isDestroyed()) {
       this.window.webContents.send(ShellChannel.State, state);
     }
+    this.mini.contents?.send(ShellChannel.State, state);
   }
 }

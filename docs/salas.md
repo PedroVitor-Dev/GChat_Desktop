@@ -67,3 +67,37 @@ que não entra na chamada. Implementação: `startPreview`, `switchToPreview` e
 Verificado em 24/11/2026: em Bate-papo, clicar em "Teste com Luana" manteve a chamada e
 abriu a espiada; Voltar, espiar de novo, Trocar e Sair funcionaram, sem páginas do
 Meet sobrando.
+
+## Tela da chamada: lista, modo foco e tela cheia
+
+Durante uma chamada, na tela das Salas, a barra de título ganha três botões (ao lado do
+selo da chamada):
+
+- **Esconder/mostrar a lista de salas** (também pelo botão no topo da lista): o vídeo
+  ocupa o espaço dela.
+- **Modo foco:** só o vídeo, sem trilho nem lista; sai com **Esc** ou pelo mesmo botão.
+- **Tela cheia** do Windows, sempre com o modo foco; sai com **Esc**.
+
+Ao sair da chamada, o trilho volta e a tela cheia é desfeita.
+
+## Miniplayer
+
+Saindo da tela da chamada (indo para o Chat, minimizando ou mandando para a bandeja),
+a chamada vai para uma **janelinha flutuante, sempre por cima**, no canto inferior
+direito do monitor: nome da sala, tempo de chamada e os botões **Voltar para a
+chamada**, **Sair da chamada** e **Fechar o miniplayer** (a chamada continua; volta pelo
+selo da barra de título; reabre sozinho na próxima chamada). Dá para arrastar pela faixa
+de cima e redimensionar; posição e tamanho valem até fechar o app.
+
+**A chamada não cai nem recarrega:** é a mesma view do Meet que muda de janela
+(`main/shell/miniplayer.ts`) e volta. No mini o Meet é mostrado com zoom 0,67 (layout de
+tela maior, encolhido) e volta ao normal ao sair. A faixa de cima é o renderer do app
+na rota `#mini`.
+
+Cuidados: ao entrar numa sala, a tela das Salas é definida antes de mostrar a janela; e
+durante a transição de tela cheia o app ignora os eventos de "janela oculta" (senão a
+chamada iria para o mini e voltaria).
+
+Verificado em 24/11/2026: esconder a lista, modo foco (Esc sai), tela cheia (Esc sai);
+mini ao ir para o Chat (mesma página do Meet, sem recarregar) e ao minimizar; Voltar,
+Fechar o mini e Sair da chamada.

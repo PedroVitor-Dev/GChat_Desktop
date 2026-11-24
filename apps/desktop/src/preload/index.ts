@@ -52,6 +52,9 @@ const api: GChatApi = {
     leave: () => ipcRenderer.invoke(IpcChannel.CallLeave),
     switchToPreview: () => ipcRenderer.invoke(IpcChannel.CallSwitch),
     closePreview: () => ipcRenderer.invoke(IpcChannel.CallClosePreview),
+    setLayout: (change) => ipcRenderer.invoke(IpcChannel.CallSetLayout, change),
+    backFromMini: () => ipcRenderer.invoke(IpcChannel.MiniBack),
+    hideMini: () => ipcRenderer.invoke(IpcChannel.MiniHide),
   },
   accounts: {
     add: (name) => ipcRenderer.invoke(IpcChannel.AccountAdd, name),

@@ -1,5 +1,16 @@
 import { useState, type ReactNode } from 'react';
-import { Check, Copy, Eye, Pencil, PhoneOff, Plus, Signal, Trash2, Volume2 } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  Eye,
+  PanelLeftClose,
+  Pencil,
+  PhoneOff,
+  Plus,
+  Signal,
+  Trash2,
+  Volume2,
+} from 'lucide-react';
 import type { Room } from '../../../shared/rooms';
 import { SHELL_LAYOUT, type ShellState } from '../../../shared/shell';
 import { inputClass } from '../components/controls';
@@ -38,7 +49,18 @@ export function RoomsPanel({
       style={{ width: SHELL_LAYOUT.roomsPanelWidth }}
     >
       <header className="border-rail flex h-12 shrink-0 items-center justify-between border-b px-4 shadow-sm">
-        <h2 className="text-header font-semibold">Salas</h2>
+        <h2 className="text-header flex-1 font-semibold">Salas</h2>
+        {call && (
+          <button
+            type="button"
+            onClick={() => void window.gchat.call.setLayout({ panel: false })}
+            aria-label="Esconder a lista de salas"
+            title="Esconder a lista (o vídeo ocupa o espaço)"
+            className="text-interactive hover:text-header mr-1 rounded p-1"
+          >
+            <PanelLeftClose size={17} />
+          </button>
+        )}
         <Tooltip label="Criar sala">
           <button
             type="button"

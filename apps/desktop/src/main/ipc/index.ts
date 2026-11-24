@@ -139,6 +139,22 @@ export function registerIpc({
   handle(IpcChannel.CallLeave, noArgs, () => shell.endCall());
   handle(IpcChannel.CallSwitch, noArgs, () => shell.switchToPreview());
   handle(IpcChannel.CallClosePreview, noArgs, () => shell.closePreview());
+  handle(
+    IpcChannel.CallSetLayout,
+    (args) => {
+      const c = args[0];
+      if (args.length !== 1 || typeof c !== 'object' || c === null) throw new TypeError('layout');
+      const out: { panel?: boolean; focus?: boolean; fullscreen?: boolean } = {};
+      for (const k of ['panel', 'focus', 'fullscreen'] as const) {
+        const v = (c as Record<string, unknown>)[k];
+        if (typeof v === 'boolean') out[k] = v;
+      }
+      return out;
+    },
+    (change) => shell.setCallLayout(change),
+  );
+  handle(IpcChannel.MiniBack, noArgs, () => shell.backToCall());
+  handle(IpcChannel.MiniHide, noArgs, () => shell.hideMiniplayer());
   handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
   handle(IpcChannel.DndSet, oneDuration, (d) => dnd.set(d));
   handle(

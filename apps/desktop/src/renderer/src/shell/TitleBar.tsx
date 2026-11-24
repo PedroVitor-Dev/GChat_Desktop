@@ -1,10 +1,23 @@
-import { BellOff, Inbox, PanelLeftClose, PanelLeftOpen, Radio, Rocket, Signal } from 'lucide-react';
+import type { ReactNode } from 'react';
+import {
+  BellOff,
+  Expand,
+  Inbox,
+  Maximize2,
+  Minimize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Radio,
+  Rocket,
+  Shrink,
+  Signal,
+} from 'lucide-react';
 import { describeDnd, type DndStatus } from '../../../shared/dnd';
 import { useUpdateStatus } from '../hooks/useUpdateStatus';
 import type { CallState } from '../../../shared/rooms';
 import { useElapsed } from '../hooks/useElapsed';
 import logo from '../../../../resources/icon.png';
-import { SHELL_LAYOUT } from '../../../shared/shell';
+import { SHELL_LAYOUT, type CallLayout } from '../../../shared/shell';
 import type { StreamerStatus } from '../../../shared/streamer';
 
 /**
@@ -20,6 +33,7 @@ export function TitleBar({
   call,
   onShowCall,
   inbox,
+  callLayout,
 }: {
   title: string;
   streamer: StreamerStatus;
@@ -30,6 +44,8 @@ export function TitleBar({
   onShowCall: () => void;
   /** Notificações perdidas: contador e abrir/fechar a lista. */
   inbox: { unseen: number; open: boolean; onToggle: () => void };
+  /** Na tela da chamada: lista de salas, modo foco e tela cheia (null = fora dela). */
+  callLayout: CallLayout | null;
 }) {
   const elapsed = useElapsed(call?.startedAt);
   const update = useUpdateStatus();
@@ -75,6 +91,32 @@ export function TitleBar({
           <span className="max-w-40 truncate">{call.name}</span>
           <span className="tabular-nums">{elapsed}</span>
         </button>
+      )}
+      {callLayout && (
+        <div className="no-drag ml-2 flex items-center gap-0.5">
+          <BarButton
+            label={callLayout.panel ? 'Esconder a lista de salas' : 'Mostrar a lista de salas'}
+            pressed={callLayout.panel && !callLayout.focus}
+            disabled={callLayout.focus}
+            onClick={() => void window.gchat.call.setLayout({ panel: !callLayout.panel })}
+          >
+            {callLayout.panel ? <PanelLeftClose size={15} /> : <PanelLeftOpen size={15} />}
+          </BarButton>
+          <BarButton
+            label={callLayout.focus ? 'Sair do modo foco (Esc)' : 'Modo foco: só o vídeo'}
+            pressed={callLayout.focus}
+            onClick={() => void window.gchat.call.setLayout({ focus: !callLayout.focus })}
+          >
+            {callLayout.focus ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+          </BarButton>
+          <BarButton
+            label={callLayout.fullscreen ? 'Sair da tela cheia (Esc)' : 'Tela cheia'}
+            pressed={callLayout.fullscreen}
+            onClick={() => void window.gchat.call.setLayout({ fullscreen: !callLayout.fullscreen })}
+          >
+            {callLayout.fullscreen ? <Shrink size={15} /> : <Expand size={15} />}
+          </BarButton>
+        </div>
       )}
       {update?.state === 'downloaded' && (
         <button
@@ -132,5 +174,35 @@ export function TitleBar({
         )}
       </button>
     </header>
+  );
+}
+
+function BarButton({
+  label,
+  pressed,
+  disabled = false,
+  onClick,
+  children,
+}: {
+  label: string;
+  pressed: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={pressed}
+      disabled={disabled}
+      onClick={onClick}
+      className={`rounded p-1 transition-colors disabled:opacity-30 ${
+        pressed ? 'text-header bg-hover' : 'text-interactive hover:text-header hover:bg-hover'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
