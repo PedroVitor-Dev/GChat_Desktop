@@ -2,7 +2,7 @@
 // Sem dependências, sem rastreamento. Só animações e o link de download.
 
 /** Versão atual e nome do instalador gerado pelo workflow de release. */
-const VERSION = '0.0.4';
+const VERSION = '0.0.5';
 const REPO = 'PedroVitor-Dev/GChat_Desktop';
 const INSTALLER = `GChat-Desktop-Plus-Setup-${VERSION}-x64.exe`;
 const DOWNLOAD_URL = `https://github.com/${REPO}/releases/download/v${VERSION}/${INSTALLER}`;
