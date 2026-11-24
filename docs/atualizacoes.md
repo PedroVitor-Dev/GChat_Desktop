@@ -56,3 +56,29 @@ Com o app 0.0.1 (já com o atualizador) instalado no Windows e o **Release v0.0.
 publicado pelo workflow**, o app encontrou a 0.0.2, baixou e conferiu o SHA-512.
 Em "Reiniciar e atualizar", ele instalou em silêncio e reabriu como **0.0.2**,
 mantendo o login, as contas, as salas, o som de menção e os sons importados.
+
+## Configurações entre versões (downgrade e versões antigas)
+
+Cada versão normaliza o `settings.json` e só conhece os campos da época dela. Antes da
+0.0.6, abrir o perfil numa versão mais antiga **apagava** o que veio depois (salas, modo
+streamer, temas, fixados…). Agora (`shared/settings-compat.ts`,
+`main/store/settings-store.ts`):
+
+- **Campos desconhecidos são preservados** ao gravar, em qualquer nível, inclusive
+  dentro de listas com `id` (salas, contas, grupos). Voltar de uma versão futura para
+  esta não perde nada.
+- **Marca e cópia completa:** cada gravação leva `_writer` (`app`, `version`, `savedAt`)
+  e também vai para `settings.full.json`.
+- **Recuperação:** se o `settings.json` aparecer **sem a marca**, quem gravou foi uma
+  versão antiga (0.0.1–0.0.5). O app devolve da cópia **só os campos que sumiram**; o
+  que a versão antiga mudou (ex.: ligar "abrir com o Windows") fica valendo. Itens que
+  saíram de uma lista conhecida não voltam.
+- **Arquivo corrompido** usa a cópia completa (o original vai para `settings.json.bak`).
+  **Arquivo apagado** recomeça do padrão (é o jeito de "resetar" o app).
+- **Regra do projeto:** nenhum campo das configurações é opcional ("vazio" é `null`, `[]`
+  ou `{}`), para "ausente" sempre significar "a versão que gravou não conhece". Um teste
+  garante isso.
+
+Verificado em 24/11/2026 no perfil real (com backup): a versão nova gravou a marca e a
+cópia; uma 0.0.1 simulada regravou o arquivo sem salas, modo streamer, fixados e tema;
+ao reabrir, tudo voltou e a mudança feita na versão antiga continuou valendo.
