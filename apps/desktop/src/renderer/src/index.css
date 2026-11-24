@@ -90,6 +90,75 @@
       opacity 240ms ease;
   }
 
+  /* Símbolos animados do tema (ex.: moedas do Cibus), atrás do trilho. */
+  .theme-particles {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .coin {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    color: #fff;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0;
+    will-change: transform, opacity;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  .coin-rise {
+    animation-name: coin-rise;
+  }
+  .coin-drift {
+    animation-name: coin-drift;
+  }
+  @keyframes coin-rise {
+    0% {
+      transform: translate(0, 0) rotate(-10deg);
+      opacity: 0;
+    }
+    8% {
+      opacity: var(--coin-opacity);
+    }
+    50% {
+      transform: translate(var(--sway), -55vh) rotate(10deg);
+    }
+    92% {
+      opacity: var(--coin-opacity);
+    }
+    100% {
+      transform: translate(0, -110vh) rotate(-10deg);
+      opacity: 0;
+    }
+  }
+  @keyframes coin-drift {
+    0% {
+      transform: translateX(0) rotate(0deg);
+      opacity: 0;
+    }
+    6% {
+      opacity: var(--coin-opacity);
+    }
+    94% {
+      opacity: var(--coin-opacity);
+    }
+    100% {
+      transform: translateX(110vw) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .theme-particles {
+      display: none;
+    }
+  }
+
   /* Barras de rolagem finas, como no Discord */
   ::-webkit-scrollbar {
     width: 8px;

@@ -17,6 +17,7 @@ const sel = (over: Partial<ThemeSelection> = {}): ThemeSelection => ({
   custom: DEFAULT_SETTINGS.appearance.custom,
   material: 'none',
   opacity: 80,
+  effects: true,
   ...over,
 });
 
@@ -73,6 +74,15 @@ describe('tema Cibus', () => {
     expect(t.palette.success).toBe('#f26522');
     expect(t.palette.onAccent).toBe('#ffffff');
     expect(resolveTheme(sel(), false).palette.success).toBe('#23a55a');
+  });
+
+  it('moedas flutuando só no Cibus e só com animações ligadas', () => {
+    expect(resolveTheme(sel({ colorTheme: 'cibus' }), false).particles).toEqual({
+      mark: '$',
+      color: '#f26522',
+    });
+    expect(resolveTheme(sel({ colorTheme: 'cibus', effects: false }), false).particles).toBeNull();
+    expect(resolveTheme(sel({ colorTheme: 'aurora' }), false).particles).toBeNull();
   });
 });
 

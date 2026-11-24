@@ -73,6 +73,8 @@ export interface AppearanceSettings {
   material: WindowMaterial;
   /** Opacidade do fundo sobre o material (20–100). */
   opacity: number;
+  /** Animações dos temas (ex.: moedas flutuando no tema Cibus). */
+  effects: boolean;
 }
 
 export interface GeneralSettings {
@@ -151,6 +153,7 @@ export const DEFAULT_SETTINGS: Settings = {
     custom: DEFAULT_CUSTOM_THEME,
     material: 'none',
     opacity: 80,
+    effects: true,
   },
   streamer: {
     enabled: false,
@@ -331,6 +334,7 @@ export function normalizeSettings(
         typeof a['opacity'] === 'number' && Number.isFinite(a['opacity'])
           ? Math.round(Math.min(100, Math.max(20, a['opacity'])))
           : base.appearance.opacity,
+      effects: bool(a['effects'], base.appearance.effects),
     },
     streamer: {
       enabled: bool(st['enabled'], base.streamer.enabled),

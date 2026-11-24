@@ -12,6 +12,7 @@ import { SettingsScreen } from './shell/SettingsScreen';
 import type { SectionId } from './sections';
 import { TitleBar } from './shell/TitleBar';
 import { applyThemeVars } from './theme-vars';
+import { ThemeParticles } from './components/ThemeParticles';
 
 /**
  * Janela principal: barra de título, trilho e a área onde o main posiciona a
@@ -70,6 +71,9 @@ export function App() {
   return (
     <ShellActionsContext.Provider value={actions}>
       <div className="app-backdrop" aria-hidden />
+      {state.look.particles && (
+        <ThemeParticles mark={state.look.particles.mark} color={state.look.particles.color} />
+      )}
       <div className="flex h-full flex-col">
         <TitleBar
           title={title}

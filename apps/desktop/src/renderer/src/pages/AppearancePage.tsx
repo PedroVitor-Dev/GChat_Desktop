@@ -5,6 +5,7 @@ import {
   DEFAULT_CUSTOM_THEME,
   THEME_PRESETS,
   buildPalette,
+  findPreset,
   swatchBackground,
   type CustomTheme,
   type ResolvedTheme,
@@ -143,6 +144,19 @@ export function AppearancePage() {
 
       {a.colorTheme === 'custom' && (
         <CustomEditor custom={a.custom} onChange={(custom) => update({ appearance: { custom } })} />
+      )}
+
+      {findPreset(a.colorTheme)?.particles && (
+        <div className="mt-4">
+          <Card>
+            <Toggle
+              label="Animação do tema"
+              description="Moedas do logo flutuando devagar pelo trilho e pela barra de título. Some sozinha se o Windows estiver com “Efeitos de animação” desligado."
+              checked={a.effects}
+              onChange={(effects) => setAppearance({ effects })}
+            />
+          </Card>
+        </div>
       )}
 
       <SectionTitle>Janela</SectionTitle>

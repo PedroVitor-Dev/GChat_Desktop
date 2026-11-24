@@ -29,6 +29,8 @@ export interface ThemePreset extends CustomTheme {
   mark?: string;
   /** Cor de "ligado" (interruptores, botões de adicionar); padrão: verde. */
   success?: string;
+  /** Símbolos animados flutuando no fundo (ex.: as moedas do Cibus). */
+  particles?: boolean;
 }
 
 /** Paleta aplicada às variáveis --color-* da interface. */
@@ -63,6 +65,8 @@ export interface ResolvedTheme {
   material: WindowMaterial;
   /** Opacidade do fundo sobre o material (0.2–1). 1 = sólido. */
   opacity: number;
+  /** Símbolos flutuando no fundo; null = sem animação. */
+  particles: { mark: string; color: string } | null;
 }
 
 // ───────────────────────────── paletas base ─────────────────────────────
@@ -118,6 +122,7 @@ export const THEME_PRESETS: readonly ThemePreset[] = [
     mark: '$',
     // Tudo no laranja da marca, inclusive os interruptores.
     success: '#f26522',
+    particles: true,
   },
   {
     id: 'meia-noite',
@@ -319,6 +324,8 @@ export interface ThemeSelection {
   material: WindowMaterial;
   /** Opacidade do fundo com Mica/Acrílico (20–100). */
   opacity: number;
+  /** Animações dos temas (ex.: moedas flutuando no Cibus). */
+  effects: boolean;
 }
 
 export function findPreset(id: string): ThemePreset | undefined {
@@ -328,9 +335,13 @@ export function findPreset(id: string): ThemePreset | undefined {
 /** Resolve a escolha do usuário num tema pronto para aplicar. */
 export function resolveTheme(sel: ThemeSelection, systemDark: boolean): ResolvedTheme {
   let def: CustomTheme & { success?: string };
+  let particles: ResolvedTheme['particles'] = null;
   if (sel.colorTheme === 'custom') def = sel.custom;
   else {
     const preset = findPreset(sel.colorTheme);
+    if (preset?.particles && preset.mark && sel.effects) {
+      particles = { mark: preset.mark, color: preset.swatch ?? preset.accent };
+    }
     if (preset) def = preset;
     else {
       const base = sel.theme === 'system' ? (systemDark ? 'dark' : 'light') : sel.theme;
@@ -355,6 +366,7 @@ export function resolveTheme(sel: ThemeSelection, systemDark: boolean): Resolved
     gradient,
     material: sel.material,
     opacity,
+    particles,
   };
 }
 
