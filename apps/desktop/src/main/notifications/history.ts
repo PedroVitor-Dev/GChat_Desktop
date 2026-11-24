@@ -8,6 +8,7 @@ import {
   type InboxStatus,
 } from '../../shared/inbox';
 import type { CapturedNotification } from '../../shared/notifications';
+import { sameConversation } from './rules';
 
 interface Stored {
   id: string;
@@ -98,6 +99,16 @@ export class NotificationHistory extends EventEmitter<{ change: [InboxStatus] }>
   remove(id: string): void {
     const before = this.entries.length;
     this.entries = this.entries.filter((e) => e.id !== id);
+    if (this.entries.length !== before) this.changed();
+  }
+
+  /** Você abriu esta conversa: os itens dela saem da lista. */
+  dismissConversation(accountId: string, name: string): void {
+    const before = this.entries.length;
+    this.entries = this.entries.filter(
+      (e) =>
+        !((e.accountId === null || e.accountId === accountId) && sameConversation(e.title, name)),
+    );
     if (this.entries.length !== before) this.changed();
   }
 

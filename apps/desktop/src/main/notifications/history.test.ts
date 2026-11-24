@@ -51,6 +51,20 @@ describe('NotificationHistory', () => {
   });
 });
 
+describe('ler a conversa', () => {
+  it('tira da lista só os itens daquela conversa e conta', () => {
+    const h = new NotificationHistory();
+    h.add(n('Luana Kamila'), info);
+    h.add(n('Equipe'), info);
+    h.add(n('Luana Kamila'), { ...info, accountId: 'account-2' });
+    h.dismissConversation('account-1', '  luana  kamila ');
+    expect(h.list(open, () => null).map((e) => [e.title, e.accountId])).toEqual([
+      ['Luana Kamila', 'account-2'],
+      ['Equipe', 'account-1'],
+    ]);
+  });
+});
+
 describe('relativeTime', () => {
   const now = new Date(2026, 10, 23, 15, 0).getTime();
   it('formata em português', () => {

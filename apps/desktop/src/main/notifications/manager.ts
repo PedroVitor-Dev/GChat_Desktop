@@ -18,6 +18,7 @@ import {
   isMention,
   isMuted,
   isVip,
+  sameConversation,
 } from './rules';
 
 /** Motivo pelo qual uma notificação não virou toast (para estatísticas, sem conteúdo). */
@@ -64,6 +65,8 @@ const MAX_ACTIVE = 50;
 export class NotificationManager extends EventEmitter<Events> {
   private readonly dedup = new Deduplicator();
   private readonly active = new Map<string, Notification>();
+  /** De qual conversa/conta é cada toast ativo (para fechar ao ler a conversa). */
+  private readonly owner = new Map<string, { key: string; accountId: string | null }>();
   private readonly recent = new Map<string, number>();
 
   constructor(private readonly deps: ManagerDeps) {
@@ -151,7 +154,10 @@ export class NotificationManager extends EventEmitter<Events> {
       actions: [{ type: 'button', text: 'Silenciar conversa' }],
     });
 
-    const release = () => this.active.delete(n.id);
+    const release = () => {
+      this.active.delete(n.id);
+      this.owner.delete(n.id);
+    };
     toast.on('click', () => {
       release();
       this.deps.shell.focusChat(accountId ?? undefined);
@@ -169,7 +175,12 @@ export class NotificationManager extends EventEmitter<Events> {
     });
 
     this.active.set(n.id, toast);
-    if (this.active.size > MAX_ACTIVE) this.active.delete(this.active.keys().next().value!);
+    this.owner.set(n.id, { key, accountId });
+    if (this.active.size > MAX_ACTIVE) {
+      const oldest = this.active.keys().next().value!;
+      this.active.delete(oldest);
+      this.owner.delete(oldest);
+    }
     toast.show();
     this.playSound(sound);
     // Chegou com você fora da janela: fica nas notificações perdidas (só memória).
@@ -180,6 +191,20 @@ export class NotificationManager extends EventEmitter<Events> {
     this.deps.shell.onNotificationShown(accountId);
     this.emit('shown', n, accountId);
     return 'shown';
+  }
+
+  /**
+   * O usuário está lendo esta conversa: fecha os avisos dela que ainda estão na
+   * tela ou na central de notificações do Windows.
+   */
+  dismissConversation(accountId: string, name: string): void {
+    for (const [id, o] of [...this.owner]) {
+      if (o.accountId !== null && o.accountId !== accountId) continue;
+      if (!sameConversation(o.key, name)) continue;
+      this.active.get(id)?.close();
+      this.active.delete(id);
+      this.owner.delete(id);
+    }
   }
 
   /** Toast de teste da tela de configurações (não passa por silêncio/dedup). */

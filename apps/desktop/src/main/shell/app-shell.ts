@@ -656,6 +656,9 @@ export class AppShell {
     }
     this.call?.view.setVisible(callShown && !this.overlayOpen());
     this.preview?.view.setVisible(previewShown && !this.overlayOpen());
+    // O Chat voltou a aparecer (fechou configurações, saiu das Salas, trocou de
+    // conta): a conversa aberta conta como lida.
+    if (this.view === 'chat' && !this.overlayOpen()) this.options.onChatLocation?.(this.active);
   }
 
   // ───────────────────────────── aparência ─────────────────────────────

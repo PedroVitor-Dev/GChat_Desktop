@@ -9,6 +9,7 @@ import {
   isMention,
   isMuted,
   isVip,
+  sameConversation,
 } from './rules';
 
 const at = (hhmm: string) => new Date(`2026-11-23T${hhmm}:00`);
@@ -148,5 +149,14 @@ describe('pessoas prioritárias', () => {
     expect(chooseSound(msg(), sounds, true, true)).toBe('builtin:dois-toques');
     expect(chooseSound(msg(), { ...sounds, vipSound: null }, false, true)).toBe('builtin:pop');
     expect(chooseSound(msg(), { ...sounds, enabled: false }, false, true)).toBe('none');
+  });
+});
+
+describe('sameConversation', () => {
+  it('ignora maiúsculas, acentos e espaços', () => {
+    expect(sameConversation('Luana Kamila', '  luana   kamila')).toBe(true);
+    expect(sameConversation('João', 'joao')).toBe(true);
+    expect(sameConversation('Equipe', 'Equipe Cibus')).toBe(false);
+    expect(sameConversation('', '')).toBe(false);
   });
 });

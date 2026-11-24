@@ -54,6 +54,13 @@ Lista o que **você não viu**:
 - o que foi **barrado** pelo Não perturbe, pelas notificações pausadas, pelo horário de
   silêncio ou pelo modo streamer.
 
+**Somem sozinhas ao ler:** quando você abre uma conversa e está vendo (janela em foco,
+Chat visível), os avisos dela saem da caixa e os toasts dela são fechados, inclusive na
+central de notificações do Windows. Vale ao navegar até a conversa, ao voltar para a
+janela olhando para ela, ao fechar as configurações e ao trocar de conta. A conversa é
+reconhecida pelo título da página do Chat ("Luana kamila - Chat"), comparado ao título
+da notificação sem diferenciar maiúsculas e acentos (`sameConversation`).
+
 Conversas silenciadas à mão ficam de fora. Abas "Tudo" e "Menções e prioritárias";
 abrir a lista zera o contador; clicar num item abre a conversa (primeiro pela conversa
 fixada com o mesmo nome; senão, devolvendo o clique à notificação na página do Chat,

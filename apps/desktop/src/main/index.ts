@@ -39,6 +39,8 @@ if (!app.requestSingleInstanceLock()) {
 
     let tray: AppTray | null = null;
     let pins: PinsService | null = null;
+    /** Abriu e está vendo uma conversa: os avisos dela somem (toast e perdidas). */
+    let readConversation: ((accountId: string) => void) | null = null;
     const shell = new AppShell({
       appearance: settings.get().appearance,
       accounts: settings.get().accounts,
@@ -56,7 +58,10 @@ if (!app.requestSingleInstanceLock()) {
         settings.updateInternal({ general: { trayHintShown: true } });
       },
       onUnreadChange: (count) => tray?.setUnread(count),
-      onChatLocation: (accountId) => pins?.onChatLocation(accountId),
+      onChatLocation: (accountId) => {
+        pins?.onChatLocation(accountId);
+        readConversation?.(accountId);
+      },
       onPinShortcut: (index) => pins?.openByIndex(index),
       onActiveAccountChange: (id) => accounts.setActive(id),
     });
@@ -83,6 +88,12 @@ if (!app.requestSingleInstanceLock()) {
     });
 
     notifications.on('shown', (n, accountId) => pinsService.onNotification(n, accountId));
+    readConversation = (accountId) => {
+      const here = shell.chatLocation(accountId);
+      if (!here?.name || !shell.isViewingChat(accountId, here.path)) return;
+      notifications.dismissConversation(accountId, here.name);
+      history.dismissConversation(accountId, here.name);
+    };
 
     tray = new AppTray(settings, {
       openChat: () => shell.focusChat(),

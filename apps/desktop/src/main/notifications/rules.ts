@@ -26,6 +26,21 @@ export function isInQuietHours(now: Date, quiet: QuietHours): boolean {
   return start < end ? current >= start && current < end : current >= start || current < end;
 }
 
+/**
+ * Mesma conversa? Compara nomes sem diferenciar maiúsculas, acentos e espaços
+ * (ex.: o título da página do Chat e o título da notificação).
+ */
+export function sameConversation(a: string, b: string): boolean {
+  const norm = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  return norm(a) !== '' && norm(a) === norm(b);
+}
+
 /** Chave da conversa: o título exibido (remetente ou espaço). Sem ID oficial no Chat. */
 export const conversationKey = (n: CapturedNotification): string => n.title.trim();
 
