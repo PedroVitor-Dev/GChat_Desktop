@@ -2,6 +2,9 @@ import { BrowserWindow, Menu, app, dialog } from 'electron';
 import { isDndDuration, type DndDuration } from '../../shared/dnd';
 import type { DndService } from '../system/dnd';
 import type { PinsService } from '../pins/pins-service';
+import type { NotificationHistory } from '../notifications/history';
+import { NotificationChannel } from '../../shared/notifications';
+import type { InboxEntry } from '../../shared/inbox';
 import { isGroupId, isPinId } from '../../shared/pins';
 import { IpcChannel, type AppInfo } from '../../shared/ipc';
 import type { Settings } from '../../shared/settings';
@@ -35,6 +38,7 @@ interface IpcDeps {
   profiles: ProfileService;
   dnd: DndService;
   pins: PinsService;
+  history: NotificationHistory;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -89,6 +93,7 @@ export function registerIpc({
   profiles,
   dnd,
   pins,
+  history,
 }: IpcDeps): void {
   handle(IpcChannel.UpdateStatus, noArgs, () => updater.status());
   handle(IpcChannel.UpdateCheck, noArgs, () => updater.check());
@@ -161,6 +166,40 @@ export function registerIpc({
     (id) => pins.open(id),
   );
   handle(ShellChannel.PinsSetPanel, oneBoolean, (open) => pins.setPanel(open));
+
+  // Notificações perdidas (só memória). A lista respeita a privacidade: o que o
+  // toast esconderia (remetente/texto, ou tudo ao transmitir) o painel também esconde.
+  const inboxId = (args: unknown[]): string => {
+    if (args.length !== 1 || typeof args[0] !== 'string' || !/^[a-z0-9-]{3,40}$/.test(args[0])) {
+      throw new TypeError('item inválido');
+    }
+    return args[0];
+  };
+  handle(ShellChannel.InboxList, noArgs, (): InboxEntry[] => {
+    const { notifications: n, streamer: st } = settings.get();
+    const hide = streamer.status().active && st.hideContent;
+    return history.list(
+      { showSender: n.showSender && !hide, showPreview: n.showPreview && !hide },
+      (id) => (settings.get().accounts.list.length > 1 ? shell.accountName(id) : null),
+    );
+  });
+  handle(ShellChannel.InboxSeen, noArgs, () => history.markAllSeen());
+  handle(ShellChannel.InboxClear, noArgs, () => history.clear());
+  handle(ShellChannel.InboxRemove, inboxId, (id) => history.remove(id));
+  handle(ShellChannel.InboxOpen, inboxId, (id) => {
+    const item = history.take(id);
+    if (!item) return;
+    const accountId = item.accountId ?? settings.get().accounts.active;
+    // 1) Conversa fixada com o mesmo nome: endereço conhecido, abre na hora.
+    const pinId = pins.findByName(accountId, item.title);
+    if (pinId) return pins.open(pinId);
+    // 2) Como o clique no toast: devolve o clique à notificação na página do
+    //    Chat, que abre a conversa (funciona enquanto a página não recarregar).
+    shell.focusChat(accountId);
+    if (item.frame && !item.frame.isDestroyed()) {
+      item.frame.send(NotificationChannel.Clicked, item.notificationId);
+    }
+  });
   handle(IpcChannel.DndResume, noArgs, () => dnd.resume());
   handle(IpcChannel.DndMenu, noArgs, (_args, event) => {
     const window = BrowserWindow.fromWebContents(event.sender);

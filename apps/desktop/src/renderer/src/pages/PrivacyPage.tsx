@@ -35,6 +35,10 @@ export function PrivacyPage() {
           </li>
           <li>O texto das mensagens não é gravado em disco nem em logs.</li>
           <li>
+            As notificações perdidas (caixa de entrada da barra de título) ficam só na memória e
+            somem ao fechar o app.
+          </li>
+          <li>
             A foto e o nome da sua conta Google (os que o Chat mostra) ficam salvos só neste
             computador para aparecer no app. A frase do seu status do Chat também fica salva aqui,
             para aparecer na foto. O e-mail não é lido.

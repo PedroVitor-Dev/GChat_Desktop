@@ -52,6 +52,7 @@ Pause avisos e sons por **30 min, 1 h, 8 h ou até amanhã** com um clique no si
 trilho ou na bandeja; volta sozinho. E nada de aviso fora do expediente: **menções
 podem furar o horário de silêncio**, se você quiser. E as **pessoas prioritárias** ⭐
 sempre avisam, com som próprio, mesmo no Não perturbe ou no modo streamer.
+O que chegou com você fora fica na **caixa de notificações perdidas**, só na memória.
 
 ### 📡 Modo streamer
 
@@ -150,7 +151,8 @@ ajustável e prévia ao vivo. Um tema experimental leva as cores para dentro do 
   verificação em duas etapas, passkeys e SSO corporativo funcionam normalmente.
 - 💾 **A sessão fica no seu computador**, criptografada pelo Windows (DPAPI) para o seu
   usuário.
-- 🙈 **Nada de mensagens em disco ou em logs.** Para montar o aviso, o app lê apenas o
+- 🙈 **Nada de mensagens em disco ou em logs.** As notificações perdidas ficam só na
+  memória e somem ao fechar o app. Para montar o aviso, o app lê apenas o
   título e o texto da notificação que o próprio Chat cria.
 - 🖼️ **Do seu perfil, só a foto e o nome** que o Chat mostra, guardados localmente, assim como a frase do seu status. O e-mail não é lido.
 - 🌐 **Nada é enviado a outros servidores** além dos do Google (e do GitHub, para

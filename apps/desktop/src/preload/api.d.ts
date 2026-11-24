@@ -6,6 +6,7 @@ import type { Room } from '../shared/rooms';
 import type { UpdateStatus } from '../shared/updates';
 import type { DndDuration } from '../shared/dnd';
 import type { PinGroup } from '../shared/pins';
+import type { InboxEntry } from '../shared/inbox';
 
 export type RoomResult = { ok: true; room: Room } | { ok: false; error: string };
 
@@ -99,6 +100,15 @@ export interface GChatApi {
     save(groups: PinGroup[]): Promise<void>;
     open(id: string): Promise<void>;
     setPanel(open: boolean): Promise<void>;
+  };
+  /** Notificações perdidas (só memória; somem ao fechar o app). */
+  inbox: {
+    list(): Promise<InboxEntry[]>;
+    markSeen(): Promise<void>;
+    clear(): Promise<void>;
+    remove(id: string): Promise<void>;
+    /** Abre a conversa do item (e tira o item da lista). */
+    open(id: string): Promise<void>;
   };
 }
 

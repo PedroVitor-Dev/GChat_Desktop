@@ -44,6 +44,33 @@ Sem precisar de login: um cliente do DevTools Protocol intercepta
 Validado em 23/11/2026: captura, `instanceof`, evento `show`, deduplicação e
 duas conversas distintas, todas exibidas.
 
+## Notificações perdidas (Caixa de entrada)
+
+Botão de caixa de entrada à direita da barra de título, com contador, como no Discord.
+Lista o que **você não viu**:
+
+- o que chegou com a janela **escondida, minimizada ou sem foco** ("Enquanto você
+  estava fora"; o aviso foi mostrado, mas você pode ter perdido);
+- o que foi **barrado** pelo Não perturbe, pelas notificações pausadas, pelo horário de
+  silêncio ou pelo modo streamer.
+
+Conversas silenciadas à mão ficam de fora. Abas "Tudo" e "Menções e prioritárias";
+abrir a lista zera o contador; clicar num item abre a conversa (primeiro pela conversa
+fixada com o mesmo nome; senão, devolvendo o clique à notificação na página do Chat,
+como no toast) e tira o item da lista; dá para remover um item ou limpar tudo.
+
+**Privacidade:** fica **só na memória** do processo principal (`NotificationHistory`,
+no máximo 200 itens) e **some ao fechar o app**. Nada vai para disco ou logs. A lista
+respeita "Mostrar remetente" e "Mostrar texto" e esconde tudo ao transmitir com
+"Esconder conteúdo" ligado.
+
+Para o clique funcionar mais tarde, o preload do Chat não esquece a notificação quando
+o Chat a fecha (registro dos últimos 100 avisos, também só em memória).
+
+Verificado em 23/11/2026: 2 avisos no Não perturbe (um com menção) e 1 com a janela
+minimizada entraram com o motivo certo; a lista abriu com o contador zerando; abrir
+pela conversa fixada e pelo clique do Chat (com a notificação já fechada) funcionou.
+
 ## Pessoas prioritárias (VIP)
 
 Conversas que **sempre avisam**, mesmo no **Não perturbe** (com prazo ou "até eu

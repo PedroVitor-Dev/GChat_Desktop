@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events';
 import type { ChatPresence } from '../../shared/profile';
 import { resolveDnd } from '../../shared/dnd';
+import type { NotificationHistory } from './history';
 import { Notification, type WebFrameMain } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../../shared/notifications';
 import type { SoundId } from '../../shared/sounds';
@@ -39,7 +40,11 @@ interface ManagerDeps {
     onNotificationShown(accountId: string | null): void;
     accountName(accountId: string): string | null;
     accountCount(): number;
+    /** Janela escondida, minimizada ou sem foco. */
+    isAway(): boolean;
   };
+  /** Notificações perdidas (só memória). */
+  history?: NotificationHistory;
   player: SoundPlayer;
   /** Status da conta no Google Chat ("dnd" = Não perturbe). */
   presence(accountId: string): ChatPresence | undefined;
@@ -93,18 +98,25 @@ export class NotificationManager extends EventEmitter<Events> {
     this.recent.set(key, Date.now());
     if (this.recent.size > 30) this.recent.delete(this.recent.keys().next().value!);
 
-    if (!vip && !settings.enabled) return this.drop('disabled');
-    // "Não perturbe" com prazo: nem aviso nem som até a hora marcada.
-    if (!vip && resolveDnd(settings, Date.now()).active) return this.drop('paused');
-
+    // Silenciada à mão: o usuário escolheu não ouvir (nem guarda no histórico).
     if (isMuted(n, settings)) return this.drop('muted');
+
+    const mention = isMention(n, settings.mentions.keywords);
+    // Barrada pelo silêncio: vai para as notificações perdidas (só memória).
+    const held = (reason: 'disabled' | 'paused' | 'streamer' | 'quiet-hours') => {
+      this.deps.history?.add(n, { accountId, reason, mention, vip, frame });
+      return this.drop(reason);
+    };
+    if (!vip && !settings.enabled) return held('disabled');
+    // "Não perturbe" com prazo: nem aviso nem som até a hora marcada.
+    if (!vip && resolveDnd(settings, Date.now()).active) return held('paused');
+
     const streaming = this.deps.streamer.status().active;
     const streamer = all.streamer;
-    if (!vip && streaming && streamer.pauseNotifications) return this.drop('streamer');
-    const mention = isMention(n, settings.mentions.keywords);
+    if (!vip && streaming && streamer.pauseNotifications) return held('streamer');
     const bypass = mention && settings.mentions.bypassQuietHours;
     if (!vip && !bypass && isInQuietHours(new Date(), settings.quietHours)) {
-      return this.drop('quiet-hours');
+      return held('quiet-hours');
     }
     if (!Notification.isSupported()) return this.drop('unsupported');
 
@@ -160,6 +172,10 @@ export class NotificationManager extends EventEmitter<Events> {
     if (this.active.size > MAX_ACTIVE) this.active.delete(this.active.keys().next().value!);
     toast.show();
     this.playSound(sound);
+    // Chegou com você fora da janela: fica nas notificações perdidas (só memória).
+    if (this.deps.shell.isAway()) {
+      this.deps.history?.add(n, { accountId, reason: 'away', mention, vip, frame });
+    }
 
     this.deps.shell.onNotificationShown(accountId);
     this.emit('shown', n, accountId);

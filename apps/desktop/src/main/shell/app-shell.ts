@@ -13,6 +13,7 @@ import {
 import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
 import { DND_OFF, type DndStatus } from '../../shared/dnd';
+import { INBOX_EMPTY, type InboxStatus } from '../../shared/inbox';
 import { chatNameFromTitle, chatPathFromUrl, isChatPath } from '../../shared/pins';
 import { chatThemeCss, resolveTheme, titleBarColors, type ResolvedTheme } from '../../shared/theme';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
@@ -106,6 +107,7 @@ export class AppShell {
   private look: ResolvedTheme;
   private dnd: DndStatus = DND_OFF;
   private pinsOpen = false;
+  private inbox: InboxStatus = INBOX_EMPTY;
   private pinUnread: Record<string, number> = {};
   private appearance: AppearanceSettings;
   private badge: NativeImage | null = null;
@@ -189,6 +191,7 @@ export class AppShell {
       view: this.view,
       call: this.call?.state ?? null,
       dnd: this.dnd,
+      inbox: this.inbox,
       pins: {
         open: this.pinsOpen,
         current: this.chatLocation(this.active),
@@ -401,6 +404,16 @@ export class AppShell {
 
   // ───────────────────────────── conversas fixadas ─────────────────────────────
 
+  /** Janela escondida (bandeja), minimizada ou sem foco: o usuário está fora. */
+  isAway(): boolean {
+    return (
+      this.window.isDestroyed() ||
+      !this.window.isVisible() ||
+      this.window.isMinimized() ||
+      !this.window.isFocused()
+    );
+  }
+
   /** Conversa aberta no Chat de uma conta (endereço + nome da página). */
   chatLocation(accountId: string): { path: string; name: string | null } | null {
     const slot = this.slots.get(accountId);
@@ -421,6 +434,11 @@ export class AppShell {
     if (open === this.pinsOpen) return;
     this.pinsOpen = open;
     this.layout();
+    this.emitState();
+  }
+
+  setInbox(status: InboxStatus): void {
+    this.inbox = status;
     this.emitState();
   }
 

@@ -1,4 +1,4 @@
-import { BellOff, PanelLeftClose, PanelLeftOpen, Radio, Rocket, Signal } from 'lucide-react';
+import { BellOff, Inbox, PanelLeftClose, PanelLeftOpen, Radio, Rocket, Signal } from 'lucide-react';
 import { describeDnd, type DndStatus } from '../../../shared/dnd';
 import { useUpdateStatus } from '../hooks/useUpdateStatus';
 import type { CallState } from '../../../shared/rooms';
@@ -19,6 +19,7 @@ export function TitleBar({
   pins,
   call,
   onShowCall,
+  inbox,
 }: {
   title: string;
   streamer: StreamerStatus;
@@ -27,6 +28,8 @@ export function TitleBar({
   pins: { open: boolean; unread: number } | null;
   call: CallState | null;
   onShowCall: () => void;
+  /** Notificações perdidas: contador e abrir/fechar a lista. */
+  inbox: { unseen: number; open: boolean; onToggle: () => void };
 }) {
   const elapsed = useElapsed(call?.startedAt);
   const update = useUpdateStatus();
@@ -106,6 +109,28 @@ export function TitleBar({
           Modo streamer
         </button>
       )}
+      {/* À esquerda dos botões nativos do Windows (minimizar/maximizar/fechar). */}
+      <button
+        type="button"
+        title={
+          inbox.unseen > 0
+            ? `${inbox.unseen} ${inbox.unseen === 1 ? 'notificação perdida' : 'notificações perdidas'}`
+            : 'Notificações perdidas'
+        }
+        aria-label="Notificações perdidas"
+        aria-pressed={inbox.open}
+        onClick={inbox.onToggle}
+        className={`no-drag hover:text-header hover:bg-hover absolute top-1/2 right-[150px] -translate-y-1/2 rounded p-1 transition-colors ${
+          inbox.open ? 'text-header bg-hover' : 'text-interactive'
+        }`}
+      >
+        <Inbox size={16} />
+        {inbox.unseen > 0 && (
+          <span className="bg-danger border-rail absolute -top-1 -right-1.5 flex h-4 min-w-4 animate-[fade-in_200ms_ease] items-center justify-center rounded-full px-1 text-[10px] leading-none font-bold text-white">
+            {inbox.unseen > 99 ? '99+' : inbox.unseen}
+          </span>
+        )}
+      </button>
     </header>
   );
 }

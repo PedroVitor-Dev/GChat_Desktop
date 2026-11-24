@@ -255,6 +255,7 @@ if (location.origin === CHAT_ORIGIN) {
         onclose: ((e: Event) => unknown) | null = null;
         onerror: ((e: Event) => unknown) | null = null;
         private readonly id: string;
+        private closed = false;
 
         constructor(id: string, title: string, options?: NotificationOptions) {
           super();
@@ -270,8 +271,12 @@ if (location.origin === CHAT_ORIGIN) {
           setTimeout(() => fire(this, 'show'), 0);
         }
 
+        // Fechar não tira do registro: um clique depois (na lista de notificações
+        // perdidas do app) ainda chega ao Chat e abre a conversa.
         close(): void {
-          if (registry.delete(this.id)) fire(this, 'close');
+          if (this.closed) return;
+          this.closed = true;
+          fire(this, 'close');
         }
       }
       // `instanceof Notification` continua verdadeiro para o código do Chat.

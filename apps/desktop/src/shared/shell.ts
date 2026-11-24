@@ -3,6 +3,7 @@ import type { CallState } from './rooms';
 import type { StreamerStatus } from './streamer';
 import type { ResolvedTheme } from './theme';
 import type { DndStatus } from './dnd';
+import type { InboxStatus } from './inbox';
 
 /** Contrato entre o shell (barra de título + trilho + configurações) e o main. */
 
@@ -34,6 +35,12 @@ export const ShellChannel = {
   PinsSave: 'pins:save',
   PinsOpen: 'pins:open',
   PinsSetPanel: 'pins:set-panel',
+  /** renderer → main (invoke): notificações perdidas. */
+  InboxList: 'inbox:list',
+  InboxSeen: 'inbox:seen',
+  InboxClear: 'inbox:clear',
+  InboxRemove: 'inbox:remove',
+  InboxOpen: 'inbox:open',
   /** renderer → main (invoke): recarregar o Chat da conta ativa. */
   ReloadChat: 'shell:reload-chat',
   /** renderer → main (invoke): estado atual (na montagem). */
@@ -88,6 +95,8 @@ export interface ShellState {
   dnd: DndStatus;
   /** Painel de conversas fixadas. */
   pins: PinsView;
+  /** Notificações perdidas (só memória). */
+  inbox: InboxStatus;
 }
 
 export interface PinsView {

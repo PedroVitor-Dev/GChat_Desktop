@@ -88,6 +88,17 @@ export class PinsService {
     }
   }
 
+  /** Conversa fixada com este nome (para abrir um item das notificações perdidas). */
+  findByName(accountId: string, name: string): string | null {
+    const key = fold(name);
+    const hit = this.settings
+      .get()
+      .pins.groups.filter((g) => g.accountId === accountId)
+      .flatMap((g) => g.items)
+      .find((i) => fold(i.chatName) === key || fold(i.name) === key);
+    return hit?.id ?? null;
+  }
+
   /** Alt+1…9 na conta ativa. */
   openByIndex(index: number): void {
     const item = pinsOf(this.settings.get().pins, this.settings.get().accounts.active)[index];

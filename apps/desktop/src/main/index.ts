@@ -17,6 +17,7 @@ import { AppUpdater } from './system/updater';
 import { ProfileService } from './profile/profile-service';
 import { DndService } from './system/dnd';
 import { PinsService } from './pins/pins-service';
+import { NotificationHistory } from './notifications/history';
 import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
@@ -68,7 +69,11 @@ if (!app.requestSingleInstanceLock()) {
     const dnd = new DndService(settings);
     const pinsService = new PinsService(settings, shell);
     pins = pinsService;
+    // Notificações perdidas: só memória, somem ao fechar o app.
+    const history = new NotificationHistory();
+    history.on('change', (status) => shell.setInbox(status));
     const notifications = new NotificationManager({
+      history,
       settings,
       player,
       shell,
@@ -120,6 +125,7 @@ if (!app.requestSingleInstanceLock()) {
       profiles,
       dnd,
       pins: pinsService,
+      history,
     });
     updater.on('status', (s) =>
       tray?.setUpdateReady(s.state === 'downloaded' ? (s.version ?? null) : null),

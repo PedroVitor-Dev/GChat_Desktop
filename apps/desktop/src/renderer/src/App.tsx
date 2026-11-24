@@ -12,6 +12,7 @@ import { SettingsScreen } from './shell/SettingsScreen';
 import type { SectionId } from './sections';
 import { TitleBar } from './shell/TitleBar';
 import { PinsPanel } from './shell/PinsPanel';
+import { InboxPopover } from './shell/InboxPopover';
 import { applyThemeVars } from './theme-vars';
 import { ThemeParticles } from './components/ThemeParticles';
 
@@ -54,6 +55,17 @@ export function App() {
     void shell.setModalOpen(false);
   }, [shell]);
 
+  // Notificações perdidas: cobre a área do Chat enquanto aberta (como um modal).
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const openInbox = useCallback(() => {
+    setInboxOpen(true);
+    void shell.setModalOpen(true);
+  }, [shell]);
+  const closeInbox = useCallback(() => {
+    setInboxOpen(false);
+    void shell.setModalOpen(false);
+  }, [shell]);
+
   const actions = useMemo(() => ({ openAddAccount: openAdd }), [openAdd]);
 
   if (!state) return <div className="bg-rail h-full" />;
@@ -91,6 +103,11 @@ export function App() {
           }
           call={state.call}
           onShowCall={() => void shell.setView('rooms')}
+          inbox={{
+            unseen: state.inbox.unseen,
+            open: inboxOpen,
+            onToggle: () => (inboxOpen ? closeInbox() : openInbox()),
+          }}
         />
         <div className="relative flex min-h-0 flex-1">
           {/* Configurações em tela cheia cobrem tudo: com fundo translúcido, o trilho
@@ -150,6 +167,7 @@ export function App() {
           {creatingRoom && (
             <CreateRoomModal accountName={active?.name ?? null} onClose={closeCreateRoom} />
           )}
+          {inboxOpen && <InboxPopover version={state.inbox.version} onClose={closeInbox} />}
         </div>
       </div>
     </ShellActionsContext.Provider>
