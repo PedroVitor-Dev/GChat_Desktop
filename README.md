@@ -230,13 +230,14 @@ docs/                 # documentação técnica
 <details>
 <summary><b>🚀 Publicar uma versão</b></summary>
 
-1. Atualize `version` em `apps/desktop/package.json` (e na raiz) e `VERSION` em
-   `site/script.js`.
+1. Escreva as novidades no topo de `apps/desktop/src/shared/changelog.json` (aparecem na
+   aba Atualizações do app e nas notas do Release; um teste cobra isso). Atualize
+   `version` em `apps/desktop/package.json` (e na raiz) e `VERSION` em `site/script.js`.
 2. Faça o commit e o push. Depois, crie e envie a tag:
 
 ```bash
-git tag v0.0.5
-git push origin v0.0.5
+git tag v0.0.6
+git push origin v0.0.6
 ```
 
 O workflow **Release** roda os testes, gera o instalador e publica no Release o

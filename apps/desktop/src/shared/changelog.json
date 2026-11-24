@@ -1,0 +1,54 @@
+[
+  {
+    "version": "0.0.6",
+    "date": "2026-11-24",
+    "highlights": [
+      "Supressor de ruído opcional nas chamadas: IA rodando no seu computador tira ventilador, teclado e barulho de fundo do microfone",
+      "Testar microfone (Sons → Chamadas): grave alguns segundos e ouça com e sem o supressor",
+      "Miniplayer da chamada: ao ir para o Chat ou minimizar, a chamada vira uma janelinha flutuante com tempo, voltar e sair",
+      "Na chamada: esconder a lista de salas, modo foco (só o vídeo) e tela cheia",
+      "Espiar outra sala sem sair da chamada atual, vendo quem está lá antes de trocar",
+      "Fixados: adicionar conversas e espaços pelo botão +, sem precisar abrir",
+      "Avisos somem sozinhos quando você abre e lê a conversa",
+      "Configurações protegidas entre versões: voltar para uma versão antiga não apaga mais salas, temas e fixados",
+      "Novidades de cada versão aqui na aba Atualizações"
+    ]
+  },
+  {
+    "version": "0.0.5",
+    "date": "2026-11-24",
+    "highlights": [
+      "Temas personalizados: 11 temas coloridos com degradê, o tema Cibus com moedas animadas e o seu próprio tema",
+      "Janela sólida, Mica ou Acrílico (Windows 11) com transparência ajustável",
+      "Não perturbe com tempo: 30 min, 1 h, 8 h ou até amanhã, voltando sozinho",
+      "Pessoas prioritárias: conversas que sempre avisam, com som próprio",
+      "Conversas fixadas: painel ao lado do Chat com grupos e Alt + 1…9",
+      "Notificações perdidas: caixa de entrada com o que chegou enquanto você estava fora (só na memória)"
+    ]
+  },
+  {
+    "version": "0.0.4",
+    "date": "2026-11-23",
+    "highlights": [
+      "Status do Google Chat na foto do trilho: bolinha de presença e emoji",
+      "Clique na foto para mudar o status (Não perturbe, Ausente ou frase com emoji)"
+    ]
+  },
+  {
+    "version": "0.0.3",
+    "date": "2026-11-23",
+    "highlights": ["Foto e nome da sua conta Google no trilho"]
+  },
+  {
+    "version": "0.0.2",
+    "date": "2026-11-23",
+    "highlights": ["Atualização automática pelo próprio app"]
+  },
+  {
+    "version": "0.0.1",
+    "date": "2026-11-23",
+    "highlights": [
+      "Primeira versão: Google Chat com notificações, sons, várias contas e salas do Meet"
+    ]
+  }
+]

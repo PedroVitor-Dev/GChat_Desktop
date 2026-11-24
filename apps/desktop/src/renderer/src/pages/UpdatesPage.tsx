@@ -1,7 +1,17 @@
 import { useState } from 'react';
-import { AlertCircle, CheckCircle2, Download, Loader2, RefreshCw, Rocket } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  Download,
+  Loader2,
+  RefreshCw,
+  Rocket,
+  Sparkles,
+} from 'lucide-react';
 import type { UpdateStatus } from '../../../shared/updates';
 import { Card } from '../components/Card';
+import { CHANGELOG, notesFor, type ReleaseNotes } from '../../../shared/changelog';
 import { Button, SectionTitle, Toggle } from '../components/controls';
 import { useSettings } from '../hooks/useSettings';
 import { useUpdateStatus } from '../hooks/useUpdateStatus';
@@ -24,6 +34,8 @@ export function UpdatesPage() {
   return (
     <div>
       <StatusCard status={status} busy={busy} onCheck={() => void check()} />
+
+      <WhatsNew status={status} />
 
       <SectionTitle>Preferências</SectionTitle>
       <Card>
@@ -185,4 +197,105 @@ function StatusCard({
       </div>
     </div>
   );
+}
+
+const dateBR = (iso: string) => {
+  const [y, m, d] = iso.split('-');
+  return y && m && d ? `${d}/${m}/${y}` : iso;
+};
+
+/**
+ * Novidades: o que vem na versão nova (das notas do Release no GitHub) e as
+ * mudanças da versão instalada e das anteriores (src/shared/changelog.json).
+ */
+function WhatsNew({ status }: { status: UpdateStatus }) {
+  const incoming =
+    status.version && status.version !== status.currentVersion && status.notes?.length
+      ? { version: status.version, notes: status.notes }
+      : null;
+  const current = notesFor(status.currentVersion);
+  const older = CHANGELOG.filter(
+    (r) => r.version !== status.currentVersion && r.version !== incoming?.version,
+  ).filter((r) => !current || compare(r.version, current.version) < 0);
+
+  return (
+    <>
+      {incoming && (
+        <>
+          <SectionTitle>O que vem na versão {incoming.version}</SectionTitle>
+          <div className="border-success/40 bg-success/10 rounded-lg border px-4 py-3">
+            <Highlights items={incoming.notes} />
+          </div>
+        </>
+      )}
+
+      {current && (
+        <>
+          <SectionTitle>Novidades da versão {current.version}</SectionTitle>
+          <Card>
+            <div className="py-3">
+              <p className="text-muted mb-2 flex items-center gap-1.5 text-xs">
+                <Sparkles size={13} className="text-accent" aria-hidden />
+                Instalada · {dateBR(current.date)}
+              </p>
+              <Highlights items={current.highlights} />
+            </div>
+          </Card>
+        </>
+      )}
+
+      {older.length > 0 && (
+        <details className="group/older mt-4">
+          <summary className="text-interactive hover:text-header flex cursor-pointer list-none items-center gap-1 text-sm font-medium select-none">
+            <ChevronDown
+              size={15}
+              className="transition-transform group-open/older:rotate-180"
+              aria-hidden
+            />
+            Versões anteriores
+          </summary>
+          <div className="mt-2 space-y-3">
+            {older.map((r) => (
+              <OlderRelease key={r.version} release={r} />
+            ))}
+          </div>
+        </details>
+      )}
+    </>
+  );
+}
+
+function OlderRelease({ release }: { release: ReleaseNotes }) {
+  return (
+    <div className="bg-card rounded-lg px-4 py-3">
+      <p className="text-header text-sm font-semibold">
+        {release.version}{' '}
+        <span className="text-muted text-xs font-normal">· {dateBR(release.date)}</span>
+      </p>
+      <div className="mt-1.5">
+        <Highlights items={release.highlights} />
+      </div>
+    </div>
+  );
+}
+
+function Highlights({ items }: { items: readonly string[] }) {
+  return (
+    <ul className="space-y-1.5">
+      {items.map((item) => (
+        <li key={item} className="text-ink flex gap-2 text-sm leading-snug">
+          <span className="bg-accent mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" aria-hidden />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Compara versões "a.b.c" (negativo se a < b). */
+function compare(a: string, b: string): number {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) if ((pa[i] ?? 0) !== (pb[i] ?? 0)) return (pa[i] ?? 0) - (pb[i] ?? 0);
+  return 0;
 }

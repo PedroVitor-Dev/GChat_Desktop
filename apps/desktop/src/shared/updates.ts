@@ -20,6 +20,8 @@ export interface UpdateStatus {
   error?: string;
   /** Epoch ms da última verificação concluída. */
   checkedAt?: number;
+  /** Novidades da versão nova (lidas das notas do Release no GitHub). */
+  notes?: string[];
 }
 
 /** Traduz erros do electron-updater para algo que o usuário entenda (sem detalhes técnicos). */

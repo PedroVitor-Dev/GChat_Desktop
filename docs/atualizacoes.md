@@ -15,6 +15,21 @@ O app usa o **electron-updater** com os **Releases do GitHub** como fonte.
 - **Segurança:** o instalador baixado tem o SHA-512 conferido com o `latest.yml`
   do Release antes de ser usado.
 
+## Novidades de cada versão
+
+Fonte única: `apps/desktop/src/shared/changelog.json` (versão, data e destaques, da mais
+nova para a mais antiga).
+
+- **No app (Configurações → Atualizações):** "Novidades da versão X" (a instalada) e
+  "Versões anteriores". Com uma atualização encontrada/baixada, aparece antes "O que vem
+  na versão Y", lido das notas do Release no GitHub (`highlightsFromReleaseNotes`: só os
+  itens da primeira lista, sem HTML, com limite de tamanho).
+- **No GitHub:** o workflow Release gera o corpo do Release com
+  `apps/desktop/scripts/release-notes.mjs <tag>` (Novidades + Instalação). Se faltar a
+  versão no changelog, o passo falha antes de publicar.
+- **Teste:** `changelog.test.ts` exige novidades para a versão do `package.json` e as
+  versões em ordem, sem repetir.
+
 ## Para publicar uma versão
 
 1. Atualize `version` em `apps/desktop/package.json` (e na raiz) e `VERSION` em

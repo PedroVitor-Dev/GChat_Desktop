@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import { highlightsFromReleaseNotes } from '../../shared/changelog';
 import { Notification, app } from 'electron';
 // electron-updater é CommonJS e expõe `autoUpdater` por getter: import padrão.
 import updaterPkg from 'electron-updater';
@@ -56,13 +57,19 @@ export class AppUpdater extends EventEmitter<{ status: [UpdateStatus] }> {
         version: info.version,
         percent: 0,
         checkedAt: Date.now(),
+        notes: highlightsFromReleaseNotes(info.releaseNotes),
       }),
     );
     autoUpdater.on('download-progress', (p) =>
       this.set({ state: 'downloading', percent: Math.round(p.percent) }),
     );
     autoUpdater.on('update-downloaded', (info) => {
-      this.set({ state: 'downloaded', version: info.version, percent: 100 });
+      this.set({
+        state: 'downloaded',
+        version: info.version,
+        percent: 100,
+        notes: highlightsFromReleaseNotes(info.releaseNotes),
+      });
       this.notifyReady(info.version);
     });
     autoUpdater.on('error', (err) => {

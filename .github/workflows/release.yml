@@ -42,6 +42,10 @@ jobs:
       - name: Gerar instalador
         run: npm run dist -w @gchat/desktop
 
+      - name: Notas do Release (changelog.json)
+        shell: bash
+        run: node apps/desktop/scripts/release-notes.mjs "$GITHUB_REF_NAME" > release-notes.md
+
       - name: Publicar no Release
         uses: softprops/action-gh-release@v3
         with:
@@ -52,10 +56,6 @@ jobs:
             apps/desktop/release/*/GChat-Desktop-Plus-Setup-*.exe.blockmap
             # Lido pelo atualizador do app para descobrir a versão nova e conferir o SHA-512
             apps/desktop/release/*/latest.yml
-          body: |
-            ## Instalação
-            1. Baixe **o arquivo GChat-Desktop-Plus-Setup-…-x64.exe** abaixo.
-            2. Se aparecer “O Windows protegeu o computador”, clique em *Mais informações → Executar assim mesmo* (o instalador ainda não tem assinatura digital).
-            3. Entre com sua conta Google na página oficial.
-
-            Windows 10/11 · 64 bits · não requer administrador.
+          # Novidades vêm de apps/desktop/src/shared/changelog.json (a mesma lista da
+          # aba Atualizações do app); o passo anterior gera o arquivo.
+          body_path: release-notes.md
