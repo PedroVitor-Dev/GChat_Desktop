@@ -80,6 +80,15 @@ export function App() {
           title={title}
           streamer={state.streamer}
           dnd={state.dnd}
+          pins={
+            // Só no Chat: o painel de fixados é a "lista de canais" da conta ativa.
+            !inRooms && !state.settingsOpen
+              ? {
+                  open: state.pins.open,
+                  unread: Object.values(state.pins.unread).reduce((a, b) => a + b, 0),
+                }
+              : null
+          }
           call={state.call}
           onShowCall={() => void shell.setView('rooms')}
         />
@@ -102,14 +111,6 @@ export function App() {
               }}
               onProfile={() => void shell.openChatStatus()}
               dnd={state.dnd}
-              pinsOpen={state.pins.open}
-              pinsUnread={Object.values(state.pins.unread).reduce((a, b) => a + b, 0)}
-              onPins={() => {
-                if (inRooms) {
-                  void shell.setView('chat');
-                  void window.gchat.pins.setPanel(true);
-                } else void window.gchat.pins.setPanel(!state.pins.open);
-              }}
             />
             {inRooms ? (
               <>

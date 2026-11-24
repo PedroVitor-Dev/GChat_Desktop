@@ -1,4 +1,4 @@
-import { BellOff, Radio, Rocket, Signal } from 'lucide-react';
+import { BellOff, PanelLeftClose, PanelLeftOpen, Radio, Rocket, Signal } from 'lucide-react';
 import { describeDnd, type DndStatus } from '../../../shared/dnd';
 import { useUpdateStatus } from '../hooks/useUpdateStatus';
 import type { CallState } from '../../../shared/rooms';
@@ -16,12 +16,15 @@ export function TitleBar({
   title,
   streamer,
   dnd,
+  pins,
   call,
   onShowCall,
 }: {
   title: string;
   streamer: StreamerStatus;
   dnd: DndStatus;
+  /** Botão do painel de fixados (null = fora do Chat). */
+  pins: { open: boolean; unread: number } | null;
   call: CallState | null;
   onShowCall: () => void;
 }) {
@@ -39,6 +42,23 @@ export function TitleBar({
       <div className="flex items-center gap-2">
         <img src={logo} alt="" className="h-4 w-4" draggable={false} />
         <span className="text-interactive">GChat Desktop+</span>
+        {pins && (
+          <button
+            type="button"
+            title={pins.open ? 'Esconder conversas fixadas' : 'Mostrar conversas fixadas'}
+            aria-label={pins.open ? 'Esconder conversas fixadas' : 'Mostrar conversas fixadas'}
+            aria-pressed={pins.open}
+            onClick={() => void window.gchat.pins.setPanel(!pins.open)}
+            className="no-drag text-interactive hover:text-header hover:bg-hover relative ml-2 rounded p-1 transition-colors"
+          >
+            {pins.open ? <PanelLeftClose size={15} /> : <PanelLeftOpen size={15} />}
+            {!pins.open && pins.unread > 0 && (
+              <span className="bg-danger absolute -top-0.5 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[9px] leading-none font-bold text-white">
+                {pins.unread > 9 ? '9+' : pins.unread}
+              </span>
+            )}
+          </button>
+        )}
       </div>
       <span className="absolute left-1/2 max-w-[40%] -translate-x-1/2 truncate">{title}</span>
       {call && (

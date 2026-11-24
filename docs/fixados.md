@@ -5,8 +5,11 @@ conversas e os espaços do dia a dia, sempre à mão, sem a bagunça da lista do
 
 ## Para o usuário
 
-- **Abrir e fechar:** alfinete no trilho ou o botão "Esconder o painel" no topo do
-  painel. Com o painel fechado, o alfinete mostra o total de mensagens novas.
+- **Como no Discord:** a conta no trilho é o "servidor" e o painel é a lista de canais
+  dela, com o nome da conta no topo. O trilho só tem destinos (contas, Salas,
+  configurações); o painel não ocupa um lugar nele.
+- **Mostrar e esconder:** botão de painel à esquerda na barra de título (só no Chat) ou
+  "Esconder o painel" no topo dele. Fechado, o botão mostra o total de mensagens novas.
 - **Fixar:** abra uma conversa no Chat; o painel oferece **Fixar conversa** no topo. Na
   primeira vez, cria o grupo "Fixados". No menu de um grupo (passar o mouse no título),
   o alfinete fixa direto nele.

@@ -74,6 +74,7 @@ export function PinsPanel({
   vip: readonly string[];
 }) {
   const accountId = state.activeAccount;
+  const account = state.accounts.find((a) => a.id === accountId);
   const groups = pins.groups.filter((g) => g.accountId === accountId);
   const all = groups.flatMap((g) => g.items);
   const current = state.pins.current;
@@ -210,7 +211,13 @@ export function PinsPanel({
       }}
     >
       <header className="border-rail flex h-12 shrink-0 items-center gap-1 border-b pr-2 pl-4 shadow-sm">
-        <h2 className="text-header flex-1 truncate font-semibold">Fixados</h2>
+        {/* Nome da conta no topo, como o nome do servidor no Discord. */}
+        <h2 className="min-w-0 flex-1">
+          <span className="text-header block truncate leading-tight font-semibold">
+            {account?.name ?? 'Conta'}
+          </span>
+          <span className="text-muted block text-[11px] leading-tight">Conversas fixadas</span>
+        </h2>
         <HeaderButton label="Novo grupo" onClick={addGroup}>
           <FolderPlus size={17} />
         </HeaderButton>

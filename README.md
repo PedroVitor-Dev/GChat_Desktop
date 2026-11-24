@@ -69,8 +69,8 @@ link aos amigos e fique em chamada **com cronômetro**, mesmo voltando ao Chat.
 
 ### 📌 Conversas fixadas
 
-Um painel ao lado do Chat, como a lista de canais do Discord, com os **grupos e
-conversas do dia a dia**: organize em grupos, arraste, escolha emojis, veja quantas
+Um painel ao lado do Chat, como a lista de canais de um servidor no Discord, com os
+**grupos e conversas do dia a dia**: organize em grupos, arraste, escolha emojis, veja quantas
 mensagens chegaram e abra com um clique (ou **Alt + 1…9**), na hora.
 
 ### 👥 Várias contas

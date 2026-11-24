@@ -8,7 +8,7 @@ const TIPS = [
   'Ctrl + R recarrega o Google Chat.',
   'Fechar a janela mantém o app na bandeja, avisando sobre novas mensagens. Ctrl + Q sai de vez.',
   'Configure o horário de silêncio para não ser incomodado à noite.',
-  'Fixe as conversas do dia a dia no painel Fixados (alfinete no trilho). Alt + 1…9 abre as primeiras.',
+  'Fixe as conversas do dia a dia no painel ao lado do Chat (botão de painel na barra de título). Alt + 1…9 abre as primeiras.',
 ];
 
 /**
