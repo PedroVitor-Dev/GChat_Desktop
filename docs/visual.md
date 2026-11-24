@@ -44,6 +44,9 @@ shell; o renderer só aplica as variáveis `--color-*` (`renderer/src/theme-vars
 
 - **Prévia ao vivo:** miniatura do app com o tema atual no topo da tela.
 - **Tema base:** Escuro (padrão), Claro ou "Sincronizar com o Windows".
+- **Cibus:** tema da marca, com o laranja do logo (`#f26522`) no destaque, nos
+  interruptores e nos botões, fundo escuro quente em degradê para o laranja queimado e
+  miniatura igual ao logo (círculo laranja com "$" branco).
 - **Temas coloridos:** Meia-noite, Aurora, Oceano, Crepúsculo, Ametista, Floresta,
   Brasa, Grafite (escuros) e Algodão-doce, Menta, Areia (claros). Cada um tem base,
   cor de destaque, tinta e, opcionalmente, degradê.

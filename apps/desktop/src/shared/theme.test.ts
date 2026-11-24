@@ -66,6 +66,16 @@ describe('resolveTheme', () => {
   });
 });
 
+describe('tema Cibus', () => {
+  it('usa o laranja da marca no destaque e no "ligado"', () => {
+    const t = resolveTheme(sel({ colorTheme: 'cibus' }), false);
+    expect(t.palette.accent).toBe('#f26522');
+    expect(t.palette.success).toBe('#f26522');
+    expect(t.palette.onAccent).toBe('#ffffff');
+    expect(resolveTheme(sel(), false).palette.success).toBe('#23a55a');
+  });
+});
+
 describe('chatThemeCss', () => {
   it('gera os tokens do Chat com as cores do tema', () => {
     const css = chatThemeCss(resolveTheme(sel({ colorTheme: 'oceano' }), false));

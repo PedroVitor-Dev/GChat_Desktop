@@ -23,6 +23,12 @@ export interface CustomTheme {
 export interface ThemePreset extends CustomTheme {
   id: string;
   name: string;
+  /** Miniatura própria (ex.: a cor da marca), em vez da gerada pelas cores. */
+  swatch?: string;
+  /** Símbolo branco no centro da miniatura (ex.: "$"). */
+  mark?: string;
+  /** Cor de "ligado" (interruptores, botões de adicionar); padrão: verde. */
+  success?: string;
 }
 
 /** Paleta aplicada às variáveis --color-* da interface. */
@@ -42,6 +48,8 @@ export interface Palette {
   accent: string;
   accentHover: string;
   onAccent: string;
+  /** Interruptores ligados e botões de adicionar. */
+  success: string;
   switchOff: string;
 }
 
@@ -59,7 +67,7 @@ export interface ResolvedTheme {
 
 // ───────────────────────────── paletas base ─────────────────────────────
 
-const BASE: Record<ThemeBase, Omit<Palette, 'accent' | 'accentHover' | 'onAccent'>> = {
+const BASE: Record<ThemeBase, Omit<Palette, 'accent' | 'accentHover' | 'onAccent' | 'success'>> = {
   dark: {
     rail: '#1e1f22',
     sidebar: '#2b2d31',
@@ -96,6 +104,21 @@ export const DEFAULT_ACCENT = '#5865f2';
 
 /** Temas prontos. "padrao" segue a escolha Escuro/Claro/Sistema. */
 export const THEME_PRESETS: readonly ThemePreset[] = [
+  {
+    // Identidade da marca Cibus: laranja vivo com branco (o "$" do logo) sobre
+    // um fundo escuro quente, em degradê para o laranja queimado.
+    id: 'cibus',
+    name: 'Cibus',
+    base: 'dark',
+    accent: '#f26522',
+    tint: '#3d1606',
+    strength: 60,
+    gradientTo: '#7a2a08',
+    swatch: '#f26522',
+    mark: '$',
+    // Tudo no laranja da marca, inclusive os interruptores.
+    success: '#f26522',
+  },
   {
     id: 'meia-noite',
     name: 'Meia-noite',
@@ -260,7 +283,7 @@ export function withAlpha(color: string, alpha: number): string {
  * barra lateral) recebem mais tinta que o conteúdo, para manter a leitura; os
  * textos não são tingidos.
  */
-export function buildPalette(theme: CustomTheme): Palette {
+export function buildPalette(theme: CustomTheme & { success?: string }): Palette {
   const b = BASE[theme.base];
   const s = Math.min(100, Math.max(0, theme.strength)) / 100;
   const t = (color: string, weight: number) => mix(color, theme.tint, s * weight);
@@ -283,6 +306,7 @@ export function buildPalette(theme: CustomTheme): Palette {
     accent,
     accentHover: mix(accent, '#000000', 0.15),
     onAccent,
+    success: theme.success ?? '#23a55a',
   };
 }
 
@@ -303,7 +327,7 @@ export function findPreset(id: string): ThemePreset | undefined {
 
 /** Resolve a escolha do usuário num tema pronto para aplicar. */
 export function resolveTheme(sel: ThemeSelection, systemDark: boolean): ResolvedTheme {
-  let def: CustomTheme;
+  let def: CustomTheme & { success?: string };
   if (sel.colorTheme === 'custom') def = sel.custom;
   else {
     const preset = findPreset(sel.colorTheme);

@@ -126,6 +126,8 @@ export function AppearancePage() {
             key={p.id}
             label={p.name}
             theme={p}
+            {...(p.swatch ? { swatch: p.swatch } : {})}
+            {...(p.mark ? { mark: p.mark } : {})}
             selected={a.colorTheme === p.id}
             onSelect={() => setAppearance({ colorTheme: p.id })}
           />
@@ -322,15 +324,19 @@ function Swatch({
   selected,
   onSelect,
   icon,
+  swatch,
+  mark,
 }: {
   label: string;
   theme: CustomTheme;
   selected: boolean;
   onSelect: () => void;
   icon?: ReactNode;
+  swatch?: string;
+  mark?: string;
 }) {
   const pal = buildPalette(theme);
-  const background = swatchBackground(theme);
+  const background = swatch ?? swatchBackground(theme);
   return (
     <button
       type="button"
@@ -347,12 +353,20 @@ function Swatch({
         }`}
         style={{ background }}
       >
-        <span
-          className="absolute right-0.5 bottom-0.5 h-4 w-4 rounded-full ring-2"
-          style={{ background: pal.accent, ['--tw-ring-color' as string]: pal.rail }}
-        />
+        {!mark && (
+          <span
+            className="absolute right-0.5 bottom-0.5 h-4 w-4 rounded-full ring-2"
+            style={{ background: pal.accent, ['--tw-ring-color' as string]: pal.rail }}
+          />
+        )}
         {icon && <span style={{ color: pal.header }}>{icon}</span>}
-        {selected && !icon && (
+        {mark && (
+          // Símbolo da marca, branco com contorno interno como no logo.
+          <span className="flex h-11 w-11 items-center justify-center rounded-full text-2xl leading-none font-black text-white ring-2 ring-white/90">
+            {mark}
+          </span>
+        )}
+        {selected && !icon && !mark && (
           <span className="rounded-full bg-black/35 p-1 text-white">
             <Check size={14} aria-hidden />
           </span>
