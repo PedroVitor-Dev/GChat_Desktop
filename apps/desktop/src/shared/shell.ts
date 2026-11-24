@@ -1,6 +1,7 @@
 import type { ChatPresence } from './profile';
 import type { CallState } from './rooms';
 import type { StreamerStatus } from './streamer';
+import type { ResolvedTheme } from './theme';
 
 /** Contrato entre o shell (barra de título + trilho + configurações) e o main. */
 
@@ -64,6 +65,8 @@ export interface ShellState {
   unread: number;
   /** Tema efetivo (já resolvido quando a escolha é "sistema"). */
   theme: 'dark' | 'light';
+  /** Cores, fundo e material da janela já resolvidos. */
+  look: ResolvedTheme;
   streamer: StreamerStatus;
   /**
    * Destino na área principal (um por vez, como no trilho do Discord):

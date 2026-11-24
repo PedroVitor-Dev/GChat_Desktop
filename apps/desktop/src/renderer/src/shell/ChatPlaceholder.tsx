@@ -17,7 +17,7 @@ const TIPS = [
 export function ChatPlaceholder({ loading }: { loading: boolean }) {
   const [tip] = useState(() => TIPS[Math.floor(Math.random() * TIPS.length)]);
   return (
-    <div className="bg-surface flex flex-1 items-center justify-center rounded-tl-lg">
+    <div className="bg-content flex flex-1 items-center justify-center rounded-tl-lg">
       {loading && (
         <div className="flex max-w-sm animate-[fade-in_400ms_ease] flex-col items-center text-center">
           <img

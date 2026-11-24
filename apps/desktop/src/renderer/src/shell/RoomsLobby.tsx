@@ -21,7 +21,7 @@ export function RoomsLobby({
     accounts.length > 1 ? accounts.find((a) => a.id === id)?.name : undefined;
 
   return (
-    <div className="bg-surface flex min-w-0 flex-1 flex-col overflow-y-auto">
+    <div className="bg-content flex min-w-0 flex-1 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-3xl px-10 py-12">
         <div className="mb-8 flex items-center gap-4">
           <span className="bg-success/15 text-success flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">

@@ -12,6 +12,7 @@ import {
 } from 'electron';
 import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
+import { chatThemeCss, resolveTheme, titleBarColors, type ResolvedTheme } from '../../shared/theme';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
 import type { AccountProfile, ChatStatus } from '../../shared/profile';
 import { OPEN_STATUS_CHANNEL } from '../../shared/profile';
@@ -24,7 +25,6 @@ import {
   type ShellState,
   type ShellView,
 } from '../../shared/shell';
-import chatThemeCss from '../chat/chat-theme.css?raw';
 import { createChatView } from '../chat/chat-view';
 import { diagnosticsEnabled } from '../chat/diagnostics';
 import { CHAT_URL } from '../chat/policy';
@@ -53,10 +53,6 @@ export interface ShellOptions {
 }
 
 /** Cores da barra de título nativa (botões minimizar/maximizar/fechar do Windows). */
-const TITLE_BAR = {
-  dark: { color: '#1e1f22', symbolColor: '#b5bac1' },
-  light: { color: '#e3e5e8', symbolColor: '#4e5058' },
-} as const;
 
 /** Bolinha vermelha para o ícone da barra de tarefas (não lidas). */
 function badgeImage(): NativeImage {
@@ -99,7 +95,7 @@ export class AppShell {
   private active: string;
   private settingsOpen = false;
   private modalOpen = false;
-  private theme: 'dark' | 'light';
+  private look: ResolvedTheme;
   private appearance: AppearanceSettings;
   private badge: NativeImage | null = null;
   private quitting = false;
@@ -114,7 +110,7 @@ export class AppShell {
 
   constructor(private readonly options: ShellOptions) {
     this.appearance = options.appearance;
-    this.theme = this.resolveTheme(options.appearance);
+    this.look = this.computeLook(options.appearance);
     this.active = options.accounts.active;
 
     const bounds = fitToDisplays(
@@ -131,9 +127,10 @@ export class AppShell {
       minHeight: MIN_SIZE.height,
       show: false,
       title: 'GChat Desktop+',
-      backgroundColor: TITLE_BAR[this.theme].color,
+      backgroundColor: this.windowBackground(),
+      backgroundMaterial: this.look.material,
       titleBarStyle: 'hidden',
-      titleBarOverlay: { ...TITLE_BAR[this.theme], height: SHELL_LAYOUT.titleBarHeight },
+      titleBarOverlay: { ...titleBarColors(this.look), height: SHELL_LAYOUT.titleBarHeight },
       webPreferences: {
         preload: join(import.meta.dirname, '../preload/index.cjs'),
         sandbox: true,
@@ -144,7 +141,7 @@ export class AppShell {
       },
     });
 
-    nativeTheme.themeSource = options.appearance.theme;
+    nativeTheme.themeSource = this.chatThemeSource();
     this.syncAccounts(options.accounts);
     this.wireWindow();
 
@@ -175,7 +172,8 @@ export class AppShell {
       accounts,
       activeAccount: this.active,
       unread: accounts.reduce((sum, a) => sum + a.unread, 0),
-      theme: this.theme,
+      theme: this.look.base,
+      look: this.look,
       streamer: this.streamer,
       view: this.view,
       call: this.call?.state ?? null,
@@ -399,14 +397,12 @@ export class AppShell {
   }
 
   applyAppearance(appearance: AppearanceSettings): void {
-    const themeChanged = appearance.theme !== this.appearance.theme;
     const chatThemeChanged = appearance.chatTheme !== this.appearance.chatTheme;
     this.appearance = appearance;
-    if (nativeTheme.themeSource !== appearance.theme) {
-      nativeTheme.themeSource = appearance.theme; // o Chat (tema "sistema") acompanha
+    const lookChanged = this.refreshTheme();
+    if (chatThemeChanged || (lookChanged && appearance.chatTheme)) {
+      for (const slot of this.slots.values()) void this.applyChatTheme(slot);
     }
-    if (themeChanged) this.refreshTheme();
-    if (chatThemeChanged) for (const slot of this.slots.values()) void this.applyChatTheme(slot);
   }
 
   // ───────────────────────────── contas/views ─────────────────────────────
@@ -414,7 +410,7 @@ export class AppShell {
   private createSlot(account: Account): ChatSlot {
     const view = createChatView(partitionOf(account.id));
     view.setBorderRadius(SHELL_LAYOUT.contentRadius);
-    view.setBackgroundColor(this.theme === 'dark' ? '#313338' : '#ffffff');
+    view.setBackgroundColor(this.look.palette.surface);
     view.setVisible(false); // aparece após o primeiro carregamento (sem flash branco)
     this.window.contentView.addChildView(view);
 
@@ -491,22 +487,44 @@ export class AppShell {
 
   // ───────────────────────────── aparência ─────────────────────────────
 
-  private refreshTheme(): void {
-    const theme = this.resolveTheme(this.appearance);
-    this.window.setTitleBarOverlay({ ...TITLE_BAR[theme], height: SHELL_LAYOUT.titleBarHeight });
-    this.window.setBackgroundColor(TITLE_BAR[theme].color);
-    for (const slot of this.slots.values()) {
-      slot.view.setBackgroundColor(theme === 'dark' ? '#313338' : '#ffffff');
-    }
-    if (theme !== this.theme) {
-      this.theme = theme;
-      this.emitState();
-    }
+  /** Recalcula e aplica o tema (janela, barra de título, Chat). true se mudou. */
+  private refreshTheme(): boolean {
+    // Primeiro o tema do Chromium (o Chat acompanha); com "sistema", a cor do
+    // Windows só vale depois disso.
+    const source = this.chatThemeSource();
+    if (nativeTheme.themeSource !== source) nativeTheme.themeSource = source;
+    const look = this.computeLook(this.appearance);
+    if (JSON.stringify(look) === JSON.stringify(this.look)) return false;
+    const materialChanged = look.material !== this.look.material;
+    this.look = look;
+    if (materialChanged) this.window.setBackgroundMaterial(look.material);
+    this.window.setBackgroundColor(this.windowBackground());
+    this.window.setTitleBarOverlay({
+      ...titleBarColors(look),
+      height: SHELL_LAYOUT.titleBarHeight,
+    });
+    for (const slot of this.slots.values()) slot.view.setBackgroundColor(look.palette.surface);
+    this.emitState();
+    return true;
   }
 
-  private resolveTheme(appearance: AppearanceSettings): 'dark' | 'light' {
-    if (appearance.theme !== 'system') return appearance.theme;
-    return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+  private computeLook(appearance: AppearanceSettings): ResolvedTheme {
+    return resolveTheme(appearance, nativeTheme.shouldUseDarkColors);
+  }
+
+  /**
+   * Tema pedido ao Chromium (o Google Chat em "Padrão do sistema" segue): a
+   * escolha Escuro/Claro/Sistema no tema padrão, ou a base do tema colorido.
+   */
+  private chatThemeSource(): 'dark' | 'light' | 'system' {
+    const { colorTheme, theme } = this.appearance;
+    // Temas coloridos têm base própria (não depende do Windows).
+    return colorTheme === 'padrao' ? theme : this.computeLook(this.appearance).base;
+  }
+
+  /** Com Mica/Acrílico a janela fica transparente para o material aparecer. */
+  private windowBackground(): string {
+    return this.look.material === 'none' ? this.look.palette.rail : '#00000000';
   }
 
   /** Aplica ou remove o tema experimental numa conta. */
@@ -518,7 +536,7 @@ export class AppShell {
       slot.cssKey = null;
     }
     if (this.appearance.chatTheme && !contents.isLoading()) {
-      slot.cssKey = await contents.insertCSS(chatThemeCss, { cssOrigin: 'user' });
+      slot.cssKey = await contents.insertCSS(chatThemeCss(this.look), { cssOrigin: 'user' });
     }
   }
 

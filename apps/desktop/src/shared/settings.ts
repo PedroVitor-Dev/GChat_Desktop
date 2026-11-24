@@ -6,6 +6,13 @@ import { SOUND_EXTENSIONS, SOUND_LIMITS, isCustomSoundId, isSoundId } from './so
 import type { CustomSound, SoundExtension, SoundId } from './sounds';
 import { DEFAULT_ACCOUNT, normalizeAccounts, type AccountsSettings } from './accounts';
 import { normalizeRooms, type Room } from './rooms';
+import {
+  DEFAULT_CUSTOM_THEME,
+  findPreset,
+  normalizeCustomTheme,
+  type CustomTheme,
+  type WindowMaterial,
+} from './theme';
 
 export const SETTINGS_VERSION = 2;
 
@@ -56,8 +63,16 @@ export type ThemeChoice = 'dark' | 'light' | 'system';
 export interface AppearanceSettings {
   /** Tema do app. Também é repassado ao Chat (que segue o tema do sistema por padrão). */
   theme: ThemeChoice;
-  /** Experimental: aplica a paleta estilo Discord dentro do Google Chat. */
+  /** Experimental: aplica a paleta do tema dentro do Google Chat. */
   chatTheme: boolean;
+  /** Tema de cores: "padrao" (segue `theme`), id de um tema pronto ou "custom". */
+  colorTheme: string;
+  /** Tema personalizado (usado quando `colorTheme` = "custom"). */
+  custom: CustomTheme;
+  /** Material da janela no Windows 11: sólido, Mica ou Acrílico. */
+  material: WindowMaterial;
+  /** Opacidade do fundo sobre o material (35–100). */
+  opacity: number;
 }
 
 export interface GeneralSettings {
@@ -129,7 +144,14 @@ export const DEFAULT_SETTINGS: Settings = {
     conversationSounds: {},
     library: [],
   },
-  appearance: { theme: 'dark', chatTheme: false },
+  appearance: {
+    theme: 'dark',
+    chatTheme: false,
+    colorTheme: 'padrao',
+    custom: DEFAULT_CUSTOM_THEME,
+    material: 'none',
+    opacity: 80,
+  },
   streamer: {
     enabled: false,
     auto: true,
@@ -157,6 +179,7 @@ type DeepPartial<T> = {
 export type SettingsPatch = DeepPartial<Omit<Settings, 'version'>>;
 
 const THEMES: readonly ThemeChoice[] = ['dark', 'light', 'system'];
+const MATERIALS: readonly WindowMaterial[] = ['none', 'mica', 'acrylic'];
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -294,6 +317,20 @@ export function normalizeSettings(
         ? (a['theme'] as ThemeChoice)
         : base.appearance.theme,
       chatTheme: bool(a['chatTheme'], base.appearance.chatTheme),
+      colorTheme:
+        a['colorTheme'] === 'padrao' ||
+        a['colorTheme'] === 'custom' ||
+        (typeof a['colorTheme'] === 'string' && findPreset(a['colorTheme']))
+          ? (a['colorTheme'] as string)
+          : base.appearance.colorTheme,
+      custom: normalizeCustomTheme(a['custom'], base.appearance.custom),
+      material: MATERIALS.includes(a['material'] as WindowMaterial)
+        ? (a['material'] as WindowMaterial)
+        : base.appearance.material,
+      opacity:
+        typeof a['opacity'] === 'number' && Number.isFinite(a['opacity'])
+          ? Math.round(Math.min(100, Math.max(35, a['opacity'])))
+          : base.appearance.opacity,
     },
     streamer: {
       enabled: bool(st['enabled'], base.streamer.enabled),

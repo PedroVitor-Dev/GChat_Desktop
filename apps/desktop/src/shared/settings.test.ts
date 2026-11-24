@@ -54,14 +54,42 @@ describe('normalizeSettings', () => {
 
 describe('aparência', () => {
   it('valida o tema e mantém o padrão escuro', () => {
-    expect(normalizeSettings({}).appearance).toEqual({ theme: 'dark', chatTheme: false });
-    expect(normalizeSettings({ appearance: { theme: 'neon', chatTheme: 1 } }).appearance).toEqual({
+    expect(normalizeSettings({}).appearance).toEqual(DEFAULT_SETTINGS.appearance);
+    const bad = normalizeSettings({
+      appearance: { theme: 'neon', chatTheme: 1, colorTheme: 'x', material: 'vidro', opacity: 5 },
+    }).appearance;
+    expect(bad).toMatchObject({
       theme: 'dark',
       chatTheme: false,
+      colorTheme: 'padrao',
+      material: 'none',
+      opacity: 35,
     });
     expect(
       normalizeSettings({ appearance: { theme: 'light', chatTheme: true } }).appearance,
-    ).toEqual({ theme: 'light', chatTheme: true });
+    ).toMatchObject({ theme: 'light', chatTheme: true });
+  });
+
+  it('aceita temas prontos, personalizado e material da janela', () => {
+    const a = applyPatch(DEFAULT_SETTINGS, {
+      appearance: {
+        colorTheme: 'aurora',
+        material: 'acrylic',
+        opacity: 70,
+        custom: { accent: '#FF0000', gradientTo: null },
+      },
+    }).appearance;
+    expect(a.colorTheme).toBe('aurora');
+    expect(a.material).toBe('acrylic');
+    expect(a.opacity).toBe(70);
+    expect(a.custom.accent).toBe('#ff0000');
+    expect(a.custom.gradientTo).toBeNull();
+    expect(a.custom.tint).toBe(DEFAULT_SETTINGS.appearance.custom.tint);
+    const bad = applyPatch(DEFAULT_SETTINGS, {
+      appearance: { custom: { accent: 'red', strength: 400 } },
+    }).appearance.custom;
+    expect(bad.accent).toBe(DEFAULT_SETTINGS.appearance.custom.accent);
+    expect(bad.strength).toBe(100);
   });
 });
 

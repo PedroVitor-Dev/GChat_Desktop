@@ -86,9 +86,11 @@ Novas versões chegam pelo próprio app, conferidas (SHA-512) e instaladas em si
 
 ### 🎨 Visual inspirado no Discord
 
-Barra de título própria, trilho de ícones, configurações em tela cheia (`Esc` fecha),
-temas **Escuro**, **Claro** e **Sincronizar com o Windows**, e um tema experimental
-que recolore o próprio Google Chat.
+Barra de título própria, trilho de ícones e configurações em tela cheia (`Esc` fecha).
+**Temas personalizados:** Escuro, Claro ou do Windows, 11 temas coloridos com degradê
+(Aurora, Oceano, Crepúsculo…) ou o seu, com cor de destaque, cor de fundo e degradê.
+A janela pode ser **sólida, Mica ou Acrílico** (Windows 11), com transparência
+ajustável e prévia ao vivo. Um tema experimental leva as cores para dentro do Chat.
 
 <div align="center">
 <img src="docs/images/notificacoes.jpg" alt="Configurações de notificações" width="32%" />

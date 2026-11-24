@@ -34,7 +34,7 @@ export function RoomsPanel({
   return (
     <aside
       aria-label="Salas"
-      className="bg-sidebar flex shrink-0 flex-col rounded-tl-lg"
+      className="bg-pane flex shrink-0 flex-col rounded-tl-lg"
       style={{ width: SHELL_LAYOUT.roomsPanelWidth }}
     >
       <header className="border-rail flex h-12 shrink-0 items-center justify-between border-b px-4 shadow-sm">

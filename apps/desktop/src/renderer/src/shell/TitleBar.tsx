@@ -30,7 +30,7 @@ export function TitleBar({
       : 'Ativado manualmente. Clique para desligar.';
   return (
     <header
-      className="drag bg-rail text-muted relative flex shrink-0 items-center px-3 text-xs font-semibold"
+      className="drag bg-shell text-muted relative flex shrink-0 items-center px-3 text-xs font-semibold"
       style={{ height: SHELL_LAYOUT.titleBarHeight }}
     >
       <div className="flex items-center gap-2">

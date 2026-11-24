@@ -36,15 +36,33 @@ com ícone e campos escuros sem borda.
 | `Ctrl + =` / `Ctrl + -` / `Ctrl + 0` | Zoom do Chat               |
 | `Alt + ←`                            | Voltar no Chat             |
 
-## Temas
+## Temas (Configurações → Aparência)
 
-Escuro (padrão), Claro ou "Sincronizar com o Windows". O tema também é repassado
-ao Chat: com o tema do Chat em "Padrão do sistema", ele acompanha.
+Tudo é calculado em `src/shared/theme.ts` (funções puras, com testes): o main usa
+para a janela e o Chat, e manda o resultado pronto (`ResolvedTheme`) no estado do
+shell; o renderer só aplica as variáveis `--color-*` (`renderer/src/theme-vars.ts`).
+
+- **Prévia ao vivo:** miniatura do app com o tema atual no topo da tela.
+- **Tema base:** Escuro (padrão), Claro ou "Sincronizar com o Windows".
+- **Temas coloridos:** Meia-noite, Aurora, Oceano, Crepúsculo, Ametista, Floresta,
+  Brasa, Grafite (escuros) e Algodão-doce, Menta, Areia (claros). Cada um tem base,
+  cor de destaque, tinta e, opcionalmente, degradê.
+- **Personalizado:** base escura/clara, cor de destaque (8 sugestões ou qualquer cor),
+  cor do fundo com intensidade e degradê com segunda cor. A paleta é gerada
+  tingindo as camadas cinza do app (mais tinta no trilho, menos no conteúdo); os
+  textos não são tingidos. Um teste garante contraste ≥ 4,5 em todos os temas prontos.
+- **Janela:** Sólido, **Mica** ou **Acrílico** (`BrowserWindow.setBackgroundMaterial`,
+  Windows 11) e **Transparência** (0–65%). Com material ou degradê, o trilho e a barra
+  de título mostram o fundo e os painéis ficam translúcidos por cima; a barra de
+  título nativa fica transparente. No Windows 10 a janela continua sólida.
+- O tema é repassado ao Chat (`nativeTheme.themeSource`): com o tema do Chat em
+  "Padrão do sistema", ele acompanha o escuro/claro do tema do app.
 
 **Tema do Chat (experimental, desligado por padrão):** sobrescreve os tokens de
-cor do Material 3 (`--gm3-sys-color-*`) com a paleta do app (`src/main/chat/chat-theme.css`).
-Só muda cores. Se os tokens não existirem, nada acontece. Com `GCHAT_DIAG=1`, o
-log informa se os tokens estão presentes na página.
+cor do Material 3 (`--gm3-sys-color-*`) com a **paleta do tema escolhido**
+(`chatThemeCss` em `shared/theme.ts`), e é reaplicado quando o tema muda. Só muda
+cores. Se os tokens não existirem, nada acontece. Com `GCHAT_DIAG=1`, o log informa
+se os tokens estão presentes na página.
 
-**Não verificado:** o efeito do tema dentro do Chat logado. Na página de login,
-os tokens não existem, o que é esperado.
+Verificado em 23/11/2026: temas prontos, personalizado e Acrílico no Windows 11 (o
+papel de parede aparece desfocado atrás do trilho e da barra de título).

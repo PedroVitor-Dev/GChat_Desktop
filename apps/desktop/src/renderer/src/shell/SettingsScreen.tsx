@@ -19,7 +19,7 @@ export function SettingsScreen({
 
   return (
     <div className="absolute inset-0 z-10 flex animate-[settings-in_180ms_cubic-bezier(0.2,0,0,1)]">
-      <aside className="bg-sidebar flex flex-[1_0_218px] justify-end overflow-y-auto">
+      <aside className="bg-pane flex flex-[1_0_218px] justify-end overflow-y-auto">
         <nav aria-label="Configurações" className="w-[218px] px-1.5 py-[60px] pr-1.5 pl-5">
           <p className="text-muted px-2.5 pb-1.5 text-xs font-bold tracking-wide uppercase">
             Configurações do app
@@ -59,7 +59,7 @@ export function SettingsScreen({
         </nav>
       </aside>
 
-      <main className="bg-surface flex flex-[1_1_800px] overflow-hidden">
+      <main className="bg-content flex flex-[1_1_800px] overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[740px] px-10 pt-[60px] pb-20">
             <h1 className="font-display text-header mb-5 text-xl font-semibold">{current.label}</h1>

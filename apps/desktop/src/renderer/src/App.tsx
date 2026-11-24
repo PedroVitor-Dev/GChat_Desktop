@@ -11,6 +11,7 @@ import { Rail } from './shell/Rail';
 import { SettingsScreen } from './shell/SettingsScreen';
 import type { SectionId } from './sections';
 import { TitleBar } from './shell/TitleBar';
+import { applyThemeVars } from './theme-vars';
 
 /**
  * Janela principal: barra de título, trilho e a área onde o main posiciona a
@@ -30,6 +31,7 @@ export function App() {
     const root = document.documentElement;
     root.classList.toggle('theme-light', state.theme === 'light');
     root.classList.toggle('theme-dark', state.theme === 'dark');
+    applyThemeVars(state.look);
   }, [state]);
 
   const openAdd = useCallback(() => {
@@ -67,6 +69,7 @@ export function App() {
 
   return (
     <ShellActionsContext.Provider value={actions}>
+      <div className="app-backdrop" aria-hidden />
       <div className="flex h-full flex-col">
         <TitleBar
           title={title}
@@ -95,7 +98,7 @@ export function App() {
               <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
               {/* Com chamada, o main posiciona a view do Meet aqui; sem chamada, o saguão. */}
               {state.call ? (
-                <div className="bg-surface flex-1" />
+                <div className="bg-content flex-1" />
               ) : (
                 <RoomsLobby
                   rooms={settings?.rooms ?? []}

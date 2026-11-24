@@ -33,6 +33,15 @@
   --color-danger: #da373c;
   --color-switch-off: #80848e;
 
+  /*
+   * Camadas do layout por cima do fundo da janela (degradê/Mica/Acrílico). Com
+   * fundo liso e sem material, iguais a rail/sidebar/surface; senão, translúcidas.
+   * Definidas pelo app (App.tsx) a partir do tema.
+   */
+  --color-shell: #1e1f22;
+  --color-pane: #2b2d31;
+  --color-content: #313338;
+
   --radius-pill: 9999px;
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 }
@@ -61,10 +70,24 @@
   }
 
   body {
-    @apply bg-rail text-ink font-sans antialiased select-none;
+    @apply text-ink font-sans antialiased select-none;
+    background: transparent;
     font-size: 15px;
     line-height: 1.375;
     overflow: hidden;
+  }
+
+  /* Fundo da janela: cor ou degradê do tema, com a opacidade escolhida sobre o
+     material do Windows (Mica/Acrílico). */
+  .app-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--app-bg, var(--color-rail));
+    opacity: var(--app-opacity, 1);
+    transition:
+      background 240ms ease,
+      opacity 240ms ease;
   }
 
   /* Barras de rolagem finas, como no Discord */
