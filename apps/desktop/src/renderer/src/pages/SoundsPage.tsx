@@ -4,6 +4,7 @@ import type { SoundId, SoundOption } from '../../../shared/sounds';
 import { Card } from '../components/Card';
 import { Button, SectionTitle, SettingRow, Toggle, inputClass } from '../components/controls';
 import { KeywordsInput } from '../components/KeywordsInput';
+import { MicTest } from '../components/MicTest';
 import { useSettings } from '../hooks/useSettings';
 
 function useSoundOptions(): [SoundOption[], () => void] {
@@ -210,6 +211,7 @@ export function SoundsPage() {
           checked={settings.calls.noiseSuppression}
           onChange={(noiseSuppression) => update({ calls: { noiseSuppression } })}
         />
+        <MicTest />
       </Card>
     </div>
   );

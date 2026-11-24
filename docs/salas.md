@@ -128,7 +128,17 @@ Configurações → Sons → Chamadas.
   cookies nem na API do Google, e não automatiza nada no Meet.
 - **Falha:** qualquer erro no filtro devolve o microfone puro; a chamada segue.
 
+**Testar microfone** (Configurações → Sons → Chamadas): grava 5 s do microfone, puro e
+pelo filtro ao mesmo tempo, com medidor de volume; depois dá para ouvir "Sem filtro" e
+"Com o supressor de ruído" e ver quanto o ruído de fundo caiu. Avisa se o microfone só
+manda silêncio (headset desligado/mudo, privacidade do Windows). A gravação fica só na
+memória. Para isso a janela do app pode usar o **microfone (só áudio)**, e a CSP dela
+permite `'wasm-unsafe-eval'` (só compilar WebAssembly); câmera e demais permissões
+continuam bloqueadas.
+
 Verificado em 24/11/2026: ligado, o microfone entregue ao Meet é o filtrado (com o nome
-do headset); desligado, o puro; ligar/desligar pelo app chega à página na hora. **A
-medição de qualidade (ruído com e sem filtro) ficou pendente:** o headset estava
-mandando silêncio total (desligado ou mudo).
+do headset); desligado, o puro; ligar/desligar pelo app chega à página na hora. Medição
+no Meet, sem ninguém falando: ruído ambiente de -65 dB (puro) para -82,5 dB (filtrado),
+~17 dB a menos, com o áudio filtrado saindo normalmente. O "Testar microfone" mediu ~42 dB
+a menos no ruído de fundo. O teste revelou que, sem `'wasm-unsafe-eval'` na tela do app,
+o filtro saía mudo (o WASM não compilava); no Meet isso não acontece.

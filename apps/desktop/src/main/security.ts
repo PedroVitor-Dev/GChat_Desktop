@@ -42,9 +42,20 @@ export function applySecurityPolicies(): void {
     if (!isChatSession(contents.session)) harden(contents);
   });
 
-  // Janelas locais não precisam de nenhuma permissão de navegador.
-  session.defaultSession.setPermissionRequestHandler((_wc, _permission, callback) =>
-    callback(false),
+  // Janelas locais: nenhuma permissão de navegador, exceto o MICROFONE (só áudio)
+  // para o "Testar microfone" das configurações, e só para o renderer local.
+  session.defaultSession.setPermissionRequestHandler((wc, permission, callback, details) => {
+    const audioOnly =
+      permission === 'media' &&
+      'mediaTypes' in details &&
+      (details.mediaTypes ?? []).length > 0 &&
+      (details.mediaTypes ?? []).every((t) => t === 'audio');
+    callback(audioOnly && isTrustedRendererUrl(details.requestingUrl || wc.getURL()));
+  });
+  session.defaultSession.setPermissionCheckHandler(
+    (_wc, permission, requestingOrigin, details) =>
+      permission === 'media' &&
+      details.mediaType !== 'video' &&
+      isTrustedRendererUrl(details.requestingUrl ?? requestingOrigin),
   );
-  session.defaultSession.setPermissionCheckHandler(() => false);
 }
