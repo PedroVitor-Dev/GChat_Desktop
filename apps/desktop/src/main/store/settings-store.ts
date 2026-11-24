@@ -22,6 +22,8 @@ const SAVE_DELAY_MS = 300;
 export class SettingsStore extends EventEmitter<{ change: [Settings] }> {
   private current: Settings;
   private timer: NodeJS.Timeout | null = null;
+  /** Fila de gravações (uma de cada vez). */
+  private saving: Promise<void> = Promise.resolve();
   private readonly file: string;
 
   constructor(dir = app.getPath('userData')) {
@@ -51,10 +53,20 @@ export class SettingsStore extends EventEmitter<{ change: [Settings] }> {
     return this.current;
   }
 
-  /** Grava imediatamente (usado ao sair). */
-  async flush(): Promise<void> {
+  /**
+   * Grava imediatamente (usado ao sair). As gravações entram em fila: duas
+   * seguidas não disputam o mesmo arquivo temporário, e cada uma grava o estado
+   * mais recente no momento em que roda.
+   */
+  flush(): Promise<void> {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
+    const run = this.saving.then(() => this.write());
+    this.saving = run.catch(() => undefined);
+    return run;
+  }
+
+  private async write(): Promise<void> {
     const tmp = `${this.file}.tmp`;
     await writeFile(tmp, JSON.stringify(this.current, null, 2), 'utf8');
     await rename(tmp, this.file);
