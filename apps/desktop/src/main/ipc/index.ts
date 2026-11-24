@@ -137,6 +137,8 @@ export function registerIpc({
     return true;
   });
   handle(IpcChannel.CallLeave, noArgs, () => shell.endCall());
+  handle(IpcChannel.CallSwitch, noArgs, () => shell.switchToPreview());
+  handle(IpcChannel.CallClosePreview, noArgs, () => shell.closePreview());
   handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
   handle(IpcChannel.DndSet, oneDuration, (d) => dnd.set(d));
   handle(

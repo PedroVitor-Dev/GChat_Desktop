@@ -13,6 +13,7 @@ import type { SectionId } from './sections';
 import { TitleBar } from './shell/TitleBar';
 import { PinsPanel } from './shell/PinsPanel';
 import { InboxPopover } from './shell/InboxPopover';
+import { PreviewBar } from './shell/PreviewBar';
 import { applyThemeVars } from './theme-vars';
 import { ThemeParticles } from './components/ThemeParticles';
 
@@ -133,7 +134,13 @@ export function App() {
               <>
                 <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
                 {/* Com chamada, o main posiciona a view do Meet aqui; sem chamada, o saguão. */}
-                {state.call ? (
+                {state.preview ? (
+                  // Sala espiada: a faixa em cima e a view do Meet logo abaixo.
+                  <div className="flex flex-1 flex-col">
+                    <PreviewBar state={state} />
+                    <div className="bg-content flex-1" />
+                  </div>
+                ) : state.call ? (
                   <div className="bg-content flex-1" />
                 ) : (
                   <RoomsLobby

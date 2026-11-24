@@ -120,6 +120,8 @@ export class AppShell {
   private view: ShellView = 'chat';
   /** Chamada do Meet em andamento: view própria, continua tocando em segundo plano. */
   private call: { view: WebContentsView; state: CallState } | null = null;
+  /** Sala aberta para espiar (tela de espera do Meet) durante outra chamada. */
+  private preview: { view: WebContentsView; room: Room } | null = null;
 
   constructor(private readonly options: ShellOptions) {
     this.appearance = options.appearance;
@@ -190,6 +192,7 @@ export class AppShell {
       streamer: this.streamer,
       view: this.view,
       call: this.call?.state ?? null,
+      preview: this.preview ? { roomId: this.preview.room.id, name: this.preview.room.name } : null,
       dnd: this.dnd,
       inbox: this.inbox,
       pins: {
@@ -284,21 +287,74 @@ export class AppShell {
     this.settingsOpen = false;
     this.layout();
     this.refreshVisibility();
-    const target = view === 'rooms' ? this.call?.view : this.activeSlot()?.view;
+    const target =
+      view === 'rooms' ? (this.preview?.view ?? this.call?.view) : this.activeSlot()?.view;
     (target?.webContents ?? this.window.webContents).focus();
     this.emitState();
   }
 
   // ───────────────────────────── chamadas (Meet) ─────────────────────────────
 
-  /** Entra numa sala. Se já estiver em outra, sai dela antes. */
+  /**
+   * Entra numa sala. Já em outra chamada, não sai dela: abre a sala nova para
+   * espiar (a tela de espera do Meet mostra quem está lá) e o usuário decide se
+   * troca, como no Discord, onde dá para ver quem está no canal antes de mudar.
+   */
   startCall(room: Room): void {
-    if (this.call?.state.roomId === room.id) return this.setView('rooms');
+    if (this.call?.state.roomId === room.id) {
+      this.closePreview();
+      return this.setView('rooms');
+    }
+    if (this.call) return this.startPreview(room);
+    this.attachCall(this.createMeet(room), room);
+  }
+
+  /** Abre a sala ao lado da chamada atual, sem sair dela. */
+  startPreview(room: Room): void {
+    if (this.preview?.room.id === room.id) return this.setView('rooms');
+    this.closePreview();
+    const view = this.createMeet(room);
+    this.preview = { view, room };
+    view.webContents.on('render-process-gone', () => this.closePreview());
+    this.layout();
+    this.reveal();
+    this.setView('rooms');
+  }
+
+  /** Troca para a sala espiada: sai da chamada atual e a sala espiada vira a chamada. */
+  switchToPreview(): void {
+    if (!this.preview) return;
+    const { view, room } = this.preview;
+    this.preview = null;
     this.endCall();
+    this.attachCall(view, room);
+  }
+
+  /** Fecha a sala espiada e volta para a chamada atual. */
+  closePreview(): void {
+    if (!this.preview) return;
+    const { view } = this.preview;
+    this.preview = null;
+    this.window.contentView.removeChildView(view);
+    if (!view.webContents.isDestroyed()) view.webContents.close();
+    this.layout();
+    this.refreshVisibility();
+    this.call?.view.webContents.focus();
+    this.emitState();
+  }
+
+  private createMeet(room: Room): WebContentsView {
     const view = createMeetView(partitionOf(room.accountId));
     view.setBorderRadius(SHELL_LAYOUT.contentRadius);
     view.setBackgroundColor('#202124');
+    view.setVisible(false);
     this.window.contentView.addChildView(view);
+    view.webContents.on('before-input-event', (e, input) => this.onKey(e, input));
+    void view.webContents.loadURL(meetUrl(room.code));
+    return view;
+  }
+
+  private attachCall(view: WebContentsView, room: Room): void {
     this.call = {
       view,
       state: {
@@ -312,11 +368,11 @@ export class AppShell {
     const contents = view.webContents;
     // Saiu da reunião pela interface do Meet (voltou à tela inicial): encerra aqui também.
     contents.on('did-navigate', (_e, url) => {
+      if (this.call?.view !== view) return;
       if (new URL(url).host === 'meet.google.com' && !meetCodeFromUrl(url)) this.endCall();
     });
-    contents.on('render-process-gone', () => this.endCall());
-    contents.on('before-input-event', (e, input) => this.onKey(e, input));
-    void contents.loadURL(meetUrl(room.code));
+    contents.on('render-process-gone', () => this.call?.view === view && this.endCall());
+    this.layout();
     this.reveal();
     this.setView('rooms');
   }
@@ -490,6 +546,7 @@ export class AppShell {
 
   markQuitting(): void {
     this.quitting = true;
+    this.closePreview();
     this.endCall();
   }
 
@@ -589,13 +646,16 @@ export class AppShell {
 
   /** Só a view da conta ativa aparece, e só sem configurações/modal por cima. */
   private refreshVisibility(): void {
-    const callShown = this.view === 'rooms' && !!this.call;
+    // Nas Salas, a sala espiada fica por cima; a chamada continua tocando por trás.
+    const previewShown = this.view === 'rooms' && !!this.preview;
+    const callShown = this.view === 'rooms' && !!this.call && !previewShown;
     for (const [id, slot] of this.slots) {
       slot.view.setVisible(
         this.view === 'chat' && id === this.active && !slot.loading && !this.overlayOpen(),
       );
     }
     this.call?.view.setVisible(callShown && !this.overlayOpen());
+    this.preview?.view.setVisible(previewShown && !this.overlayOpen());
   }
 
   // ───────────────────────────── aparência ─────────────────────────────
@@ -703,6 +763,9 @@ export class AppShell {
     if (bounds.width < 100 || bounds.height < 100) return false;
     for (const slot of this.slots.values()) slot.view.setBounds(bounds);
     this.call?.view.setBounds(bounds);
+    // A sala espiada deixa espaço em cima para a faixa "Espiando… / Trocar".
+    const bar = SHELL_LAYOUT.previewBarHeight;
+    this.preview?.view.setBounds({ ...bounds, y: bounds.y + bar, height: bounds.height - bar });
     return true;
   }
 

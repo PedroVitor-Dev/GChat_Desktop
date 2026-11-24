@@ -65,8 +65,13 @@ export interface GChatApi {
     copyLink(id: string): Promise<boolean>;
   };
   call: {
+    /** Entra na sala; já em chamada, abre a sala nova para espiar (sem sair). */
     join(roomId: string): Promise<boolean>;
     leave(): Promise<void>;
+    /** Sai da chamada atual e passa para a sala espiada. */
+    switchToPreview(): Promise<void>;
+    /** Fecha a sala espiada e volta para a chamada. */
+    closePreview(): Promise<void>;
   };
   accounts: {
     add(name: string): Promise<AccountResult>;

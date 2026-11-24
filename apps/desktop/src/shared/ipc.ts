@@ -30,6 +30,9 @@ export const IpcChannel = {
   RoomsCopyLink: 'rooms:copy-link',
   CallJoin: 'call:join',
   CallLeave: 'call:leave',
+  /** Trocar para a sala espiada / fechar a sala espiada. */
+  CallSwitch: 'call:switch',
+  CallClosePreview: 'call:close-preview',
   AccountAdd: 'accounts:add',
   AccountRename: 'accounts:rename',
   AccountSignOut: 'accounts:sign-out',

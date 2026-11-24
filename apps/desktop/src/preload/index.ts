@@ -50,6 +50,8 @@ const api: GChatApi = {
   call: {
     join: (roomId) => ipcRenderer.invoke(IpcChannel.CallJoin, roomId),
     leave: () => ipcRenderer.invoke(IpcChannel.CallLeave),
+    switchToPreview: () => ipcRenderer.invoke(IpcChannel.CallSwitch),
+    closePreview: () => ipcRenderer.invoke(IpcChannel.CallClosePreview),
   },
   accounts: {
     add: (name) => ipcRenderer.invoke(IpcChannel.AccountAdd, name),

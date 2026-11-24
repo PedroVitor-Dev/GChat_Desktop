@@ -17,6 +17,8 @@ export const SHELL_LAYOUT = {
   roomsPanelWidth: 240,
   /** Painel de conversas fixadas, ao lado do Chat. */
   pinsPanelWidth: 240,
+  /** Faixa acima da sala espiada ("Espiando… · Trocar · Voltar"). */
+  previewBarHeight: 52,
 } as const;
 
 export const ShellChannel = {
@@ -91,6 +93,8 @@ export interface ShellState {
   view: ShellView;
   /** Chamada em andamento (null = nenhuma). */
   call: CallState | null;
+  /** Sala aberta para espiar durante outra chamada (null = nenhuma). */
+  preview: { roomId: string; name: string } | null;
   /** "Não perturbe" do app (notificações pausadas, com ou sem prazo). */
   dnd: DndStatus;
   /** Painel de conversas fixadas. */

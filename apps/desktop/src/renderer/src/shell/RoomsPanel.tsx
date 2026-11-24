@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Check, Copy, Pencil, PhoneOff, Plus, Signal, Trash2, Volume2 } from 'lucide-react';
+import { Check, Copy, Eye, Pencil, PhoneOff, Plus, Signal, Trash2, Volume2 } from 'lucide-react';
 import type { Room } from '../../../shared/rooms';
 import { SHELL_LAYOUT, type ShellState } from '../../../shared/shell';
 import { inputClass } from '../components/controls';
@@ -70,6 +70,7 @@ export function RoomsPanel({
         <ul className="space-y-0.5">
           {rooms.map((room) => {
             const inCall = call?.roomId === room.id;
+            const peeking = state.preview?.roomId === room.id;
             return (
               <li key={room.id}>
                 {editing === room.id ? (
@@ -98,20 +99,30 @@ export function RoomsPanel({
                     className={`group/room flex items-center gap-1.5 rounded px-2 py-1.5 ${
                       inCall
                         ? 'bg-selected text-header'
-                        : 'text-interactive hover:bg-hover hover:text-ink'
+                        : peeking
+                          ? 'bg-hover text-header ring-accent/50 ring-1'
+                          : 'text-interactive hover:bg-hover hover:text-ink'
                     }`}
                   >
                     <button
                       type="button"
                       onClick={() => void window.gchat.call.join(room.id)}
                       className="flex min-w-0 flex-1 items-center gap-1.5 text-left font-medium"
-                      title={`Entrar em ${room.name}${accountName(room.accountId) ? ` (${accountName(room.accountId)})` : ''}`}
+                      title={
+                        call && !inCall
+                          ? `Ver quem está em ${room.name} (sem sair de ${call.name})`
+                          : `Entrar em ${room.name}${accountName(room.accountId) ? ` (${accountName(room.accountId)})` : ''}`
+                      }
                     >
-                      <Volume2
-                        size={17}
-                        aria-hidden
-                        className={inCall ? 'text-success' : 'opacity-70'}
-                      />
+                      {peeking ? (
+                        <Eye size={17} aria-hidden className="text-accent" />
+                      ) : (
+                        <Volume2
+                          size={17}
+                          aria-hidden
+                          className={inCall ? 'text-success' : 'opacity-70'}
+                        />
+                      )}
                       <span className="truncate">{room.name}</span>
                     </button>
                     {confirmDelete === room.id ? (

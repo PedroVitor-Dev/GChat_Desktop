@@ -47,3 +47,23 @@ Sair encerrou a chamada.
 
 **Não verificado:** uma chamada com outra pessoa, compartilhamento de tela e
 câmera (não havia câmera no teste).
+
+## Espiar outra sala durante uma chamada
+
+Clicar em outra sala já em chamada **não sai da chamada atual**: a sala nova abre para
+espiar, na tela de espera do Meet ("Pronto para participar?"), que mostra quem já está
+lá. Uma faixa em cima diz "Espiando Sala B · você continua em Sala A", com:
+
+- **Trocar para esta sala:** sai da Sala A e a Sala B vira a chamada (depois é só clicar
+  em "Participar agora" no Meet);
+- **Voltar para Sala A:** fecha a sala espiada e volta para a chamada.
+
+Na lista, a sala espiada aparece com um olho. O Meet não informa quem está numa sala
+sem abri-la (só pela API do Workspace), por isso a espiada abre a tela de espera dele,
+que não entra na chamada. Implementação: `startPreview`, `switchToPreview` e
+`closePreview` em `app-shell.ts`, com uma segunda view do Meet abaixo da faixa
+(`SHELL_LAYOUT.previewBarHeight`).
+
+Verificado em 24/11/2026: em Bate-papo, clicar em "Teste com Luana" manteve a chamada e
+abriu a espiada; Voltar, espiar de novo, Trocar e Sair funcionaram, sem páginas do
+Meet sobrando.
