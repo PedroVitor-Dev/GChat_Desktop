@@ -62,7 +62,14 @@ if (location.origin === MEET_ORIGIN && window === window.top) {
           await ctx.audioWorklet.addModule(WORKLET);
           const wasmBinary = (await loadWasm()).slice(0);
           const source = ctx.createMediaStreamSource(new MediaStream([track]));
+          // Mono de ponta a ponta: o filtro limpa um canal só. Com o microfone em
+          // estéreo, o outro canal ficaria mudo (voz pela metade no Meet). Aqui o
+          // estéreo vira mono na entrada e a saída mono vale para os dois lados.
           const node = new AudioWorkletNode(ctx, PROCESSOR, {
+            channelCount: 1,
+            channelCountMode: 'explicit',
+            channelInterpretation: 'speakers',
+            outputChannelCount: [1],
             processorOptions: { maxChannels: 1, wasmBinary },
           });
           const dest = ctx.createMediaStreamDestination();

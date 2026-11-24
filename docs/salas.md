@@ -127,6 +127,11 @@ Configurações → Sons → Chamadas.
   Krisp, NVIDIA Broadcast ou extensões de supressão para o Meet. Não toca em login,
   cookies nem na API do Google, e não automatiza nada no Meet.
 - **Falha:** qualquer erro no filtro devolve o microfone puro; a chamada segue.
+- **Mono de ponta a ponta:** o filtro limpa um canal só. Microfones que chegam em estéreo
+  ficavam com o outro canal mudo (som só no lado esquerdo do fone e voz pela metade no
+  Meet). Agora a entrada do filtro é mono (`channelCount: 1`, `explicit`) e a saída mono
+  vale para os dois lados. Medido em 24/11/2026: esquerda e direita iguais no Meet e no
+  "Testar microfone".
 
 **Testar microfone** (Configurações → Sons → Chamadas): grava 5 s do microfone, puro e
 pelo filtro ao mesmo tempo, com medidor de volume; depois dá para ouvir "Sem filtro" e

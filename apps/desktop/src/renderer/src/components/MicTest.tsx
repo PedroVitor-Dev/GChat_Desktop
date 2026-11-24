@@ -65,6 +65,11 @@ export function MicTest() {
       const wasmBinary = await loadGtcrn({ url: gtcrnWasmUrl });
       const source = ctx.createMediaStreamSource(stream);
       const filter = new GtcrnWorkletNode(ctx, { maxChannels: 1, wasmBinary });
+      // Mono de ponta a ponta (igual nas chamadas): o filtro limpa um canal só; com
+      // microfone estéreo, o outro ficava mudo e o som saía só de um lado do fone.
+      filter.channelCount = 1;
+      filter.channelCountMode = 'explicit';
+      filter.channelInterpretation = 'speakers';
       const rawOut = ctx.createMediaStreamDestination();
       const cleanOut = ctx.createMediaStreamDestination();
       const rawMeter = ctx.createAnalyser();
