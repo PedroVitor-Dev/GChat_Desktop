@@ -5,6 +5,8 @@ import {
   chatNameFromTitle,
   chatPathFromUrl,
   normalizePins,
+  parseConversationList,
+  pathFromGroupId,
   pinsOf,
   type PinsSettings,
 } from './pins';
@@ -134,5 +136,36 @@ describe('addPin', () => {
     expect(r.pins.groups[1]!.items).toHaveLength(1);
     expect(r.pins.groups[1]!.collapsed).toBe(false);
     expect(base.groups[1]!.items).toHaveLength(0); // não altera o original
+  });
+});
+
+describe('conversas da barra lateral', () => {
+  it('converte o id do Chat no endereço da conversa', () => {
+    expect(pathFromGroupId('dm/vOCMsaAAAAE')).toEqual({
+      path: '/app/chat/vOCMsaAAAAE',
+      kind: 'dm',
+    });
+    expect(pathFromGroupId('space/AAQA7HmCROA')).toEqual({
+      path: '/app/chat/AAQA7HmCROA',
+      kind: 'space',
+    });
+    expect(pathFromGroupId('pinned-item')).toBeNull();
+    expect(pathFromGroupId('dm/../../x')).toBeNull();
+  });
+
+  it('valida a lista, tira repetidos e ordena por nome', () => {
+    expect(
+      parseConversationList([
+        { id: 'space/AAQA7HmCROA', name: ' asd ' },
+        { id: 'dm/vOCMsaAAAAE', name: 'Luana kamila' },
+        { id: 'dm/vOCMsaAAAAE', name: 'Repetida' },
+        { id: 'javascript:x', name: 'ruim' },
+        { id: 'dm/abcdEFGH', name: '' },
+      ]),
+    ).toEqual([
+      { path: '/app/chat/AAQA7HmCROA', name: 'asd', kind: 'space' },
+      { path: '/app/chat/vOCMsaAAAAE', name: 'Luana kamila', kind: 'dm' },
+    ]);
+    expect(parseConversationList('x')).toEqual([]);
   });
 });

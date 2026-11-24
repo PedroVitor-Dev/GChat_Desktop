@@ -1,10 +1,28 @@
 import type { CapturedNotification } from '../../shared/notifications';
-import { addPin, normalizePins, pinsOf, type PinGroup, type PinsSettings } from '../../shared/pins';
+import { randomUUID } from 'node:crypto';
+import { ipcMain } from 'electron';
+import {
+  CONVERSATIONS_REPLY,
+  PIN_LIMITS,
+  addPin,
+  cleanText,
+  isChatPath,
+  normalizePins,
+  parseConversationList,
+  pinsOf,
+  type ChatConversation,
+  type PinGroup,
+  type PinsSettings,
+} from '../../shared/pins';
 import { conversationKey } from '../notifications/rules';
 import type { AppShell } from '../shell/app-shell';
 import type { SettingsStore } from '../store/settings-store';
 
 export type PinResult = { ok: true; pinId: string } | { ok: false; error: string };
+
+const CHAT_ORIGIN = 'https://chat.google.com';
+/** Tempo máximo esperando a lista do Chat. */
+const LIST_TIMEOUT_MS = 2500;
 
 /** Compara nomes de conversa sem diferenciar maiúsculas, acentos e espaços. */
 const fold = (s: string) =>
@@ -22,16 +40,77 @@ const fold = (s: string) =>
  */
 export class PinsService {
   private unread: Record<string, number> = {};
+  /** Pedidos de lista em andamento (id → quem espera a resposta). */
+  private readonly pending = new Map<
+    string,
+    { accountId: string; done: (list: ChatConversation[]) => void }
+  >();
 
   constructor(
     private readonly settings: SettingsStore,
     private readonly shell: AppShell,
   ) {
     this.shell.setPinsPanel(settings.get().pins.panelOpen);
+    // Resposta do preload do Chat: só vale se vier do frame principal do Chat da
+    // conta que recebeu o pedido.
+    ipcMain.on(CONVERSATIONS_REPLY, (event, requestId: unknown, raw: unknown) => {
+      if (typeof requestId !== 'string') return;
+      const wait = this.pending.get(requestId);
+      const frame = event.senderFrame;
+      if (!wait || !frame || frame !== event.sender.mainFrame || frame.origin !== CHAT_ORIGIN)
+        return;
+      if (this.shell.accountIdFor(event.sender) !== wait.accountId) return;
+      this.pending.delete(requestId);
+      wait.done(parseConversationList(raw));
+    });
     settings.on('change', (next) => {
       this.shell.setPinsPanel(next.pins.panelOpen);
       this.dropStale(next.pins);
     });
+  }
+
+  /**
+   * Conversas da barra lateral do Chat da conta ativa que ainda não estão
+   * fixadas (para fixar sem abrir). Vazia se o Chat não responder a tempo.
+   */
+  available(): Promise<ChatConversation[]> {
+    const accountId = this.settings.get().accounts.active;
+    const requestId = randomUUID();
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(requestId);
+        resolve([]);
+      }, LIST_TIMEOUT_MS);
+      this.pending.set(requestId, {
+        accountId,
+        done: (list) => {
+          clearTimeout(timer);
+          const pinned = new Set(pinsOf(this.settings.get().pins, accountId).map((p) => p.path));
+          resolve(list.filter((c) => !pinned.has(c.path)));
+        },
+      });
+      if (!this.shell.requestConversations(accountId, requestId)) {
+        clearTimeout(timer);
+        this.pending.delete(requestId);
+        resolve([]);
+      }
+    });
+  }
+
+  /** Fixa uma conversa escolhida na lista (sem precisar abrir). */
+  pinConversation(path: string, name: string, groupId: string | null): PinResult {
+    const clean = cleanText(name, PIN_LIMITS.nameLength);
+    if (!isChatPath(path) || !clean) return { ok: false, error: 'Conversa inválida.' };
+    const accountId = this.settings.get().accounts.active;
+    const r = addPin(
+      this.settings.get().pins,
+      accountId,
+      { name: clean, chatName: clean, path },
+      groupId,
+    );
+    if ('error' in r) return { ok: false, error: r.error };
+    this.save({ ...r.pins, panelOpen: true });
+    return { ok: true, pinId: r.pinId };
   }
 
   /** Fixa a conversa aberta agora no Chat da conta ativa. */

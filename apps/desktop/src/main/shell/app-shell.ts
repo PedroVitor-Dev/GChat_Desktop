@@ -14,7 +14,12 @@ import { partitionOf, type Account, type AccountsSettings } from '../../shared/a
 import type { AppearanceSettings } from '../../shared/settings';
 import { DND_OFF, type DndStatus } from '../../shared/dnd';
 import { INBOX_EMPTY, type InboxStatus } from '../../shared/inbox';
-import { chatNameFromTitle, chatPathFromUrl, isChatPath } from '../../shared/pins';
+import {
+  CONVERSATIONS_REQUEST,
+  chatNameFromTitle,
+  chatPathFromUrl,
+  isChatPath,
+} from '../../shared/pins';
 import { MiniPlayer } from './miniplayer';
 import { chatThemeCss, resolveTheme, titleBarColors, type ResolvedTheme } from '../../shared/theme';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
@@ -565,6 +570,14 @@ export class AppShell {
     const slot = this.slots.get(accountId);
     if (!slot?.path) return null;
     return { path: slot.path, name: chatNameFromTitle(slot.title) };
+  }
+
+  /** Pede ao Chat de uma conta a lista da barra lateral (resposta chega por IPC). */
+  requestConversations(accountId: string, requestId: string): boolean {
+    const slot = this.slots.get(accountId);
+    if (!slot || slot.loading || slot.view.webContents.isDestroyed()) return false;
+    slot.view.webContents.send(CONVERSATIONS_REQUEST, requestId);
+    return true;
   }
 
   /** O usuário está vendo esta conversa agora (janela em foco, Chat visível)? */

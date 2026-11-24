@@ -61,6 +61,8 @@ export const ShellChannel = {
   PinsSave: 'pins:save',
   PinsOpen: 'pins:open',
   PinsSetPanel: 'pins:set-panel',
+  PinsAvailable: 'pins:available',
+  PinsPinConversation: 'pins:pin-conversation',
   /** renderer → main (invoke): notificações perdidas. */
   InboxList: 'inbox:list',
   InboxSeen: 'inbox:seen',

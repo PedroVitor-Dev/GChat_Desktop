@@ -15,6 +15,7 @@ import {
   Pencil,
   Pin,
   PinOff,
+  Plus,
   Star,
   Trash2,
 } from 'lucide-react';
@@ -26,6 +27,7 @@ import {
   type PinsSettings,
 } from '../../../shared/pins';
 import { SHELL_LAYOUT, type ShellState } from '../../../shared/shell';
+import { AddConversationPicker } from './AddConversationPicker';
 
 /** Emojis sugeridos para identificar conversas e grupos. */
 const EMOJIS = [
@@ -87,6 +89,8 @@ export function PinsPanel({
   const [drag, setDrag] = useState<Drag>(null);
   const [dropAt, setDropAt] = useState<DropAt>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  /** Seletor "fixar conversa" aberto (grupo de destino; null = primeiro). */
+  const [picker, setPicker] = useState<{ groupId: string | null } | null>(null);
 
   useEffect(() => {
     if (!error) return;
@@ -218,6 +222,12 @@ export function PinsPanel({
           </span>
           <span className="text-muted block text-[11px] leading-tight">Conversas fixadas</span>
         </h2>
+        <HeaderButton
+          label="Adicionar conversa"
+          onClick={() => setPicker(picker ? null : { groupId: null })}
+        >
+          <Plus size={17} />
+        </HeaderButton>
         <HeaderButton label="Novo grupo" onClick={addGroup}>
           <FolderPlus size={17} />
         </HeaderButton>
@@ -228,6 +238,27 @@ export function PinsPanel({
           <PanelLeftClose size={17} />
         </HeaderButton>
       </header>
+
+      {picker && (
+        <AddConversationPicker
+          groupName={groups.find((g) => g.id === picker.groupId)?.name ?? null}
+          current={current && !currentPinned ? { name: current.name ?? 'Conversa aberta' } : null}
+          onClose={() => setPicker(null)}
+          onPickCurrent={() => {
+            setPicker(null);
+            void pinCurrent(picker.groupId);
+          }}
+          onPick={(c) => {
+            setPicker(null);
+            void window.gchat.pins.pinConversation(c.path, c.name, picker.groupId).then((r) => {
+              if (r.ok) {
+                setFlash(r.pinId);
+                setTimeout(() => setFlash((f) => (f === r.pinId ? null : f)), 1200);
+              } else setError(r.error);
+            });
+          }}
+        />
+      )}
 
       {/* A conversa aberta no Chat ainda não está na lista: oferece fixar. */}
       {current && !currentPinned && (
@@ -324,14 +355,15 @@ export function PinsPanel({
                 )}
                 {editing !== group.id && (
                   <span className="flex opacity-0 transition-opacity group-hover/hdr:opacity-100 focus-within:opacity-100">
-                    {current && !currentPinned && (
-                      <RowButton
-                        label={`Fixar a conversa aberta em “${group.name}”`}
-                        onClick={() => void pinCurrent(group.id)}
-                      >
-                        <Pin size={13} />
-                      </RowButton>
-                    )}
+                    <RowButton
+                      label={`Adicionar conversa em “${group.name}”`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPicker({ groupId: group.id });
+                      }}
+                    >
+                      <Plus size={13} />
+                    </RowButton>
                     <RowButton
                       label="Opções do grupo"
                       onClick={(e) => {

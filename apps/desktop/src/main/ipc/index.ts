@@ -184,6 +184,18 @@ export function registerIpc({
     (id) => pins.open(id),
   );
   handle(ShellChannel.PinsSetPanel, oneBoolean, (open) => pins.setPanel(open));
+  handle(ShellChannel.PinsAvailable, noArgs, () => pins.available());
+  handle(
+    ShellChannel.PinsPinConversation,
+    (args) => {
+      const [path, name, groupId] = args;
+      if (args.length !== 3 || typeof path !== 'string' || typeof name !== 'string')
+        throw new TypeError('conversa inválida');
+      if (groupId !== null && !isGroupId(groupId)) throw new TypeError('grupo inválido');
+      return [path, name, groupId as string | null] as const;
+    },
+    ([path, name, groupId]) => pins.pinConversation(path, name, groupId),
+  );
 
   // Notificações perdidas (só memória). A lista respeita a privacidade: o que o
   // toast esconderia (remetente/texto, ou tudo ao transmitir) o painel também esconde.

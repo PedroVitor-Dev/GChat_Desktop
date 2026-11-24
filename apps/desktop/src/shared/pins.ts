@@ -201,3 +201,42 @@ export function addPin(
   target.collapsed = false;
   return { pins: { ...pins, groups }, pinId };
 }
+
+// ───────────────────────── conversas da barra lateral do Chat ─────────────────────────
+//
+// Para fixar sem abrir a conversa, o app pede ao preload do Chat a lista da barra
+// lateral (Mensagens diretas e Espaços): só o identificador e o nome de cada uma.
+// Nada de mensagens: a lista "Início" (que mostra prévias) é ignorada.
+
+/** main → preload do Chat: "manda a lista" (com um id de pedido). */
+export const CONVERSATIONS_REQUEST = 'chat:list-conversations';
+/** preload do Chat → main: a lista. */
+export const CONVERSATIONS_REPLY = 'chat:conversations';
+
+export interface ChatConversation {
+  /** Caminho da conversa, ex.: "/app/chat/vOCMsaAAAAE". */
+  path: string;
+  name: string;
+  kind: 'dm' | 'space';
+}
+
+/** "dm/vOCMsaAAAAE" ou "space/AAQA7HmCROA" → "/app/chat/<id>" (como o Chat abre). */
+export function pathFromGroupId(id: string): { path: string; kind: 'dm' | 'space' } | null {
+  const m = /^(dm|space)\/([A-Za-z0-9_-]{4,80})$/.exec(id);
+  return m ? { path: `/app/chat/${m[2]}`, kind: m[1] as 'dm' | 'space' } : null;
+}
+
+/** Valida a lista vinda da página (ids conhecidos, nomes limpos, sem repetidos). */
+export function parseConversationList(input: unknown): ChatConversation[] {
+  if (!Array.isArray(input)) return [];
+  const out: ChatConversation[] = [];
+  for (const raw of input.slice(0, 500)) {
+    if (typeof raw !== 'object' || raw === null) continue;
+    const r = raw as Record<string, unknown>;
+    const where = typeof r['id'] === 'string' ? pathFromGroupId(r['id']) : null;
+    const name = cleanText(r['name'], PIN_LIMITS.nameLength);
+    if (!where || !name || out.some((c) => c.path === where.path)) continue;
+    out.push({ path: where.path, name, kind: where.kind });
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}

@@ -14,6 +14,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../shared/notifications';
 import { OPEN_STATUS_CHANNEL, PROFILE_CHANNEL, STATUS_CHANNEL } from '../shared/profile';
+import { CONVERSATIONS_REPLY, CONVERSATIONS_REQUEST } from '../shared/pins';
 
 const CHAT_ORIGIN = 'https://chat.google.com';
 
@@ -101,9 +102,35 @@ function watchStatus(): void {
   });
 }
 
+/**
+ * Lista de conversas da barra lateral do Chat (Mensagens diretas e Espaços), para
+ * fixar sem abrir: só o id ("dm/…", "space/…") e o nome. Os itens da lista
+ * "Início" (que mostram prévias de mensagens) ficam de fora: só entram itens com
+ * o botão "Abrir em um pop-up", que existe apenas na barra lateral.
+ */
+function listConversations(): { id: string; name: string }[] {
+  const out: { id: string; name: string }[] = [];
+  for (const item of document.querySelectorAll<HTMLElement>('[data-group-id][role="listitem"]')) {
+    const id = item.getAttribute('data-group-id') ?? '';
+    if (!/^(dm|space)\//.test(id)) continue;
+    if (!item.querySelector('[aria-label="Abrir em um pop-up"], [aria-label="Open in a pop-up"]'))
+      continue;
+    // Pessoa: atributo com o nome. Espaço: primeira linha do item (o nome).
+    const named = item.querySelector('[data-name]')?.getAttribute('data-name');
+    const firstLine = (item.innerText ?? '').split('\n')[0]?.trim();
+    const name = named ?? firstLine ?? '';
+    if (name) out.push({ id, name });
+  }
+  return out;
+}
+
 if (location.origin === CHAT_ORIGIN && window === window.top) {
   watchProfile();
   watchStatus();
+  ipcRenderer.on(CONVERSATIONS_REQUEST, (_e, requestId: unknown) => {
+    if (typeof requestId !== 'string') return;
+    ipcRenderer.send(CONVERSATIONS_REPLY, requestId, listConversations());
+  });
 }
 
 if (location.origin === CHAT_ORIGIN) {

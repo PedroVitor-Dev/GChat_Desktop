@@ -5,7 +5,7 @@ import type { Account } from '../shared/accounts';
 import type { Room } from '../shared/rooms';
 import type { UpdateStatus } from '../shared/updates';
 import type { DndDuration } from '../shared/dnd';
-import type { PinGroup } from '../shared/pins';
+import type { ChatConversation, PinGroup } from '../shared/pins';
 import type { InboxEntry } from '../shared/inbox';
 import type { CallLayout } from '../shared/shell';
 
@@ -111,6 +111,14 @@ export interface GChatApi {
     save(groups: PinGroup[]): Promise<void>;
     open(id: string): Promise<void>;
     setPanel(open: boolean): Promise<void>;
+    /** Conversas da barra lateral do Chat ainda não fixadas (para fixar sem abrir). */
+    available(): Promise<ChatConversation[]>;
+    /** Fixa uma conversa da lista, no grupo pedido ou no primeiro. */
+    pinConversation(
+      path: string,
+      name: string,
+      groupId: string | null,
+    ): Promise<{ ok: true; pinId: string } | { ok: false; error: string }>;
   };
   /** Notificações perdidas (só memória; somem ao fechar o app). */
   inbox: {

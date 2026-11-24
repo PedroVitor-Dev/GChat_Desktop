@@ -81,6 +81,9 @@ const api: GChatApi = {
     save: (groups) => ipcRenderer.invoke(ShellChannel.PinsSave, groups),
     open: (id) => ipcRenderer.invoke(ShellChannel.PinsOpen, id),
     setPanel: (open) => ipcRenderer.invoke(ShellChannel.PinsSetPanel, open),
+    available: () => ipcRenderer.invoke(ShellChannel.PinsAvailable),
+    pinConversation: (path, name, groupId) =>
+      ipcRenderer.invoke(ShellChannel.PinsPinConversation, path, name, groupId),
   },
   inbox: {
     list: () => ipcRenderer.invoke(ShellChannel.InboxList),

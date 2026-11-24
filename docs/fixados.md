@@ -10,6 +10,10 @@ conversas e os espaços do dia a dia, sempre à mão, sem a bagunça da lista do
   configurações); o painel não ocupa um lugar nele.
 - **Mostrar e esconder:** botão de painel à esquerda na barra de título (só no Chat) ou
   "Esconder o painel" no topo dele. Fechado, o botão mostra o total de mensagens novas.
+- **Adicionar sem abrir:** o **+** no topo do painel (ou o **+** de um grupo, ao passar
+  o mouse no título) abre uma lista com busca das conversas e espaços da barra lateral do
+  Chat que ainda não estão fixados; um clique fixa. A conversa aberta agora aparece no
+  topo da lista ("aberta agora").
 - **Fixar:** abra uma conversa no Chat; o painel oferece **Fixar conversa** no topo. Na
   primeira vez, cria o grupo "Fixados". No menu de um grupo (passar o mouse no título),
   o alfinete fixa direto nele.
@@ -29,6 +33,12 @@ conversas e os espaços do dia a dia, sempre à mão, sem a bagunça da lista do
   `/app/chat/<id>`) e o **título da página** ("Luana kamila - Chat" → "Luana kamila"),
   pelos eventos de navegação do Electron (`did-navigate-in-page`, `page-title-updated`).
   Nada do conteúdo da página é lido.
+- **Lista para adicionar:** o preload do Chat lê, só quando pedido, os itens da barra
+  lateral (`[data-group-id][role=listitem]` com o botão "Abrir em um pop-up", que só
+  existe lá): o id (`dm/…`, `space/…` → `/app/chat/<id>`) e o nome. A lista "Início",
+  que mostra prévias de mensagens, fica de fora. O main só aceita a resposta do frame
+  principal do Chat da conta que recebeu o pedido e valida tudo (`parseConversationList`).
+  Limite: só aparecem as conversas que o Chat mostra na barra lateral.
 - **Abrir:** o Chat é um app de página única; o app troca a conversa pelo endereço
   (`history.pushState` + `popstate`), como um clique num link dele: abre em ~12 ms, sem
   recarregar. Se o Chat ainda não estiver pronto (login, carregando), carrega o endereço.
