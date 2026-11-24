@@ -44,6 +44,28 @@ Sem precisar de login: um cliente do DevTools Protocol intercepta
 Validado em 23/11/2026: captura, `instanceof`, evento `show`, deduplicação e
 duas conversas distintas, todas exibidas.
 
+## Pessoas prioritárias (VIP)
+
+Conversas que **sempre avisam**, mesmo no **Não perturbe** (com prazo ou "até eu
+reativar"), no **horário de silêncio** e no **modo streamer**, com um **som próprio**.
+
+- **Onde:** Configurações → Notificações → Pessoas prioritárias (marcar quem escreveu
+  recentemente, inclusive durante uma pausa, ou digitar o nome como aparece no Chat);
+  o som fica em Sons → "Som das pessoas prioritárias" (padrão: Dois toques).
+- **Como:** a conversa é identificada pelo nome exibido no título da notificação, a
+  mesma chave das conversas silenciadas (`notifications.vipConversations`). O aviso
+  chega com ⭐ no título. Ordem do som: VIP > menção > som da conversa > padrão.
+- **O que ainda vale para VIP:** "Esconder conteúdo" do modo streamer (a tela continua
+  sem nome/texto ao transmitir) e "Sons" desligado. O som da VIP toca mesmo com o
+  modo streamer silenciando os demais e com o Chat em Não perturbe.
+- **Prioritária vence silenciada:** a mesma conversa não fica nas duas listas; silenciar
+  pelo botão da notificação tira a conversa das prioritárias.
+- **Limite:** se o próprio Google Chat estiver em "Não perturbe" (menu de status), ele
+  não cria notificações, e o app não tem o que mostrar.
+
+Verificado em 23/11/2026 com o app em Não perturbe: a conversa VIP apareceu (som
+"Dois toques") e a outra foi barrada (`paused`).
+
 ## Não perturbe (com tempo)
 
 Como no Discord: pausa avisos **e sons** por **30 min, 1 h, 8 h, até amanhã (8:00)** ou

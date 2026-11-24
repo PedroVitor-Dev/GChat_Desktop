@@ -16,6 +16,7 @@ import {
   isInQuietHours,
   isMention,
   isMuted,
+  isVip,
 } from './rules';
 
 /** Motivo pelo qual uma notificação não virou toast (para estatísticas, sem conteúdo). */
@@ -79,23 +80,31 @@ export class NotificationManager extends EventEmitter<Events> {
     const all = this.deps.settings.get();
     const settings = all.notifications;
 
-    if (!settings.enabled) return this.drop('disabled');
-    // "Não perturbe" com prazo: nem aviso nem som até a hora marcada.
-    if (resolveDnd(settings, Date.now()).active) return this.drop('paused');
+    // Pessoas prioritárias passam por Não perturbe, horário de silêncio e modo
+    // streamer (só a conversa silenciada à mão as cala, e ela sai da lista VIP).
+    const vip = isVip(n, settings);
     if (this.dedup.isDuplicate(n)) return this.drop('duplicate');
 
+    // Conversas recentes (só nomes), inclusive as que chegaram em pausa: assim dá
+    // para marcar como prioritária quem escreveu durante o Não perturbe.
     const key = conversationKey(n);
     this.recent.delete(key);
     this.recent.set(key, Date.now());
     if (this.recent.size > 30) this.recent.delete(this.recent.keys().next().value!);
 
+    if (!vip && !settings.enabled) return this.drop('disabled');
+    // "Não perturbe" com prazo: nem aviso nem som até a hora marcada.
+    if (!vip && resolveDnd(settings, Date.now()).active) return this.drop('paused');
+
     if (isMuted(n, settings)) return this.drop('muted');
     const streaming = this.deps.streamer.status().active;
     const streamer = all.streamer;
-    if (streaming && streamer.pauseNotifications) return this.drop('streamer');
+    if (!vip && streaming && streamer.pauseNotifications) return this.drop('streamer');
     const mention = isMention(n, settings.mentions.keywords);
     const bypass = mention && settings.mentions.bypassQuietHours;
-    if (!bypass && isInQuietHours(new Date(), settings.quietHours)) return this.drop('quiet-hours');
+    if (!vip && !bypass && isInQuietHours(new Date(), settings.quietHours)) {
+      return this.drop('quiet-hours');
+    }
     if (!Notification.isSupported()) return this.drop('unsupported');
 
     // Transmitindo: nunca mostra remetente nem texto na tela, se assim configurado.
@@ -107,14 +116,18 @@ export class NotificationManager extends EventEmitter<Events> {
       accountId && this.deps.shell.accountCount() > 1
         ? this.deps.shell.accountName(accountId)
         : null;
-    const title = accountName ? `${formatted.title} · ${accountName}` : formatted.title;
+    const named = accountName ? `${formatted.title} · ${accountName}` : formatted.title;
+    const title = vip ? `⭐ ${named}` : named;
     const { body } = formatted;
     // Não perturbe no Chat: o aviso (se o Chat ainda criar) chega sem som.
     const dnd = accountId !== null && this.deps.presence(accountId) === 'dnd';
-    const sound =
-      dnd || (streaming && streamer.muteSounds) ? 'none' : chooseSound(n, all.sounds, mention);
+    // A tela continua escondendo o conteúdo ao transmitir; o som da VIP toca.
+    const silenced = !vip && (dnd || (streaming && streamer.muteSounds));
+    const sound = silenced ? 'none' : chooseSound(n, all.sounds, mention, vip);
     if (diagnosticsEnabled) {
-      console.error(`[diag] menção: ${mention ? 'sim' : 'não'} · som: ${sound}`);
+      console.error(
+        `[diag] menção: ${mention ? 'sim' : 'não'} · vip: ${vip ? 'sim' : 'não'} · som: ${sound}`,
+      );
     }
     const toast = new Notification({
       title,
@@ -185,9 +198,16 @@ export class NotificationManager extends EventEmitter<Events> {
   }
 
   private mute(key: string): void {
-    const current = this.deps.settings.get().notifications.mutedConversations;
+    const { mutedConversations: current, vipConversations } =
+      this.deps.settings.get().notifications;
     if (current.includes(key)) return;
-    this.deps.settings.update({ notifications: { mutedConversations: [...current, key] } });
+    // Silenciar pela notificação tira a conversa das prioritárias.
+    this.deps.settings.update({
+      notifications: {
+        mutedConversations: [...current, key],
+        vipConversations: vipConversations.filter((v) => v !== key),
+      },
+    });
   }
 
   private drop(reason: DropReason): DropReason {

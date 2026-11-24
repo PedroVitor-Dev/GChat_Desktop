@@ -52,6 +52,27 @@ describe('normalizeSettings', () => {
   });
 });
 
+describe('pessoas prioritárias', () => {
+  it('lista limpa e som padrão próprio', () => {
+    const d = normalizeSettings({});
+    expect(d.notifications.vipConversations).toEqual([]);
+    expect(d.sounds.vipSound).toBe('builtin:dois-toques');
+    const s = applyPatch(DEFAULT_SETTINGS, {
+      notifications: { vipConversations: [' Maria ', 'Maria', ''] },
+      sounds: { vipSound: null },
+    });
+    expect(s.notifications.vipConversations).toEqual(['Maria']);
+    expect(s.sounds.vipSound).toBeNull();
+  });
+
+  it('prioritária vence silenciada', () => {
+    const s = applyPatch(DEFAULT_SETTINGS, {
+      notifications: { vipConversations: ['Maria'], mutedConversations: ['Maria', 'João'] },
+    });
+    expect(s.notifications.mutedConversations).toEqual(['João']);
+  });
+});
+
 describe('aparência', () => {
   it('valida o tema e mantém o padrão escuro', () => {
     expect(normalizeSettings({}).appearance).toEqual(DEFAULT_SETTINGS.appearance);

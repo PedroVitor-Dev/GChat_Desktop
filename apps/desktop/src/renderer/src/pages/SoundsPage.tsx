@@ -101,6 +101,16 @@ export function SoundsPage() {
           onChange={(mentionSound) => update({ sounds: { mentionSound } })}
           onPreview={preview}
         />
+        <SoundPicker
+          label="Som das pessoas prioritárias"
+          description="Toca para as conversas marcadas como prioritárias (Notificações). Vem antes do som de menções e do som da conversa."
+          value={s.vipSound}
+          options={options}
+          disabled={!s.enabled}
+          allowDefault
+          onChange={(vipSound) => update({ sounds: { vipSound } })}
+          onPreview={preview}
+        />
         {s.mentionSound && (
           <KeywordsInput
             key={settings.notifications.mentions.keywords.join(',')}

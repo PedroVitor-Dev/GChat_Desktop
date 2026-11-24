@@ -50,7 +50,8 @@ seu.
 
 Pause avisos e sons por **30 min, 1 h, 8 h ou até amanhã** com um clique no sino do
 trilho ou na bandeja; volta sozinho. E nada de aviso fora do expediente: **menções
-podem furar o horário de silêncio**, se você quiser.
+podem furar o horário de silêncio**, se você quiser. E as **pessoas prioritárias** ⭐
+sempre avisam, com som próprio, mesmo no Não perturbe ou no modo streamer.
 
 ### 📡 Modo streamer
 
@@ -256,7 +257,6 @@ sozinhos. O site é publicado pelo workflow **Landing page** a cada push em `sit
 
 - [ ] Perfil personalizável estilo Discord (banner com imagem/GIF, bio), público entre
       usuários do app
-- [ ] Pessoas prioritárias que sempre avisam, mesmo no silêncio
 - [ ] Miniplayer flutuante da chamada
 - [ ] Atalho global para mostrar/esconder o app
 - [ ] Assinatura digital do instalador

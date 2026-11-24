@@ -8,6 +8,7 @@ import {
   isInQuietHours,
   isMention,
   isMuted,
+  isVip,
 } from './rules';
 
 const at = (hhmm: string) => new Date(`2026-11-23T${hhmm}:00`);
@@ -112,6 +113,7 @@ describe('chooseSound', () => {
     defaultSound: 'builtin:gota',
     mentionSound: 'builtin:sino',
     conversationSounds: { Maria: 'builtin:pop' },
+    vipSound: 'builtin:dois-toques',
   } as const;
 
   it('menção > conversa > padrão', () => {
@@ -123,5 +125,28 @@ describe('chooseSound', () => {
   it('menção sem som próprio usa a regra normal; sons desligados = nenhum', () => {
     expect(chooseSound(msg(), { ...sounds, mentionSound: null }, true)).toBe('builtin:pop');
     expect(chooseSound(msg(), { ...sounds, enabled: false }, true)).toBe('none');
+  });
+});
+
+describe('pessoas prioritárias', () => {
+  const settings = { vipConversations: ['Maria'] };
+
+  it('reconhece a conversa pelo nome exibido', () => {
+    expect(isVip(msg(), settings)).toBe(true);
+    expect(isVip(msg({ title: '  Maria ' }), settings)).toBe(true);
+    expect(isVip(msg({ title: 'João' }), settings)).toBe(false);
+  });
+
+  it('som da VIP vem antes de menção e conversa; sem som próprio, regra normal', () => {
+    const sounds = {
+      enabled: true,
+      defaultSound: 'builtin:gota',
+      mentionSound: 'builtin:sino',
+      conversationSounds: { Maria: 'builtin:pop' },
+      vipSound: 'builtin:dois-toques',
+    } as const;
+    expect(chooseSound(msg(), sounds, true, true)).toBe('builtin:dois-toques');
+    expect(chooseSound(msg(), { ...sounds, vipSound: null }, false, true)).toBe('builtin:pop');
+    expect(chooseSound(msg(), { ...sounds, enabled: false }, false, true)).toBe('none');
   });
 });

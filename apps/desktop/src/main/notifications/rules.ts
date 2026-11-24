@@ -33,6 +33,14 @@ export function isMuted(n: CapturedNotification, settings: NotificationSettings)
   return settings.mutedConversations.includes(conversationKey(n));
 }
 
+/** Pessoa prioritária (VIP): sempre avisa, mesmo no silêncio, Não perturbe ou streamer. */
+export function isVip(
+  n: CapturedNotification,
+  settings: Pick<NotificationSettings, 'vipConversations'>,
+): boolean {
+  return settings.vipConversations.includes(conversationKey(n));
+}
+
 /** Minúsculas e sem acentos, para comparar "@João" com "@joao". */
 const fold = (s: string): string =>
   s
@@ -57,13 +65,18 @@ export function isMention(n: CapturedNotification, keywords: readonly string[]):
   return keywords.some((k) => text.includes(fold(k)));
 }
 
-/** Escolhe o som: menção > som da conversa > som padrão. */
+/** Escolhe o som: pessoa prioritária > menção > som da conversa > som padrão. */
 export function chooseSound(
   n: CapturedNotification,
-  sounds: Pick<SoundSettings, 'enabled' | 'defaultSound' | 'mentionSound' | 'conversationSounds'>,
+  sounds: Pick<
+    SoundSettings,
+    'enabled' | 'defaultSound' | 'mentionSound' | 'conversationSounds' | 'vipSound'
+  >,
   mention: boolean,
+  vip = false,
 ): SoundId {
   if (!sounds.enabled) return 'none';
+  if (vip && sounds.vipSound) return sounds.vipSound;
   if (mention && sounds.mentionSound) return sounds.mentionSound;
   return sounds.conversationSounds[conversationKey(n)] ?? sounds.defaultSound;
 }

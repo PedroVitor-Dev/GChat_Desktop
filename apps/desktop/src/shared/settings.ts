@@ -42,6 +42,11 @@ export interface NotificationSettings {
   mentions: MentionSettings;
   /** Chaves das conversas silenciadas (nome exibido no título da notificação). */
   mutedConversations: string[];
+  /**
+   * Pessoas prioritárias (VIP): conversas que sempre avisam, mesmo no horário de
+   * silêncio, no Não perturbe ou no modo streamer. Mesma chave das silenciadas.
+   */
+  vipConversations: string[];
   /** "Não perturbe" com prazo: avisos pausados até este instante (epoch ms). */
   pausedUntil: number | null;
 }
@@ -54,6 +59,8 @@ export interface SoundSettings {
   defaultSound: SoundId;
   /** null = usa o som padrão. */
   mentionSound: SoundId | null;
+  /** Som das pessoas prioritárias. null = som da conversa ou padrão. */
+  vipSound: SoundId | null;
   /** Som específico por conversa (chave = nome exibido). */
   conversationSounds: Record<string, SoundId>;
   /** Sons importados. Só o main altera esta lista. */
@@ -139,6 +146,7 @@ export const DEFAULT_SETTINGS: Settings = {
     quietHours: { enabled: false, start: '22:00', end: '07:00' },
     mentions: { keywords: [], bypassQuietHours: false },
     mutedConversations: [],
+    vipConversations: [],
     pausedUntil: null,
   },
   sounds: {
@@ -146,6 +154,7 @@ export const DEFAULT_SETTINGS: Settings = {
     volume: 80,
     defaultSound: 'builtin:gota',
     mentionSound: null,
+    vipSound: 'builtin:dois-toques',
     conversationSounds: {},
     library: [],
   },
@@ -172,6 +181,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export const LIMITS = {
   conversationKey: 200,
   mutedConversations: 500,
+  vipConversations: 100,
   conversationSounds: 200,
   keyword: 60,
   keywords: 20,
@@ -271,6 +281,13 @@ export function normalizeSettings(
       ? Math.round(Math.min(100, Math.max(0, s['volume'])))
       : bs.volume;
 
+  const vip = cleanStrings(
+    n['vipConversations'],
+    bn.vipConversations,
+    LIMITS.conversationKey,
+    LIMITS.vipConversations,
+  );
+
   return {
     version: SETTINGS_VERSION,
     general: {
@@ -298,12 +315,14 @@ export function normalizeSettings(
         ),
         bypassQuietHours: bool(m['bypassQuietHours'], bn.mentions.bypassQuietHours),
       },
+      // Prioritária vence silenciada: a mesma conversa não fica nas duas listas.
+      vipConversations: vip,
       mutedConversations: cleanStrings(
         n['mutedConversations'],
         bn.mutedConversations,
         LIMITS.conversationKey,
         LIMITS.mutedConversations,
-      ),
+      ).filter((key) => !vip.includes(key)),
       pausedUntil:
         typeof n['pausedUntil'] === 'number' &&
         Number.isFinite(n['pausedUntil']) &&
@@ -322,6 +341,8 @@ export function normalizeSettings(
           : isSoundId(s['mentionSound'])
             ? s['mentionSound']
             : bs.mentionSound,
+      vipSound:
+        s['vipSound'] === null ? null : isSoundId(s['vipSound']) ? s['vipSound'] : bs.vipSound,
       conversationSounds: cleanConversationSounds(s['conversationSounds'], bs.conversationSounds),
       library: allowLibrary ? cleanLibrary(s['library'], bs.library) : bs.library,
     },

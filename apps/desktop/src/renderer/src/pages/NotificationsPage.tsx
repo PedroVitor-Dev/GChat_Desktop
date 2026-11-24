@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { BellOff, Bell } from 'lucide-react';
+import { BellOff, Bell, Star } from 'lucide-react';
 import { Card } from '../components/Card';
-import { Button, SectionTitle, TimeInput, Toggle } from '../components/controls';
+import { Button, SectionTitle, TimeInput, Toggle, inputClass } from '../components/controls';
+import { LIMITS } from '../../../shared/settings';
 import { KeywordsInput } from '../components/KeywordsInput';
 import { useSettings } from '../hooks/useSettings';
 import { useShellState } from '../hooks/useShellState';
@@ -21,6 +22,9 @@ export function NotificationsPage() {
   const n = settings.notifications;
   const muted = n.mutedConversations;
   const unmutedRecent = recent.filter((r) => !muted.includes(r));
+  const vip = n.vipConversations;
+  const vipCandidates = recent.filter((r) => !vip.includes(r));
+  const setVip = (next: string[]) => update({ notifications: { vipConversations: next } });
 
   const test = async () => {
     const ok = await window.gchat.testNotification();
@@ -74,6 +78,66 @@ export function NotificationsPage() {
             ))}
           </div>
         </div>
+      </Card>
+
+      <SectionTitle>Pessoas prioritárias</SectionTitle>
+      <Card>
+        <p className="text-muted pt-3 text-sm">
+          Sempre avisam, mesmo no <strong>Não perturbe</strong>, no{' '}
+          <strong>horário de silêncio</strong> e no <strong>modo streamer</strong>, com um som
+          próprio (escolha em Sons). O aviso chega com ⭐ no título.
+        </p>
+        <ul className="pt-1">
+          {vip.map((key) => (
+            <li
+              key={key}
+              className="border-line flex items-center justify-between gap-4 border-b py-2.5 last:border-b-0"
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <Star size={15} className="shrink-0 fill-[#f0b232] text-[#f0b232]" aria-hidden />
+                <span className="text-header truncate select-text">{key}</span>
+              </span>
+              <Button onClick={() => setVip(vip.filter((v) => v !== key))}>Remover</Button>
+            </li>
+          ))}
+          {vipCandidates.map((key) => (
+            <li
+              key={key}
+              className="border-line flex items-center justify-between gap-4 border-b py-2.5 last:border-b-0"
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <Star size={15} className="text-muted shrink-0" aria-hidden />
+                <span className="truncate select-text">{key}</span>
+                <span className="text-muted text-xs">recente</span>
+              </span>
+              <Button onClick={() => setVip([...vip, key])}>Tornar prioritária</Button>
+            </li>
+          ))}
+        </ul>
+        <form
+          className="flex gap-2 py-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const input = e.currentTarget.elements.namedItem('vip') as HTMLInputElement;
+            const name = input.value.trim();
+            if (name && !vip.includes(name)) setVip([...vip, name]);
+            input.value = '';
+          }}
+        >
+          <input
+            name="vip"
+            maxLength={LIMITS.conversationKey}
+            placeholder="Nome da pessoa ou do espaço, como aparece no Chat"
+            aria-label="Adicionar pessoa prioritária"
+            className={`${inputClass} flex-1`}
+          />
+          <button
+            type="submit"
+            className="bg-accent hover:bg-accent-hover h-8 shrink-0 rounded-[3px] px-4 text-sm font-medium text-white"
+          >
+            Adicionar
+          </button>
+        </form>
       </Card>
 
       <SectionTitle>Menções</SectionTitle>
