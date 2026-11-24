@@ -11,6 +11,7 @@ import { Rail } from './shell/Rail';
 import { SettingsScreen } from './shell/SettingsScreen';
 import type { SectionId } from './sections';
 import { TitleBar } from './shell/TitleBar';
+import { PinsPanel } from './shell/PinsPanel';
 import { applyThemeVars } from './theme-vars';
 import { ThemeParticles } from './components/ThemeParticles';
 
@@ -101,6 +102,14 @@ export function App() {
               }}
               onProfile={() => void shell.openChatStatus()}
               dnd={state.dnd}
+              pinsOpen={state.pins.open}
+              pinsUnread={Object.values(state.pins.unread).reduce((a, b) => a + b, 0)}
+              onPins={() => {
+                if (inRooms) {
+                  void shell.setView('chat');
+                  void window.gchat.pins.setPanel(true);
+                } else void window.gchat.pins.setPanel(!state.pins.open);
+              }}
             />
             {inRooms ? (
               <>
@@ -117,7 +126,16 @@ export function App() {
                 )}
               </>
             ) : (
-              <ChatPlaceholder loading={active?.loading ?? true} />
+              <>
+                {state.pins.open && settings && (
+                  <PinsPanel
+                    state={state}
+                    pins={settings.pins}
+                    vip={settings.notifications.vipConversations}
+                  />
+                )}
+                <ChatPlaceholder loading={active?.loading ?? true} />
+              </>
             )}
           </div>
           {state.settingsOpen && (

@@ -5,6 +5,7 @@ import type { Account } from '../shared/accounts';
 import type { Room } from '../shared/rooms';
 import type { UpdateStatus } from '../shared/updates';
 import type { DndDuration } from '../shared/dnd';
+import type { PinGroup } from '../shared/pins';
 
 export type RoomResult = { ok: true; room: Room } | { ok: false; error: string };
 
@@ -87,6 +88,17 @@ export interface GChatApi {
     reloadChat(): Promise<void>;
     /** Abre o menu de status do Google Chat (Ativo, Não perturbe, Adicionar um status). */
     openChatStatus(): Promise<void>;
+  };
+  /** Conversas fixadas (painel ao lado do Chat). */
+  pins: {
+    /** Fixa a conversa aberta no Chat (no grupo pedido ou no primeiro). */
+    pinCurrent(
+      groupId: string | null,
+    ): Promise<{ ok: true; pinId: string } | { ok: false; error: string }>;
+    /** Grava a lista reorganizada (ordem, grupos, nomes, emojis). */
+    save(groups: PinGroup[]): Promise<void>;
+    open(id: string): Promise<void>;
+    setPanel(open: boolean): Promise<void>;
   };
 }
 

@@ -13,6 +13,7 @@ import {
 import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
 import { DND_OFF, type DndStatus } from '../../shared/dnd';
+import { chatNameFromTitle, chatPathFromUrl, isChatPath } from '../../shared/pins';
 import { chatThemeCss, resolveTheme, titleBarColors, type ResolvedTheme } from '../../shared/theme';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
 import type { AccountProfile, ChatStatus } from '../../shared/profile';
@@ -51,6 +52,10 @@ export interface ShellOptions {
   onUnreadChange: (count: number) => void;
   /** O usuário trocou de conta no trilho (para persistir). */
   onActiveAccountChange: (id: string) => void;
+  /** O Chat de uma conta mudou de conversa (conversas fixadas). */
+  onChatLocation?: (accountId: string) => void;
+  /** Alt+1…9: abrir a enésima conversa fixada da conta ativa. */
+  onPinShortcut?: (index: number) => void;
 }
 
 /** Cores da barra de título nativa (botões minimizar/maximizar/fechar do Windows). */
@@ -80,6 +85,8 @@ interface ChatSlot {
   unread: number;
   loading: boolean;
   title: string;
+  /** Conversa aberta (ex.: "/app/chat/AAAA"); null no início, busca etc. */
+  path: string | null;
   cssKey: string | null;
 }
 
@@ -98,6 +105,8 @@ export class AppShell {
   private modalOpen = false;
   private look: ResolvedTheme;
   private dnd: DndStatus = DND_OFF;
+  private pinsOpen = false;
+  private pinUnread: Record<string, number> = {};
   private appearance: AppearanceSettings;
   private badge: NativeImage | null = null;
   private quitting = false;
@@ -180,6 +189,11 @@ export class AppShell {
       view: this.view,
       call: this.call?.state ?? null,
       dnd: this.dnd,
+      pins: {
+        open: this.pinsOpen,
+        current: this.chatLocation(this.active),
+        unread: this.pinUnread,
+      },
     };
   }
 
@@ -385,6 +399,67 @@ export class AppShell {
     slot.view.webContents.send(OPEN_STATUS_CHANNEL);
   }
 
+  // ───────────────────────────── conversas fixadas ─────────────────────────────
+
+  /** Conversa aberta no Chat de uma conta (endereço + nome da página). */
+  chatLocation(accountId: string): { path: string; name: string | null } | null {
+    const slot = this.slots.get(accountId);
+    if (!slot?.path) return null;
+    return { path: slot.path, name: chatNameFromTitle(slot.title) };
+  }
+
+  /** O usuário está vendo esta conversa agora (janela em foco, Chat visível)? */
+  isViewingChat(accountId: string, path: string): boolean {
+    return (
+      this.isLookingAtChat() &&
+      accountId === this.active &&
+      this.slots.get(accountId)?.path === path
+    );
+  }
+
+  setPinsPanel(open: boolean): void {
+    if (open === this.pinsOpen) return;
+    this.pinsOpen = open;
+    this.layout();
+    this.emitState();
+  }
+
+  setPinUnread(unread: Record<string, number>): void {
+    this.pinUnread = unread;
+    this.emitState();
+  }
+
+  /**
+   * Abre uma conversa no Chat sem recarregar: o Chat é um app de página única e
+   * troca de conversa pelo endereço (history.pushState + popstate), como quando
+   * se clica num link dele. Nada do conteúdo da página é lido ou alterado. Se o
+   * Chat ainda não estiver pronto (login, carregando), carrega o endereço direto.
+   */
+  openChatPath(accountId: string, path: string): void {
+    const slot = this.slots.get(accountId);
+    if (!slot || !isChatPath(path)) return;
+    this.focusChat(accountId);
+    const contents = slot.view.webContents;
+    const inApp = (() => {
+      try {
+        const u = new URL(contents.getURL());
+        return u.host === 'chat.google.com' && u.pathname.startsWith('/app/');
+      } catch {
+        return false;
+      }
+    })();
+    if (slot.loading || !inApp) {
+      void contents.loadURL(`https://chat.google.com${path}`);
+      return;
+    }
+    const target = JSON.stringify(path);
+    void contents
+      .executeJavaScript(
+        `history.pushState(null, '', ${target}); dispatchEvent(new PopStateEvent('popstate', { state: null }));`,
+      )
+      .catch(() => contents.loadURL(`https://chat.google.com${path}`));
+  }
+
   setDnd(status: DndStatus): void {
     this.dnd = status;
     this.emitState();
@@ -428,6 +503,7 @@ export class AppShell {
       unread: 0,
       loading: true,
       title: 'Google Chat',
+      path: null,
       cssKey: null,
     };
     this.slots.set(account.id, slot);
@@ -435,8 +511,19 @@ export class AppShell {
     const contents = view.webContents;
     contents.on('page-title-updated', (_e, title) => {
       slot.title = title;
+      this.options.onChatLocation?.(account.id);
       this.emitState();
     });
+    // O Chat troca de conversa sem recarregar (pushState): acompanha pelo endereço.
+    const track = (url: string) => {
+      const path = chatPathFromUrl(url);
+      if (path === slot.path) return;
+      slot.path = path;
+      this.options.onChatLocation?.(account.id);
+      this.emitState();
+    };
+    contents.on('did-navigate-in-page', (_e, url, isMainFrame) => isMainFrame && track(url));
+    contents.on('did-navigate', (_e, url) => track(url));
     contents.on('did-finish-load', () => {
       if (slot.loading) {
         slot.loading = false;
@@ -586,8 +673,9 @@ export class AppShell {
   private layout(): boolean {
     if (this.window.isDestroyed()) return true;
     const { width, height } = this.window.getContentBounds();
-    const { railWidth, titleBarHeight, roomsPanelWidth } = SHELL_LAYOUT;
-    const left = railWidth + (this.view === 'rooms' ? roomsPanelWidth : 0);
+    const { railWidth, titleBarHeight, roomsPanelWidth, pinsPanelWidth } = SHELL_LAYOUT;
+    const panel = this.view === 'rooms' ? roomsPanelWidth : this.pinsOpen ? pinsPanelWidth : 0;
+    const left = railWidth + panel;
     const bounds = {
       x: left,
       y: titleBarHeight,
@@ -624,6 +712,8 @@ export class AppShell {
 
   private wireWindow(): void {
     this.layout();
+    // Voltou para a janela olhando uma conversa fixada: ela foi lida.
+    this.window.on('focus', () => this.options.onChatLocation?.(this.active));
     this.window.on('resize', () => {
       this.scheduleRelayout();
       this.saveBounds();
@@ -711,6 +801,11 @@ export class AppShell {
     if (ctrl && key === '-') return handled(() => this.zoom(chat, -0.5));
     if (ctrl && key === '0') return handled(() => chat.setZoomLevel(0));
     if (input.alt && key === 'arrowleft') return handled(() => chat.navigationHistory.goBack());
+    // Alt+1…9: conversas fixadas da conta ativa (Ctrl+Alt fica livre para o AltGr).
+    if (input.alt && !ctrl && !input.shift && /^[1-9]$/.test(key) && this.options.onPinShortcut) {
+      const index = Number(key) - 1;
+      return handled(() => this.options.onPinShortcut?.(index));
+    }
     if (!app.isPackaged && ctrl && input.shift && key === 'i') {
       return handled(() => (this.settingsOpen ? this.window.webContents : chat).toggleDevTools());
     }

@@ -16,6 +16,7 @@ import { RoomsService } from './meet/rooms-service';
 import { AppUpdater } from './system/updater';
 import { ProfileService } from './profile/profile-service';
 import { DndService } from './system/dnd';
+import { PinsService } from './pins/pins-service';
 import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
@@ -36,6 +37,7 @@ if (!app.requestSingleInstanceLock()) {
     const startHidden = process.argv.includes(HIDDEN_ARG) && settings.get().general.startMinimized;
 
     let tray: AppTray | null = null;
+    let pins: PinsService | null = null;
     const shell = new AppShell({
       appearance: settings.get().appearance,
       accounts: settings.get().accounts,
@@ -53,6 +55,8 @@ if (!app.requestSingleInstanceLock()) {
         settings.updateInternal({ general: { trayHintShown: true } });
       },
       onUnreadChange: (count) => tray?.setUnread(count),
+      onChatLocation: (accountId) => pins?.onChatLocation(accountId),
+      onPinShortcut: (index) => pins?.openByIndex(index),
       onActiveAccountChange: (id) => accounts.setActive(id),
     });
     const accounts = new AccountsService(settings, shell);
@@ -62,6 +66,8 @@ if (!app.requestSingleInstanceLock()) {
     player.attach(library);
     const streamer = new StreamerMode(settings);
     const dnd = new DndService(settings);
+    const pinsService = new PinsService(settings, shell);
+    pins = pinsService;
     const notifications = new NotificationManager({
       settings,
       player,
@@ -70,6 +76,8 @@ if (!app.requestSingleInstanceLock()) {
       // "Não perturbe" no Chat vale também para os sons do app (perfil criado abaixo).
       presence: (id) => profiles.statusOf(id)?.presence,
     });
+
+    notifications.on('shown', (n, accountId) => pinsService.onNotification(n, accountId));
 
     tray = new AppTray(settings, {
       openChat: () => shell.focusChat(),
@@ -111,6 +119,7 @@ if (!app.requestSingleInstanceLock()) {
       updater,
       profiles,
       dnd,
+      pins: pinsService,
     });
     updater.on('status', (s) =>
       tray?.setUpdateReady(s.state === 'downloaded' ? (s.version ?? null) : null),

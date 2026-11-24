@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Bell, BellOff, Headphones, Plus, Settings } from 'lucide-react';
+import { Bell, BellOff, Headphones, Pin, Plus, Settings } from 'lucide-react';
 import { describeDnd, type DndStatus } from '../../../shared/dnd';
 import logo from '../../../../resources/icon.png';
 import { ACCOUNT_COLORS, ACCOUNT_LIMITS, accountInitials } from '../../../shared/accounts';
@@ -25,6 +25,9 @@ export function Rail({
   onSettings,
   onProfile,
   dnd,
+  pinsOpen,
+  pinsUnread,
+  onPins,
 }: {
   accounts: AccountView[];
   activeAccount: string;
@@ -39,6 +42,11 @@ export function Rail({
   onProfile: () => void;
   /** "Não perturbe" do app (clique abre o menu com os tempos). */
   dnd: DndStatus;
+  /** Painel de conversas fixadas aberto ao lado do Chat. */
+  pinsOpen: boolean;
+  /** Mensagens novas nas conversas fixadas (mostradas com o painel fechado). */
+  pinsUnread: number;
+  onPins: () => void;
 }) {
   const single = accounts.length === 1;
   const canAdd = accounts.length < ACCOUNT_LIMITS.max;
@@ -84,6 +92,16 @@ export function Rail({
       </RailItem>
 
       <div className="bg-line h-0.5 w-8 shrink-0 rounded-full" aria-hidden />
+
+      <RailItem
+        label={pinsOpen && view === 'chat' ? 'Esconder conversas fixadas' : 'Conversas fixadas'}
+        active={!settingsOpen && view === 'chat' && pinsOpen}
+        badge={pinsOpen && view === 'chat' ? 0 : pinsUnread}
+        variant="action"
+        onClick={onPins}
+      >
+        <Pin size={20} />
+      </RailItem>
 
       <RailItem
         label={inCall ? 'Salas de vídeo · em chamada' : 'Salas de vídeo'}

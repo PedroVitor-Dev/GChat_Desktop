@@ -67,6 +67,12 @@ título, como no Discord.
 Salas permanentes, como os **canais de voz do Discord**. Crie com um clique, mande o
 link aos amigos e fique em chamada **com cronômetro**, mesmo voltando ao Chat.
 
+### 📌 Conversas fixadas
+
+Um painel ao lado do Chat, como a lista de canais do Discord, com os **grupos e
+conversas do dia a dia**: organize em grupos, arraste, escolha emojis, veja quantas
+mensagens chegaram e abra com um clique (ou **Alt + 1…9**), na hora.
+
 ### 👥 Várias contas
 
 Até **5 contas Google** com sessões isoladas, alternando com `Ctrl + 1…5`. A foto do
@@ -130,6 +136,7 @@ ajustável e prévia ao vivo. Um tema experimental leva as cores para dentro do 
 | `Ctrl` + `,`             | Abrir/fechar as configurações                       |
 | `Esc`                    | Fechar as configurações                             |
 | `Ctrl` + `1…5`           | Alternar entre contas                               |
+| `Alt` + `1…9`            | Abrir uma conversa fixada                           |
 | `Ctrl` + `R` / `F5`      | Recarregar o Google Chat                            |
 | `Ctrl` + `=` / `-` / `0` | Zoom do Chat                                        |
 | `Alt` + `←`              | Voltar no Chat                                      |
@@ -245,6 +252,7 @@ sozinhos. O site é publicado pelo workflow **Landing page** a cada push em `sit
 | Sons                         | [sons.md](docs/sons.md)                                                                                     |
 | Contas e perfil              | [contas.md](docs/contas.md)                                                                                 |
 | Salas de vídeo (Meet)        | [salas.md](docs/salas.md)                                                                                   |
+| Conversas fixadas            | [fixados.md](docs/fixados.md)                                                                               |
 | Bandeja e segundo plano      | [segundo-plano.md](docs/segundo-plano.md)                                                                   |
 | Visual e atalhos             | [visual.md](docs/visual.md)                                                                                 |
 | Atualização automática       | [atualizacoes.md](docs/atualizacoes.md)                                                                     |

@@ -14,6 +14,8 @@ export const SHELL_LAYOUT = {
   contentRadius: 8,
   /** Painel de salas (como a lista de canais do Discord). */
   roomsPanelWidth: 240,
+  /** Painel de conversas fixadas, ao lado do Chat. */
+  pinsPanelWidth: 240,
 } as const;
 
 export const ShellChannel = {
@@ -27,6 +29,11 @@ export const ShellChannel = {
   SetView: 'shell:set-view',
   /** renderer → main (invoke): abrir o menu de status do Chat da conta ativa. */
   OpenChatStatus: 'shell:open-chat-status',
+  /** renderer → main (invoke): conversas fixadas. */
+  PinsPinCurrent: 'pins:pin-current',
+  PinsSave: 'pins:save',
+  PinsOpen: 'pins:open',
+  PinsSetPanel: 'pins:set-panel',
   /** renderer → main (invoke): recarregar o Chat da conta ativa. */
   ReloadChat: 'shell:reload-chat',
   /** renderer → main (invoke): estado atual (na montagem). */
@@ -79,4 +86,15 @@ export interface ShellState {
   call: CallState | null;
   /** "Não perturbe" do app (notificações pausadas, com ou sem prazo). */
   dnd: DndStatus;
+  /** Painel de conversas fixadas. */
+  pins: PinsView;
+}
+
+export interface PinsView {
+  /** Painel aberto ao lado do Chat. */
+  open: boolean;
+  /** Conversa aberta agora no Chat da conta ativa (null = início, busca etc.). */
+  current: { path: string; name: string | null } | null;
+  /** Mensagens novas por conversa fixada (id → quantidade). */
+  unread: Record<string, number>;
 }

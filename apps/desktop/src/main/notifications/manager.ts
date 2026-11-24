@@ -24,7 +24,8 @@ export type DropReason =
   'disabled' | 'paused' | 'duplicate' | 'muted' | 'quiet-hours' | 'streamer' | 'unsupported';
 
 interface Events {
-  shown: [CapturedNotification];
+  /** Notificação exibida e a conta de onde veio (null se desconhecida). */
+  shown: [CapturedNotification, string | null];
   dropped: [DropReason];
 }
 
@@ -161,7 +162,7 @@ export class NotificationManager extends EventEmitter<Events> {
     this.playSound(sound);
 
     this.deps.shell.onNotificationShown(accountId);
-    this.emit('shown', n);
+    this.emit('shown', n, accountId);
     return 'shown';
   }
 

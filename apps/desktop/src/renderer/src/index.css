@@ -197,6 +197,16 @@
   }
 }
 
+/* Conversa recém-fixada: um brilho rápido na cor de destaque. */
+@keyframes pin-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

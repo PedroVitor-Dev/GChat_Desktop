@@ -71,6 +71,12 @@ const api: GChatApi = {
     reloadChat: () => ipcRenderer.invoke(ShellChannel.ReloadChat),
     openChatStatus: () => ipcRenderer.invoke(ShellChannel.OpenChatStatus),
   },
+  pins: {
+    pinCurrent: (groupId) => ipcRenderer.invoke(ShellChannel.PinsPinCurrent, groupId),
+    save: (groups) => ipcRenderer.invoke(ShellChannel.PinsSave, groups),
+    open: (id) => ipcRenderer.invoke(ShellChannel.PinsOpen, id),
+    setPanel: (open) => ipcRenderer.invoke(ShellChannel.PinsSetPanel, open),
+  },
 };
 
 contextBridge.exposeInMainWorld('gchat', Object.freeze(api));

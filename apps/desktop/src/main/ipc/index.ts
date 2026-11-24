@@ -1,6 +1,8 @@
 import { BrowserWindow, Menu, app, dialog } from 'electron';
 import { isDndDuration, type DndDuration } from '../../shared/dnd';
 import type { DndService } from '../system/dnd';
+import type { PinsService } from '../pins/pins-service';
+import { isGroupId, isPinId } from '../../shared/pins';
 import { IpcChannel, type AppInfo } from '../../shared/ipc';
 import type { Settings } from '../../shared/settings';
 import { ShellChannel, type ShellState } from '../../shared/shell';
@@ -32,6 +34,7 @@ interface IpcDeps {
   updater: AppUpdater;
   profiles: ProfileService;
   dnd: DndService;
+  pins: PinsService;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -85,6 +88,7 @@ export function registerIpc({
   updater,
   profiles,
   dnd,
+  pins,
 }: IpcDeps): void {
   handle(IpcChannel.UpdateStatus, noArgs, () => updater.status());
   handle(IpcChannel.UpdateCheck, noArgs, () => updater.check());
@@ -130,6 +134,33 @@ export function registerIpc({
   handle(IpcChannel.CallLeave, noArgs, () => shell.endCall());
   handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
   handle(IpcChannel.DndSet, oneDuration, (d) => dnd.set(d));
+  handle(
+    ShellChannel.PinsPinCurrent,
+    (args) => {
+      if (args.length !== 1 || (args[0] !== null && !isGroupId(args[0]))) {
+        throw new TypeError('grupo inválido');
+      }
+      return args[0] as string | null;
+    },
+    (groupId) => pins.pinCurrent(groupId),
+  );
+  handle(
+    ShellChannel.PinsSave,
+    (args) => {
+      if (args.length !== 1 || !Array.isArray(args[0])) throw new TypeError('lista inválida');
+      return args[0] as unknown[];
+    },
+    (groups) => pins.saveFromRenderer(groups),
+  );
+  handle(
+    ShellChannel.PinsOpen,
+    (args) => {
+      if (args.length !== 1 || !isPinId(args[0])) throw new TypeError('conversa inválida');
+      return args[0];
+    },
+    (id) => pins.open(id),
+  );
+  handle(ShellChannel.PinsSetPanel, oneBoolean, (open) => pins.setPanel(open));
   handle(IpcChannel.DndResume, noArgs, () => dnd.resume());
   handle(IpcChannel.DndMenu, noArgs, (_args, event) => {
     const window = BrowserWindow.fromWebContents(event.sender);

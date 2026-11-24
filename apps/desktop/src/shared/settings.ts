@@ -6,6 +6,7 @@ import { SOUND_EXTENSIONS, SOUND_LIMITS, isCustomSoundId, isSoundId } from './so
 import type { CustomSound, SoundExtension, SoundId } from './sounds';
 import { DEFAULT_ACCOUNT, normalizeAccounts, type AccountsSettings } from './accounts';
 import { normalizeRooms, type Room } from './rooms';
+import { DEFAULT_PINS, normalizePins, type PinsSettings } from './pins';
 import {
   DEFAULT_CUSTOM_THEME,
   findPreset,
@@ -128,6 +129,8 @@ export interface Settings {
   updates: UpdateSettings;
   /** Salas do Meet salvas. Só o main altera. */
   rooms: Room[];
+  /** Conversas fixadas (painel ao lado do Chat). Só o main altera. */
+  pins: PinsSettings;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -176,6 +179,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   updates: { auto: true },
   rooms: [],
+  pins: DEFAULT_PINS,
 };
 
 export const LIMITS = {
@@ -281,6 +285,7 @@ export function normalizeSettings(
       ? Math.round(Math.min(100, Math.max(0, s['volume'])))
       : bs.volume;
 
+  const accounts = allowLibrary ? normalizeAccounts(raw['accounts'], base.accounts) : base.accounts;
   const vip = cleanStrings(
     n['vipConversations'],
     bn.vipConversations,
@@ -296,7 +301,7 @@ export function normalizeSettings(
       closeToTray: bool(g['closeToTray'], bg.closeToTray),
       trayHintShown: allowLibrary ? bool(g['trayHintShown'], bg.trayHintShown) : bg.trayHintShown,
     },
-    accounts: allowLibrary ? normalizeAccounts(raw['accounts'], base.accounts) : base.accounts,
+    accounts,
     notifications: {
       enabled: bool(n['enabled'], bn.enabled),
       showSender: bool(n['showSender'], bn.showSender),
@@ -378,6 +383,13 @@ export function normalizeSettings(
       auto: bool(isObj(raw['updates']) ? raw['updates']['auto'] : undefined, base.updates.auto),
     },
     rooms: allowLibrary ? normalizeRooms(raw['rooms'], base.rooms) : base.rooms,
+    pins: allowLibrary
+      ? normalizePins(
+          raw['pins'],
+          base.pins,
+          accounts.list.map((a) => a.id),
+        )
+      : base.pins,
   };
 }
 
