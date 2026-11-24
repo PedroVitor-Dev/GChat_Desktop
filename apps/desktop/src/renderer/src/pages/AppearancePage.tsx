@@ -32,13 +32,13 @@ const MATERIALS: { id: WindowMaterial; label: string; description: string; icon:
   {
     id: 'mica',
     label: 'Mica',
-    description: 'Tinge com o papel de parede, discreto.',
+    description: 'Pega só a cor do papel de parede, bem sutil (como o Explorador de Arquivos).',
     icon: <Layers size={18} aria-hidden />,
   },
   {
     id: 'acrylic',
     label: 'Acrílico',
-    description: 'Vidro desfocado, mostra o que está atrás.',
+    description: 'Vidro fosco: o que está atrás da janela aparece desfocado.',
     icon: <Sparkles size={18} aria-hidden />,
   },
 ];
@@ -153,7 +153,14 @@ export function AppearancePage() {
               type="button"
               role="radio"
               aria-checked={selected}
-              onClick={() => setAppearance({ material: m.id })}
+              onClick={() =>
+                setAppearance(
+                  // Sem transparência o material não aparece: ao ligar, começa visível.
+                  m.id !== 'none' && a.opacity > 75
+                    ? { material: m.id, opacity: 60 }
+                    : { material: m.id },
+                )
+              }
               className={`bg-card flex flex-col items-start gap-1.5 rounded-lg p-3 text-left ring-2 transition-all ${
                 selected ? 'ring-accent' : 'hover:ring-switch-off ring-transparent'
               }`}
@@ -172,10 +179,10 @@ export function AppearancePage() {
             description={
               a.material === 'none'
                 ? 'Escolha Mica ou Acrílico para deixar a janela translúcida.'
-                : 'Quanto do material do Windows aparece atrás do trilho e dos painéis.'
+                : 'Em 0% a janela fica sólida; quanto maior, mais o material do Windows aparece.'
             }
             min={0}
-            max={65}
+            max={80}
             value={100 - a.opacity}
             disabled={a.material === 'none'}
             format={(v) => `${v}%`}

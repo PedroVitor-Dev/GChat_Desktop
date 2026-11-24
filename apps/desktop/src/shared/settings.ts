@@ -71,7 +71,7 @@ export interface AppearanceSettings {
   custom: CustomTheme;
   /** Material da janela no Windows 11: sólido, Mica ou Acrílico. */
   material: WindowMaterial;
-  /** Opacidade do fundo sobre o material (35–100). */
+  /** Opacidade do fundo sobre o material (20–100). */
   opacity: number;
 }
 
@@ -329,7 +329,7 @@ export function normalizeSettings(
         : base.appearance.material,
       opacity:
         typeof a['opacity'] === 'number' && Number.isFinite(a['opacity'])
-          ? Math.round(Math.min(100, Math.max(35, a['opacity'])))
+          ? Math.round(Math.min(100, Math.max(20, a['opacity'])))
           : base.appearance.opacity,
     },
     streamer: {

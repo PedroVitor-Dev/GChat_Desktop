@@ -52,7 +52,7 @@ shell; o renderer só aplica as variáveis `--color-*` (`renderer/src/theme-vars
   tingindo as camadas cinza do app (mais tinta no trilho, menos no conteúdo); os
   textos não são tingidos. Um teste garante contraste ≥ 4,5 em todos os temas prontos.
 - **Janela:** Sólido, **Mica** ou **Acrílico** (`BrowserWindow.setBackgroundMaterial`,
-  Windows 11) e **Transparência** (0–65%). Com material ou degradê, o trilho e a barra
+  Windows 11) e **Transparência** (0–80%). Com material ou degradê, o trilho e a barra
   de título mostram o fundo e os painéis ficam translúcidos por cima; a barra de
   título nativa fica transparente. No Windows 10 a janela continua sólida.
 - O tema é repassado ao Chat (`nativeTheme.themeSource`): com o tema do Chat em

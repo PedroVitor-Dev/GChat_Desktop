@@ -53,7 +53,7 @@ export interface ResolvedTheme {
   /** Degradê nos dois extremos (para a barra de título e a prévia); null = liso. */
   gradient: [string, string] | null;
   material: WindowMaterial;
-  /** Opacidade do fundo sobre o material (0.35–1). 1 = sólido. */
+  /** Opacidade do fundo sobre o material (0.2–1). 1 = sólido. */
   opacity: number;
 }
 
@@ -293,7 +293,7 @@ export interface ThemeSelection {
   colorTheme: string;
   custom: CustomTheme;
   material: WindowMaterial;
-  /** Opacidade do fundo com Mica/Acrílico (35–100). */
+  /** Opacidade do fundo com Mica/Acrílico (20–100). */
   opacity: number;
 }
 
@@ -321,7 +321,7 @@ export function resolveTheme(sel: ThemeSelection, systemDark: boolean): Resolved
     ? [mix(BASE[def.base].rail, def.tint, g), mix(BASE[def.base].rail, def.gradientTo, g)]
     : null;
   const opacity =
-    sel.material === 'none' ? 1 : Math.min(100, Math.max(35, Math.round(sel.opacity))) / 100;
+    sel.material === 'none' ? 1 : Math.min(100, Math.max(20, Math.round(sel.opacity))) / 100;
   return {
     base: def.base,
     palette,

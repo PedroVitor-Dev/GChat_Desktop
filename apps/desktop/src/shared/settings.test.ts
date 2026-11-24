@@ -63,7 +63,7 @@ describe('aparência', () => {
       chatTheme: false,
       colorTheme: 'padrao',
       material: 'none',
-      opacity: 35,
+      opacity: 20,
     });
     expect(
       normalizeSettings({ appearance: { theme: 'light', chatTheme: true } }).appearance,

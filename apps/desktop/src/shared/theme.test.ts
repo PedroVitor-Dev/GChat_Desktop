@@ -51,7 +51,7 @@ describe('resolveTheme', () => {
 
   it('material deixa a barra de título transparente e limita a opacidade', () => {
     const t = resolveTheme(sel({ material: 'mica', opacity: 10 }), false);
-    expect(t.opacity).toBe(0.35);
+    expect(t.opacity).toBe(0.2);
     expect(titleBarColors(t).color).toBe('#00000000');
     expect(titleBarColors(resolveTheme(sel(), false)).color).toBe('#1e1f22');
   });

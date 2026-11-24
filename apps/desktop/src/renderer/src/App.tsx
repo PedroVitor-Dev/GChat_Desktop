@@ -78,38 +78,42 @@ export function App() {
           onShowCall={() => void shell.setView('rooms')}
         />
         <div className="relative flex min-h-0 flex-1">
-          <Rail
-            accounts={state.accounts}
-            activeAccount={state.activeAccount}
-            view={state.view}
-            settingsOpen={state.settingsOpen}
-            inCall={!!state.call}
-            onSelect={(id) => void shell.selectAccount(id)}
-            onAdd={openAdd}
-            onRooms={() => void shell.setView('rooms')}
-            onSettings={() => {
-              setSettingsSection('notificacoes');
-              void shell.setSettingsOpen(!state.settingsOpen);
-            }}
-            onProfile={() => void shell.openChatStatus()}
-          />
-          {inRooms ? (
-            <>
-              <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
-              {/* Com chamada, o main posiciona a view do Meet aqui; sem chamada, o saguão. */}
-              {state.call ? (
-                <div className="bg-content flex-1" />
-              ) : (
-                <RoomsLobby
-                  rooms={settings?.rooms ?? []}
-                  accounts={state.accounts}
-                  onCreate={openCreateRoom}
-                />
-              )}
-            </>
-          ) : (
-            <ChatPlaceholder loading={active?.loading ?? true} />
-          )}
+          {/* Configurações em tela cheia cobrem tudo: com fundo translúcido, o trilho
+              e o Chat não podem aparecer por trás delas. */}
+          <div className={`contents ${state.settingsOpen ? 'invisible' : ''}`}>
+            <Rail
+              accounts={state.accounts}
+              activeAccount={state.activeAccount}
+              view={state.view}
+              settingsOpen={state.settingsOpen}
+              inCall={!!state.call}
+              onSelect={(id) => void shell.selectAccount(id)}
+              onAdd={openAdd}
+              onRooms={() => void shell.setView('rooms')}
+              onSettings={() => {
+                setSettingsSection('notificacoes');
+                void shell.setSettingsOpen(!state.settingsOpen);
+              }}
+              onProfile={() => void shell.openChatStatus()}
+            />
+            {inRooms ? (
+              <>
+                <RoomsPanel rooms={settings?.rooms ?? []} state={state} onCreate={openCreateRoom} />
+                {/* Com chamada, o main posiciona a view do Meet aqui; sem chamada, o saguão. */}
+                {state.call ? (
+                  <div className="bg-content flex-1" />
+                ) : (
+                  <RoomsLobby
+                    rooms={settings?.rooms ?? []}
+                    accounts={state.accounts}
+                    onCreate={openCreateRoom}
+                  />
+                )}
+              </>
+            ) : (
+              <ChatPlaceholder loading={active?.loading ?? true} />
+            )}
+          </div>
           {state.settingsOpen && (
             <SettingsScreen
               key={settingsSection}

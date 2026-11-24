@@ -9,14 +9,17 @@ export function themeVars(look: ResolvedTheme): Record<string, string> {
   // Fundo liso e sem material: camadas sólidas (visual original). Com degradê ou
   // Mica/Acrílico, o trilho e a barra de título mostram o fundo, e os painéis
   // ficam translúcidos por cima dele.
+  // Transparência 0% (opacidade 1) = painéis opacos. Com degradê, os painéis
+  // deixam um pouco do fundo aparecer, como nos temas coloridos do Discord.
   const layered = look.gradient !== null || look.material !== 'none';
   const a = look.opacity;
+  const g = look.gradient ? 0.88 : 1;
   vars['--color-shell'] = layered ? 'transparent' : look.palette.rail;
   vars['--color-pane'] = layered
-    ? withAlpha(look.palette.sidebar, 0.45 + 0.4 * a)
+    ? withAlpha(look.palette.sidebar, Math.min(1, (0.25 + 0.75 * a) * g))
     : look.palette.sidebar;
   vars['--color-content'] = layered
-    ? withAlpha(look.palette.surface, 0.6 + 0.3 * a)
+    ? withAlpha(look.palette.surface, Math.min(1, (0.45 + 0.55 * a) * (g + (1 - g) / 2)))
     : look.palette.surface;
   vars['--app-bg'] = look.background;
   vars['--app-opacity'] = String(a);
