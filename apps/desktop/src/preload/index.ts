@@ -24,6 +24,11 @@ const api: GChatApi = {
   removeSound: (id) => ipcRenderer.invoke(IpcChannel.SoundRemove, id),
   getAutostartStatus: () => ipcRenderer.invoke(IpcChannel.AutostartStatus),
   toggleStreamer: () => ipcRenderer.invoke(IpcChannel.StreamerToggle),
+  dnd: {
+    set: (duration) => ipcRenderer.invoke(IpcChannel.DndSet, duration),
+    resume: () => ipcRenderer.invoke(IpcChannel.DndResume),
+    showMenu: () => ipcRenderer.invoke(IpcChannel.DndMenu),
+  },
   updates: {
     status: () => ipcRenderer.invoke(IpcChannel.UpdateStatus),
     check: () => ipcRenderer.invoke(IpcChannel.UpdateCheck),

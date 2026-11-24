@@ -1,4 +1,5 @@
-import { Radio, Rocket, Signal } from 'lucide-react';
+import { BellOff, Radio, Rocket, Signal } from 'lucide-react';
+import { describeDnd, type DndStatus } from '../../../shared/dnd';
 import { useUpdateStatus } from '../hooks/useUpdateStatus';
 import type { CallState } from '../../../shared/rooms';
 import { useElapsed } from '../hooks/useElapsed';
@@ -14,11 +15,13 @@ import type { StreamerStatus } from '../../../shared/streamer';
 export function TitleBar({
   title,
   streamer,
+  dnd,
   call,
   onShowCall,
 }: {
   title: string;
   streamer: StreamerStatus;
+  dnd: DndStatus;
   call: CallState | null;
   onShowCall: () => void;
 }) {
@@ -59,6 +62,17 @@ export function TitleBar({
         >
           <Rocket size={12} aria-hidden />
           Reiniciar para atualizar
+        </button>
+      )}
+      {dnd.active && (
+        <button
+          type="button"
+          title="Notificações pausadas. Clique para reativar ou mudar o tempo."
+          onClick={() => void window.gchat.dnd.showMenu()}
+          className="no-drag bg-danger/15 text-danger hover:bg-danger/25 ml-4 flex animate-[fade-in_200ms_ease] items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+        >
+          <BellOff size={12} aria-hidden />
+          Não perturbe {describeDnd(dnd, new Date())}
         </button>
       )}
       {streamer.active && (

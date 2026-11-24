@@ -4,11 +4,14 @@ import { Card } from '../components/Card';
 import { Button, SectionTitle, TimeInput, Toggle } from '../components/controls';
 import { KeywordsInput } from '../components/KeywordsInput';
 import { useSettings } from '../hooks/useSettings';
+import { useShellState } from '../hooks/useShellState';
+import { DND_OPTIONS, describeDnd } from '../../../shared/dnd';
 
 export function NotificationsPage() {
   const [settings, update] = useSettings();
   const [recent, setRecent] = useState<string[]>([]);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const shellState = useShellState();
 
   useEffect(() => {
     void window.gchat.getRecentConversations().then(setRecent);
@@ -41,6 +44,35 @@ export function NotificationsPage() {
         <div className="flex items-center gap-3 pt-3">
           <Button onClick={() => void test()}>Testar notificação</Button>
           {testResult && <p className="text-muted text-xs">{testResult}</p>}
+        </div>
+      </Card>
+
+      <SectionTitle>Não perturbe</SectionTitle>
+      <Card>
+        <div className="py-3">
+          {shellState?.dnd.active ? (
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-header flex items-center gap-2 font-medium">
+                <BellOff size={16} className="text-danger" aria-hidden />
+                Notificações pausadas {describeDnd(shellState.dnd, new Date())}
+              </p>
+              <Button variant="primary" onClick={() => void window.gchat.dnd.resume()}>
+                Reativar agora
+              </Button>
+            </div>
+          ) : (
+            <p className="text-muted text-sm">
+              Pause avisos e sons por um tempo; eles voltam sozinhos. Também pelo sino no trilho ou
+              pela bandeja.
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {DND_OPTIONS.map((o) => (
+              <Button key={o.id} onClick={() => void window.gchat.dnd.set(o.id)}>
+                {o.label}
+              </Button>
+            ))}
+          </div>
         </div>
       </Card>
 

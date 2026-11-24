@@ -13,6 +13,10 @@ export const IpcChannel = {
   SoundRemove: 'sounds:remove',
   AutostartStatus: 'system:autostart-status',
   StreamerToggle: 'streamer:toggle',
+  /** "Não perturbe": pausar por um tempo, reativar e abrir o menu (trilho). */
+  DndSet: 'dnd:set',
+  DndResume: 'dnd:resume',
+  DndMenu: 'dnd:menu',
   UpdateStatus: 'updates:status',
   /** main → renderer: estado da atualização mudou. */
   UpdateStatusChanged: 'updates:status-changed',

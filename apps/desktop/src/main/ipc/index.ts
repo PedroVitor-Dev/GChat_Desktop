@@ -1,4 +1,6 @@
-import { BrowserWindow, app, dialog } from 'electron';
+import { BrowserWindow, Menu, app, dialog } from 'electron';
+import { isDndDuration, type DndDuration } from '../../shared/dnd';
+import type { DndService } from '../system/dnd';
 import { IpcChannel, type AppInfo } from '../../shared/ipc';
 import type { Settings } from '../../shared/settings';
 import { ShellChannel, type ShellState } from '../../shared/shell';
@@ -29,6 +31,7 @@ interface IpcDeps {
   rooms: RoomsService;
   updater: AppUpdater;
   profiles: ProfileService;
+  dnd: DndService;
 }
 
 /** Um único argumento do tipo objeto; o conteúdo é normalizado pelo store. */
@@ -65,6 +68,11 @@ const oneArg = (args: unknown[]): unknown => {
   return args[0];
 };
 
+const oneDuration = (args: unknown[]): DndDuration => {
+  if (args.length !== 1 || !isDndDuration(args[0])) throw new TypeError('duração inválida');
+  return args[0];
+};
+
 export function registerIpc({
   settings,
   notifications,
@@ -76,6 +84,7 @@ export function registerIpc({
   rooms,
   updater,
   profiles,
+  dnd,
 }: IpcDeps): void {
   handle(IpcChannel.UpdateStatus, noArgs, () => updater.status());
   handle(IpcChannel.UpdateCheck, noArgs, () => updater.check());
@@ -120,6 +129,12 @@ export function registerIpc({
   });
   handle(IpcChannel.CallLeave, noArgs, () => shell.endCall());
   handle(IpcChannel.StreamerToggle, noArgs, () => streamer.toggle());
+  handle(IpcChannel.DndSet, oneDuration, (d) => dnd.set(d));
+  handle(IpcChannel.DndResume, noArgs, () => dnd.resume());
+  handle(IpcChannel.DndMenu, noArgs, (_args, event) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    if (window) Menu.buildFromTemplate(dnd.menuItems()).popup({ window });
+  });
   handle(ShellChannel.GetState, noArgs, (): ShellState => shell.getState());
   handle(ShellChannel.SetSettingsOpen, oneBoolean, (open) => shell.setSettingsOpen(open));
   handle(ShellChannel.SetModalOpen, oneBoolean, (open) => shell.setModalOpen(open));

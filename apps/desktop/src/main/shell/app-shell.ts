@@ -12,6 +12,7 @@ import {
 } from 'electron';
 import { partitionOf, type Account, type AccountsSettings } from '../../shared/accounts';
 import type { AppearanceSettings } from '../../shared/settings';
+import { DND_OFF, type DndStatus } from '../../shared/dnd';
 import { chatThemeCss, resolveTheme, titleBarColors, type ResolvedTheme } from '../../shared/theme';
 import { STREAMER_OFF, type StreamerStatus } from '../../shared/streamer';
 import type { AccountProfile, ChatStatus } from '../../shared/profile';
@@ -96,6 +97,7 @@ export class AppShell {
   private settingsOpen = false;
   private modalOpen = false;
   private look: ResolvedTheme;
+  private dnd: DndStatus = DND_OFF;
   private appearance: AppearanceSettings;
   private badge: NativeImage | null = null;
   private quitting = false;
@@ -177,6 +179,7 @@ export class AppShell {
       streamer: this.streamer,
       view: this.view,
       call: this.call?.state ?? null,
+      dnd: this.dnd,
     };
   }
 
@@ -380,6 +383,11 @@ export class AppShell {
     if (!slot || slot.loading) return this.focusChat();
     this.focusChat();
     slot.view.webContents.send(OPEN_STATUS_CHANNEL);
+  }
+
+  setDnd(status: DndStatus): void {
+    this.dnd = status;
+    this.emitState();
   }
 
   setStreamer(status: StreamerStatus): void {

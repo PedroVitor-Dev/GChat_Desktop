@@ -42,6 +42,8 @@ export interface NotificationSettings {
   mentions: MentionSettings;
   /** Chaves das conversas silenciadas (nome exibido no título da notificação). */
   mutedConversations: string[];
+  /** "Não perturbe" com prazo: avisos pausados até este instante (epoch ms). */
+  pausedUntil: number | null;
 }
 
 export interface SoundSettings {
@@ -137,6 +139,7 @@ export const DEFAULT_SETTINGS: Settings = {
     quietHours: { enabled: false, start: '22:00', end: '07:00' },
     mentions: { keywords: [], bypassQuietHours: false },
     mutedConversations: [],
+    pausedUntil: null,
   },
   sounds: {
     enabled: true,
@@ -301,6 +304,13 @@ export function normalizeSettings(
         LIMITS.conversationKey,
         LIMITS.mutedConversations,
       ),
+      pausedUntil:
+        typeof n['pausedUntil'] === 'number' &&
+        Number.isFinite(n['pausedUntil']) &&
+        n['pausedUntil'] > 0 &&
+        n['pausedUntil'] < 1e13
+          ? Math.round(n['pausedUntil'])
+          : null,
     },
     sounds: {
       enabled: bool(s['enabled'], bs.enabled),

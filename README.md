@@ -46,9 +46,11 @@ Cinco sons originais incluídos, ou **importe MP3, WAV e OGG**. Volume, prévia,
 **som por conversa** e **som de menção**. O som do próprio Chat é substituído pelo
 seu.
 
-### 🌙 Horário de silêncio
+### 🌙 Não perturbe e horário de silêncio
 
-Nada de aviso fora do expediente. **Menções podem furar o silêncio**, se você quiser.
+Pause avisos e sons por **30 min, 1 h, 8 h ou até amanhã** com um clique no sino do
+trilho ou na bandeja; volta sozinho. E nada de aviso fora do expediente: **menções
+podem furar o horário de silêncio**, se você quiser.
 
 ### 📡 Modo streamer
 
@@ -254,7 +256,6 @@ sozinhos. O site é publicado pelo workflow **Landing page** a cada push em `sit
 
 - [ ] Perfil personalizável estilo Discord (banner com imagem/GIF, bio), público entre
       usuários do app
-- [ ] "Não perturbe" com tempo (30 min, 1 h, até amanhã) pela bandeja
 - [ ] Pessoas prioritárias que sempre avisam, mesmo no silêncio
 - [ ] Miniplayer flutuante da chamada
 - [ ] Atalho global para mostrar/esconder o app

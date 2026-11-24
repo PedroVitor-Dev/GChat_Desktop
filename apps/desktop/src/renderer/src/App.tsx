@@ -78,6 +78,7 @@ export function App() {
         <TitleBar
           title={title}
           streamer={state.streamer}
+          dnd={state.dnd}
           call={state.call}
           onShowCall={() => void shell.setView('rooms')}
         />
@@ -99,6 +100,7 @@ export function App() {
                 void shell.setSettingsOpen(!state.settingsOpen);
               }}
               onProfile={() => void shell.openChatStatus()}
+              dnd={state.dnd}
             />
             {inRooms ? (
               <>

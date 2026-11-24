@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
 import type { ChatPresence } from '../../shared/profile';
+import { resolveDnd } from '../../shared/dnd';
 import { Notification, type WebFrameMain } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../../shared/notifications';
 import type { SoundId } from '../../shared/sounds';
@@ -19,7 +20,7 @@ import {
 
 /** Motivo pelo qual uma notificação não virou toast (para estatísticas, sem conteúdo). */
 export type DropReason =
-  'disabled' | 'duplicate' | 'muted' | 'quiet-hours' | 'streamer' | 'unsupported';
+  'disabled' | 'paused' | 'duplicate' | 'muted' | 'quiet-hours' | 'streamer' | 'unsupported';
 
 interface Events {
   shown: [CapturedNotification];
@@ -79,6 +80,8 @@ export class NotificationManager extends EventEmitter<Events> {
     const settings = all.notifications;
 
     if (!settings.enabled) return this.drop('disabled');
+    // "Não perturbe" com prazo: nem aviso nem som até a hora marcada.
+    if (resolveDnd(settings, Date.now()).active) return this.drop('paused');
     if (this.dedup.isDuplicate(n)) return this.drop('duplicate');
 
     const key = conversationKey(n);

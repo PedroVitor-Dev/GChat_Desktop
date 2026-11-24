@@ -2,6 +2,7 @@ import type { ChatPresence } from './profile';
 import type { CallState } from './rooms';
 import type { StreamerStatus } from './streamer';
 import type { ResolvedTheme } from './theme';
+import type { DndStatus } from './dnd';
 
 /** Contrato entre o shell (barra de título + trilho + configurações) e o main. */
 
@@ -76,4 +77,6 @@ export interface ShellState {
   view: ShellView;
   /** Chamada em andamento (null = nenhuma). */
   call: CallState | null;
+  /** "Não perturbe" do app (notificações pausadas, com ou sem prazo). */
+  dnd: DndStatus;
 }

@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Headphones, Plus, Settings } from 'lucide-react';
+import { Bell, BellOff, Headphones, Plus, Settings } from 'lucide-react';
+import { describeDnd, type DndStatus } from '../../../shared/dnd';
 import logo from '../../../../resources/icon.png';
 import { ACCOUNT_COLORS, ACCOUNT_LIMITS, accountInitials } from '../../../shared/accounts';
 import { SHELL_LAYOUT, type AccountView, type ShellView } from '../../../shared/shell';
@@ -23,6 +24,7 @@ export function Rail({
   onRooms,
   onSettings,
   onProfile,
+  dnd,
 }: {
   accounts: AccountView[];
   activeAccount: string;
@@ -35,6 +37,8 @@ export function Rail({
   onSettings: () => void;
   /** Abre o menu de status do Google Chat. */
   onProfile: () => void;
+  /** "Não perturbe" do app (clique abre o menu com os tempos). */
+  dnd: DndStatus;
 }) {
   const single = accounts.length === 1;
   const canAdd = accounts.length < ACCOUNT_LIMITS.max;
@@ -98,6 +102,17 @@ export function Rail({
       </RailItem>
 
       <div className="flex-1" />
+
+      <RailItem
+        label={
+          dnd.active
+            ? `Não perturbe ${describeDnd(dnd, new Date())} · clique para mudar`
+            : 'Não perturbe (pausar notificações)'
+        }
+        onClick={() => void window.gchat.dnd.showMenu()}
+      >
+        {dnd.active ? <BellOff size={20} className="text-danger" /> : <Bell size={20} />}
+      </RailItem>
 
       <ProfileButton account={accounts.find((a) => a.id === activeAccount)} onClick={onProfile} />
 

@@ -4,6 +4,7 @@ import type { ShellState, ShellView } from '../shared/shell';
 import type { Account } from '../shared/accounts';
 import type { Room } from '../shared/rooms';
 import type { UpdateStatus } from '../shared/updates';
+import type { DndDuration } from '../shared/dnd';
 
 export type RoomResult = { ok: true; room: Room } | { ok: false; error: string };
 
@@ -33,6 +34,13 @@ export interface GChatApi {
   getAutostartStatus(): Promise<AutostartStatus>;
   /** Liga/desliga o modo streamer (desligar numa transmissão vale até o programa fechar). */
   toggleStreamer(): Promise<void>;
+  /** "Não perturbe" do app: pausar por um tempo, reativar ou abrir o menu. */
+  dnd: {
+    set(duration: DndDuration): Promise<void>;
+    resume(): Promise<void>;
+    /** Menu nativo com as opções, na posição do mouse (botão do trilho). */
+    showMenu(): Promise<void>;
+  };
   /** Atualização automática (só no app instalado). */
   updates: {
     status(): Promise<UpdateStatus>;

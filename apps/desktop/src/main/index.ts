@@ -15,6 +15,7 @@ import { StreamerMode } from './system/streamer-mode';
 import { RoomsService } from './meet/rooms-service';
 import { AppUpdater } from './system/updater';
 import { ProfileService } from './profile/profile-service';
+import { DndService } from './system/dnd';
 import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
@@ -60,6 +61,7 @@ if (!app.requestSingleInstanceLock()) {
     const library = new SoundLibrary(settings, (bytes) => player.probe(bytes));
     player.attach(library);
     const streamer = new StreamerMode(settings);
+    const dnd = new DndService(settings);
     const notifications = new NotificationManager({
       settings,
       player,
@@ -75,7 +77,15 @@ if (!app.requestSingleInstanceLock()) {
       quit: () => app.quit(),
       toggleStreamer: () => streamer.toggle(),
       installUpdate: () => updater.install(),
+      dndMenu: () => dnd.menuItems(),
+      dndLabel: () => dnd.describe(),
     });
+    const onDnd = () => {
+      shell.setDnd(dnd.status());
+      tray?.setDnd(dnd.status());
+    };
+    dnd.on('change', onDnd);
+    onDnd();
     const onStreamer = () => {
       shell.setStreamer(streamer.status());
       tray?.setStreamer(streamer.status());
@@ -100,6 +110,7 @@ if (!app.requestSingleInstanceLock()) {
       rooms,
       updater,
       profiles,
+      dnd,
     });
     updater.on('status', (s) =>
       tray?.setUpdateReady(s.state === 'downloaded' ? (s.version ?? null) : null),
@@ -137,6 +148,7 @@ if (!app.requestSingleInstanceLock()) {
       flushed = true;
       tray?.destroy();
       streamer.dispose();
+      dnd.dispose();
       updater.stop();
       player.destroy();
       void Promise.all([settings.flush(), shell.flushSessions()]).finally(() => app.quit());
