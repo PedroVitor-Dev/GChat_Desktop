@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.0.7",
+    "date": "2026-11-25",
+    "highlights": [
+      "Tema Cibus agora é \"Iron Ball\": uma esfera de metal laranja e bolinhas metálicas flutuando no trilho",
+      "Notificações perdidas só saem da caixa depois que você realmente olha a conversa (voltar para a janela não apaga mais nada)",
+      "A conversa aberta no painel dividido ao lado do Início agora é reconhecida: avisos lidos somem, e o Fixar conversa funciona"
+    ]
+  },
+  {
     "version": "0.0.6",
     "date": "2026-11-24",
     "highlights": [

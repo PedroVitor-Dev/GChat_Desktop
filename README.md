@@ -236,8 +236,8 @@ docs/                 # documentação técnica
 2. Faça o commit e o push. Depois, crie e envie a tag:
 
 ```bash
-git tag v0.0.6
-git push origin v0.0.6
+git tag v0.0.7
+git push origin v0.0.7
 ```
 
 O workflow **Release** roda os testes, gera o instalador e publica no Release o
