@@ -44,6 +44,8 @@ export const IpcChannel = {
 } as const;
 
 export interface AutostartStatus {
+  /** Por que não dá: versão de desenvolvimento ou da Microsoft Store. */
+  reason?: 'dev' | 'store';
   /** Só o app instalado pode se registrar para abrir com o Windows. */
   supported: boolean;
   /** Vai abrir no próximo login. */

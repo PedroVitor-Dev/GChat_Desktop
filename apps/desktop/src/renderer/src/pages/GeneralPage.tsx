@@ -41,7 +41,9 @@ export function GeneralPage() {
           <p className="text-muted flex gap-2 py-3 text-sm">
             <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
             {unsupported
-              ? 'Disponível no app instalado. Na versão de desenvolvimento o Windows abriria o Electron genérico.'
+              ? autostart?.reason === 'store'
+                ? 'Ainda não disponível na versão da Microsoft Store. Use o instalador do site se precisar abrir o app com o Windows.'
+                : 'Disponível no app instalado. Na versão de desenvolvimento o Windows abriria o Electron genérico.'
               : 'O Windows está bloqueando a inicialização automática. Ative o GChat Desktop+ em Gerenciador de Tarefas → Aplicativos de inicialização.'}
           </p>
         )}

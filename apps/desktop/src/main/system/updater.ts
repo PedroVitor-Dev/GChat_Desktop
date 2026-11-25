@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import { isStoreBuild } from './store';
 import { highlightsFromReleaseNotes } from '../../shared/changelog';
 import { Notification, app } from 'electron';
 // electron-updater é CommonJS e expõe `autoUpdater` por getter: import padrão.
@@ -30,10 +31,13 @@ export class AppUpdater extends EventEmitter<{ status: [UpdateStatus] }> {
   constructor(private readonly settings: SettingsStore) {
     super();
     const currentVersion = app.getVersion();
-    this.current = app.isPackaged
-      ? { state: 'idle', currentVersion }
-      : { state: 'unsupported', currentVersion };
-    if (!app.isPackaged) return;
+    this.current = !app.isPackaged
+      ? { state: 'unsupported', currentVersion }
+      : isStoreBuild()
+        ? { state: 'store', currentVersion }
+        : { state: 'idle', currentVersion };
+    // Na Microsoft Store quem atualiza é a própria Store.
+    if (!app.isPackaged || isStoreBuild()) return;
 
     autoUpdater.logger = null; // nada de logs com caminhos/URLs internas
     // Só para testes: aponta para um servidor local com um latest.yml de teste.
@@ -87,7 +91,7 @@ export class AppUpdater extends EventEmitter<{ status: [UpdateStatus] }> {
 
   /** Começa as verificações automáticas (se ligadas). */
   start(): void {
-    if (!app.isPackaged) return;
+    if (!app.isPackaged || isStoreBuild()) return;
     setTimeout(() => this.autoCheck(), FIRST_CHECK_DELAY_MS);
     this.timer = setInterval(() => this.autoCheck(), CHECK_EVERY_MS);
   }
@@ -99,7 +103,7 @@ export class AppUpdater extends EventEmitter<{ status: [UpdateStatus] }> {
 
   /** Verificação pedida pelo usuário (botão "Buscar atualizações"). */
   async check(): Promise<UpdateStatus> {
-    if (!app.isPackaged) return this.current;
+    if (!app.isPackaged || isStoreBuild()) return this.current;
     if (this.current.state === 'downloading' || this.current.state === 'downloaded') {
       return this.current;
     }

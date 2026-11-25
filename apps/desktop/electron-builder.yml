@@ -50,3 +50,24 @@ publish:
   owner: PedroVitor-Dev
   repo: GChat_Desktop
   releaseType: release
+
+# ── Microsoft Store (MSIX/AppX) ─────────────────────────────────────────────
+# Gerar: npm run dist:store -w @gchat/desktop  (→ release/<versão>/*.appx)
+# Logos e blocos: resources/appx (gerados por `npm run appx-assets`).
+# A Store assina o pacote; não é preciso certificado para enviar.
+appx:
+  # ⚠️ PREENCHER com o Partner Center → seu app → Gerenciamento do produto →
+  # Identidade do produto. Enquanto estiverem com estes valores provisórios, o
+  # pacote serve só para teste local e a Store recusa o envio.
+  identityName: PROVISORIO.GChatDesktopPlus # Package/Identity/Name
+  publisher: CN=PROVISORIO # Package/Identity/Publisher
+  publisherDisplayName: PedroVitor-Dev # Package/Properties/PublisherDisplayName
+  applicationId: GChatDesktopPlus
+  displayName: GChat Desktop+
+  backgroundColor: '#1e1f22'
+  languages: [pt-BR]
+  showNameOnTiles: true
+  artifactName: GChat-Desktop-Plus-${version}-x64-store.${ext}
+  # Windows 10 1809+ (mínimo do Electron atual); testado com o SDK 10.0.26100.
+  minVersion: 10.0.17763.0
+  maxVersionTested: 10.0.26100.0

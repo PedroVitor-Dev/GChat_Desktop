@@ -37,29 +37,33 @@ export function UpdatesPage() {
 
       <WhatsNew status={status} />
 
-      <SectionTitle>Preferências</SectionTitle>
-      <Card>
-        <Toggle
-          label="Atualizar automaticamente"
-          description="Procura novas versões ao abrir o app e a cada 6 horas e baixa em segundo plano. Você escolhe quando reiniciar; se sair do app, a atualização é instalada ao fechar."
-          checked={settings.updates.auto}
-          onChange={(auto) => update({ updates: { auto } })}
-        />
-      </Card>
+      {status.state !== 'store' && (
+        <>
+          <SectionTitle>Preferências</SectionTitle>
+          <Card>
+            <Toggle
+              label="Atualizar automaticamente"
+              description="Procura novas versões ao abrir o app e a cada 6 horas e baixa em segundo plano. Você escolhe quando reiniciar; se sair do app, a atualização é instalada ao fechar."
+              checked={settings.updates.auto}
+              onChange={(auto) => update({ updates: { auto } })}
+            />
+          </Card>
 
-      <p className="text-muted mt-4 text-sm">
-        As atualizações vêm dos{' '}
-        <a
-          href="https://github.com/PedroVitor-Dev/GChat_Desktop/releases"
-          target="_blank"
-          rel="noreferrer"
-          className="text-accent hover:underline"
-        >
-          Releases oficiais no GitHub
-        </a>{' '}
-        e têm a integridade conferida (SHA-512) antes de instalar. Suas configurações, sons e logins
-        são mantidos.
-      </p>
+          <p className="text-muted mt-4 text-sm">
+            As atualizações vêm dos{' '}
+            <a
+              href="https://github.com/PedroVitor-Dev/GChat_Desktop/releases"
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent hover:underline"
+            >
+              Releases oficiais no GitHub
+            </a>{' '}
+            e têm a integridade conferida (SHA-512) antes de instalar. Suas configurações, sons e
+            logins são mantidos.
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -78,6 +82,13 @@ function StatusCard({
 
   const view = (() => {
     switch (status.state) {
+      case 'store':
+        return {
+          icon: <CheckCircle2 size={22} />,
+          tone: 'success',
+          title: 'Atualizado pela Microsoft Store',
+          text: 'Esta versão veio da Microsoft Store, que baixa e instala as novas versões sozinha.',
+        };
       case 'unsupported':
         return {
           icon: <AlertCircle size={22} />,
@@ -181,6 +192,7 @@ function StatusCard({
           </Button>
         ) : null}
         {status.state !== 'unsupported' &&
+          status.state !== 'store' &&
           status.state !== 'downloading' &&
           status.state !== 'downloaded' && (
             <Button onClick={onCheck}>

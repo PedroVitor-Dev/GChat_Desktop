@@ -262,6 +262,7 @@ sozinhos. O site é publicado pelo workflow **Landing page** a cada push em `sit
 | Visual e atalhos             | [visual.md](docs/visual.md)                                                                                 |
 | Atualização automática       | [atualizacoes.md](docs/atualizacoes.md)                                                                     |
 | Instalador e publicação      | [instalador.md](docs/instalador.md) · [publicacao.md](docs/publicacao.md)                                   |
+| Microsoft Store (MSIX)       | [microsoft-store.md](docs/microsoft-store.md)                                                               |
 | Desenvolvimento              | [desenvolvimento.md](docs/desenvolvimento.md) · [estrutura.md](docs/estrutura.md)                           |
 
 ---

@@ -15,7 +15,9 @@
     "dist": "electron-vite build && electron-builder --win --x64 --publish never",
     "icons": "electron scripts/generate-icons.cjs",
     "sounds": "node scripts/generate-sounds.mjs",
-    "installer-art": "electron scripts/generate-installer-art.cjs"
+    "installer-art": "electron scripts/generate-installer-art.cjs",
+    "appx-assets": "electron scripts/generate-appx-assets.cjs",
+    "dist:store": "node scripts/dist-store.mjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.5",

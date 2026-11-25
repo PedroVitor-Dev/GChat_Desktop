@@ -1,6 +1,7 @@
 /** Estado da atualização automática, mostrado nas configurações, na barra e na bandeja. */
 export type UpdateState =
   | 'unsupported' // versão de desenvolvimento: só o app instalado se atualiza
+  | 'store' // versão da Microsoft Store: a Store instala as atualizações
   | 'idle'
   | 'checking'
   | 'not-available'
