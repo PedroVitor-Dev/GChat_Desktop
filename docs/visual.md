@@ -44,12 +44,13 @@ shell; o renderer só aplica as variáveis `--color-*` (`renderer/src/theme-vars
 
 - **Prévia ao vivo:** miniatura do app com o tema atual no topo da tela.
 - **Tema base:** Escuro (padrão), Claro ou "Sincronizar com o Windows".
-- **Cibus:** tema da marca, com o laranja do logo (`#f26522`) no destaque, nos
-  interruptores e nos botões, fundo escuro quente em degradê para o laranja queimado e
-  miniatura igual ao logo (círculo laranja com "$" branco). **Animação:** moedas do logo
-  sobem devagar pelo trilho e atravessam a barra de título (`ThemeParticles`, só CSS com
-  transform/opacity). Pode ser desligada em Aparência ("Animação do tema") e some sozinha
-  com "Efeitos de animação" desligado no Windows (`prefers-reduced-motion`).
+- **Iron Ball** (antes "Cibus"): uma esfera de metal laranja. Destaque laranja
+  (`#f26522`) também nos interruptores e botões, fundo escuro quente em degradê para o
+  laranja queimado e miniatura com a esfera (brilho, reflexo na borda e sombra, em CSS:
+  `IRON_BALL`). **Animação:** bolinhas metálicas sobem pelo trilho e atravessam a barra
+  de título (`ThemeParticles`, só CSS com transform/opacity). Pode ser desligada em
+  Aparência ("Animação do tema") e some com "Efeitos de animação" desligado no Windows.
+  Quem tinha o Cibus escolhido continua com o tema (`RENAMED_PRESETS`).
 - **Temas coloridos:** Meia-noite, Aurora, Oceano, Crepúsculo, Ametista, Floresta,
   Brasa, Grafite (escuros) e Algodão-doce, Menta, Areia (claros). Cada um tem base,
   cor de destaque, tinta e, opcionalmente, degradê.

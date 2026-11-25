@@ -23,13 +23,11 @@ export interface CustomTheme {
 export interface ThemePreset extends CustomTheme {
   id: string;
   name: string;
-  /** Miniatura própria (ex.: a cor da marca), em vez da gerada pelas cores. */
+  /** Miniatura própria (cor ou fundo CSS, ex.: a esfera do Iron Ball). */
   swatch?: string;
-  /** Símbolo branco no centro da miniatura (ex.: "$"). */
-  mark?: string;
   /** Cor de "ligado" (interruptores, botões de adicionar); padrão: verde. */
   success?: string;
-  /** Símbolos animados flutuando no fundo (ex.: as moedas do Cibus). */
+  /** Bolinhas animadas flutuando no fundo (com o visual da miniatura). */
   particles?: boolean;
 }
 
@@ -66,7 +64,7 @@ export interface ResolvedTheme {
   /** Opacidade do fundo sobre o material (0.2–1). 1 = sólido. */
   opacity: number;
   /** Símbolos flutuando no fundo; null = sem animação. */
-  particles: { mark: string; color: string } | null;
+  particles: { background: string } | null;
 }
 
 // ───────────────────────────── paletas base ─────────────────────────────
@@ -106,21 +104,27 @@ const BASE: Record<ThemeBase, Omit<Palette, 'accent' | 'accentHover' | 'onAccent
 
 export const DEFAULT_ACCENT = '#5865f2';
 
+/** Esfera de metal laranja (brilho, reflexo na borda e sombra), em CSS. */
+export const IRON_BALL =
+  'radial-gradient(circle at 33% 27%, rgba(255,255,255,0.95) 0%, rgba(255,240,220,0.7) 5%, transparent 15%), radial-gradient(circle at 70% 80%, rgba(255,200,140,0.55) 0%, transparent 24%), radial-gradient(circle at 40% 36%, #fbb26b 0%, #f2843a 30%, #d9621d 56%, #9a4310 82%, #4e1d04 100%)';
+
+/** Ids de temas que mudaram de nome (escolhas salvas continuam valendo). */
+export const RENAMED_PRESETS: Readonly<Record<string, string>> = { cibus: 'iron-ball' };
+
 /** Temas prontos. "padrao" segue a escolha Escuro/Claro/Sistema. */
 export const THEME_PRESETS: readonly ThemePreset[] = [
   {
-    // Identidade da marca Cibus: laranja vivo com branco (o "$" do logo) sobre
-    // um fundo escuro quente, em degradê para o laranja queimado.
-    id: 'cibus',
-    name: 'Cibus',
+    // Uma esfera de metal laranja: fundo escuro quente em degradê para o laranja
+    // queimado, destaque laranja e bolinhas metálicas flutuando.
+    id: 'iron-ball',
+    name: 'Iron Ball',
     base: 'dark',
     accent: '#f26522',
     tint: '#3d1606',
     strength: 60,
     gradientTo: '#7a2a08',
-    swatch: '#f26522',
-    mark: '$',
-    // Tudo no laranja da marca, inclusive os interruptores.
+    swatch: IRON_BALL,
+    // Tudo no laranja do tema, inclusive os interruptores.
     success: '#f26522',
     particles: true,
   },
@@ -324,12 +328,13 @@ export interface ThemeSelection {
   material: WindowMaterial;
   /** Opacidade do fundo com Mica/Acrílico (20–100). */
   opacity: number;
-  /** Animações dos temas (ex.: moedas flutuando no Cibus). */
+  /** Animações dos temas (ex.: bolinhas metálicas no Iron Ball). */
   effects: boolean;
 }
 
 export function findPreset(id: string): ThemePreset | undefined {
-  return THEME_PRESETS.find((p) => p.id === id);
+  const current = RENAMED_PRESETS[id] ?? id;
+  return THEME_PRESETS.find((p) => p.id === current);
 }
 
 /** Resolve a escolha do usuário num tema pronto para aplicar. */
@@ -339,8 +344,8 @@ export function resolveTheme(sel: ThemeSelection, systemDark: boolean): Resolved
   if (sel.colorTheme === 'custom') def = sel.custom;
   else {
     const preset = findPreset(sel.colorTheme);
-    if (preset?.particles && preset.mark && sel.effects) {
-      particles = { mark: preset.mark, color: preset.swatch ?? preset.accent };
+    if (preset?.particles && sel.effects) {
+      particles = { background: preset.swatch ?? preset.accent };
     }
     if (preset) def = preset;
     else {

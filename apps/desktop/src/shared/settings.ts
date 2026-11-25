@@ -83,7 +83,7 @@ export interface AppearanceSettings {
   material: WindowMaterial;
   /** Opacidade do fundo sobre o material (20–100). */
   opacity: number;
-  /** Animações dos temas (ex.: moedas flutuando no tema Cibus). */
+  /** Animações dos temas (ex.: bolinhas metálicas no tema Iron Ball). */
   effects: boolean;
 }
 
@@ -363,12 +363,13 @@ export function normalizeSettings(
         ? (a['theme'] as ThemeChoice)
         : base.appearance.theme,
       chatTheme: bool(a['chatTheme'], base.appearance.chatTheme),
+      // Tema renomeado (ex.: "cibus" → "iron-ball") continua escolhido.
       colorTheme:
-        a['colorTheme'] === 'padrao' ||
-        a['colorTheme'] === 'custom' ||
-        (typeof a['colorTheme'] === 'string' && findPreset(a['colorTheme']))
-          ? (a['colorTheme'] as string)
-          : base.appearance.colorTheme,
+        a['colorTheme'] === 'padrao' || a['colorTheme'] === 'custom'
+          ? a['colorTheme']
+          : typeof a['colorTheme'] === 'string' && findPreset(a['colorTheme'])
+            ? findPreset(a['colorTheme'])!.id
+            : base.appearance.colorTheme,
       custom: normalizeCustomTheme(a['custom'], base.appearance.custom),
       material: MATERIALS.includes(a['material'] as WindowMaterial)
         ? (a['material'] as WindowMaterial)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  IRON_BALL,
   THEME_PRESETS,
   buildPalette,
   chatThemeCss,
@@ -67,21 +68,26 @@ describe('resolveTheme', () => {
   });
 });
 
-describe('tema Cibus', () => {
+describe('tema Iron Ball', () => {
   it('usa o laranja da marca no destaque e no "ligado"', () => {
-    const t = resolveTheme(sel({ colorTheme: 'cibus' }), false);
+    const t = resolveTheme(sel({ colorTheme: 'iron-ball' }), false);
     expect(t.palette.accent).toBe('#f26522');
     expect(t.palette.success).toBe('#f26522');
     expect(t.palette.onAccent).toBe('#ffffff');
     expect(resolveTheme(sel(), false).palette.success).toBe('#23a55a');
   });
 
-  it('moedas flutuando só no Cibus e só com animações ligadas', () => {
-    expect(resolveTheme(sel({ colorTheme: 'cibus' }), false).particles).toEqual({
-      mark: '$',
-      color: '#f26522',
+  it('quem tinha o Cibus (nome antigo) continua com o tema', () => {
+    expect(resolveTheme(sel({ colorTheme: 'cibus' }), false).palette.accent).toBe('#f26522');
+  });
+
+  it('bolinhas metálicas só no Iron Ball e só com animações ligadas', () => {
+    expect(resolveTheme(sel({ colorTheme: 'iron-ball' }), false).particles).toEqual({
+      background: IRON_BALL,
     });
-    expect(resolveTheme(sel({ colorTheme: 'cibus', effects: false }), false).particles).toBeNull();
+    expect(
+      resolveTheme(sel({ colorTheme: 'iron-ball', effects: false }), false).particles,
+    ).toBeNull();
     expect(resolveTheme(sel({ colorTheme: 'aurora' }), false).particles).toBeNull();
   });
 });

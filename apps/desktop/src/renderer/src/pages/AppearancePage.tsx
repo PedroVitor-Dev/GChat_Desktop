@@ -128,7 +128,6 @@ export function AppearancePage() {
             label={p.name}
             theme={p}
             {...(p.swatch ? { swatch: p.swatch } : {})}
-            {...(p.mark ? { mark: p.mark } : {})}
             selected={a.colorTheme === p.id}
             onSelect={() => setAppearance({ colorTheme: p.id })}
           />
@@ -339,7 +338,6 @@ function Swatch({
   onSelect,
   icon,
   swatch,
-  mark,
 }: {
   label: string;
   theme: CustomTheme;
@@ -347,7 +345,6 @@ function Swatch({
   onSelect: () => void;
   icon?: ReactNode;
   swatch?: string;
-  mark?: string;
 }) {
   const pal = buildPalette(theme);
   const background = swatch ?? swatchBackground(theme);
@@ -367,20 +364,14 @@ function Swatch({
         }`}
         style={{ background }}
       >
-        {!mark && (
+        {!swatch && (
           <span
             className="absolute right-0.5 bottom-0.5 h-4 w-4 rounded-full ring-2"
             style={{ background: pal.accent, ['--tw-ring-color' as string]: pal.rail }}
           />
         )}
         {icon && <span style={{ color: pal.header }}>{icon}</span>}
-        {mark && (
-          // Símbolo da marca, branco com contorno interno como no logo.
-          <span className="flex h-11 w-11 items-center justify-center rounded-full text-2xl leading-none font-black text-white ring-2 ring-white/90">
-            {mark}
-          </span>
-        )}
-        {selected && !icon && !mark && (
+        {selected && !icon && !swatch && (
           <span className="rounded-full bg-black/35 p-1 text-white">
             <Check size={14} aria-hidden />
           </span>

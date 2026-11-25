@@ -87,9 +87,7 @@ export function App() {
   return (
     <ShellActionsContext.Provider value={actions}>
       <div className="app-backdrop" aria-hidden />
-      {state.look.particles && (
-        <ThemeParticles mark={state.look.particles.mark} color={state.look.particles.color} />
-      )}
+      {state.look.particles && <ThemeParticles background={state.look.particles.background} />}
       <div className="flex h-full flex-col">
         <TitleBar
           title={title}
