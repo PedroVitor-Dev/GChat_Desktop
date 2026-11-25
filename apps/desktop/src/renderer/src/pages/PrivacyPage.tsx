@@ -45,6 +45,16 @@ export function PrivacyPage() {
           </li>
           <li>Nada é enviado a servidores além dos do próprio Google.</li>
         </ul>
+        <p className="py-3 text-sm">
+          <a
+            href="https://pedrovitor-dev.github.io/GChat_Desktop/privacidade.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
+            Ler a política de privacidade completa
+          </a>
+        </p>
       </Card>
     </div>
   );

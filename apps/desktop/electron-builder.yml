@@ -56,14 +56,14 @@ publish:
 # Logos e blocos: resources/appx (gerados por `npm run appx-assets`).
 # A Store assina o pacote; não é preciso certificado para enviar.
 appx:
-  # ⚠️ PREENCHER com o Partner Center → seu app → Gerenciamento do produto →
-  # Identidade do produto. Enquanto estiverem com estes valores provisórios, o
-  # pacote serve só para teste local e a Store recusa o envio.
-  identityName: PROVISORIO.GChatDesktopPlus # Package/Identity/Name
-  publisher: CN=PROVISORIO # Package/Identity/Publisher
-  publisherDisplayName: PedroVitor-Dev # Package/Properties/PublisherDisplayName
+  # Identidade do Partner Center (seu app → Gerenciamento do produto → Identidade do
+  # produto). Store ID 9NNF2SXFFHL6, PFN Pedro-Dev.GChatDesktop_12b70cbtvz0fj.
+  identityName: Pedro-Dev.GChatDesktop # Package/Identity/Name
+  publisher: CN=E8C5DDC8-B67C-49AA-8DFB-62ADC39FBAB2 # Package/Identity/Publisher
+  publisherDisplayName: Pedro-Dev # Package/Properties/PublisherDisplayName
   applicationId: GChatDesktopPlus
-  displayName: GChat Desktop+
+  # Tem que ser igual ao nome reservado na Store (com espaço antes do "+").
+  displayName: GChat Desktop +
   backgroundColor: '#1e1f22'
   languages: [pt-BR]
   showNameOnTiles: true

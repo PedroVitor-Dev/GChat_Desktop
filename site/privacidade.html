@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Política de privacidade · GChat Desktop+</title>
+    <meta
+      name="description"
+      content="Como o GChat Desktop+ trata seus dados: nada é coletado pelo desenvolvedor; tudo fica no seu computador."
+    />
+    <meta name="theme-color" content="#0e0f12" />
+    <link rel="icon" type="image/png" href="assets/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true">
+      <span class="orb orb-a"></span>
+      <span class="orb orb-b"></span>
+      <span class="grain"></span>
+    </div>
+
+    <header class="nav">
+      <a class="brand" href="index.html" aria-label="GChat Desktop+, início">
+        <img src="assets/logo.png" alt="" width="32" height="32" />
+        <span>GChat Desktop<em>+</em></span>
+      </a>
+      <nav aria-label="Seções">
+        <a href="index.html#recursos">Recursos</a>
+        <a href="index.html#instalar">Instalar</a>
+        <a href="index.html#faq">Dúvidas</a>
+      </nav>
+      <a class="btn btn-small" href="index.html#instalar">Baixar</a>
+    </header>
+
+    <main class="legal">
+      <p class="eyebrow"><span class="dot"></span><span>Atualizada em 25/11/2026</span></p>
+      <h1>Política de privacidade</h1>
+      <p class="lead">
+        O GChat Desktop+ é um app independente e de código aberto para usar o Google Chat no
+        Windows. <strong>O desenvolvedor não coleta nenhum dado seu</strong>: não há servidores
+        próprios, contas, análise de uso, telemetria nem anúncios. O que o app guarda fica no seu
+        computador.
+      </p>
+
+      <h2>Resumo</h2>
+      <ul>
+        <li>Login só na página oficial do Google. O app nunca vê nem guarda sua senha.</li>
+        <li>O texto das mensagens não é gravado em disco nem enviado a lugar nenhum.</li>
+        <li>Nada é enviado a servidores do desenvolvedor (não existem).</li>
+        <li>O código é aberto: qualquer pessoa pode conferir o que o app faz.</li>
+      </ul>
+
+      <h2>O que fica no seu computador</h2>
+      <ul>
+        <li>
+          <strong>Sessão do Google:</strong> os cookies de login de cada conta, guardados pelo
+          navegador embutido e criptografados pelo Windows para o seu usuário. Sair da conta no app
+          apaga essa sessão.
+        </li>
+        <li>
+          <strong>Configurações:</strong> preferências de notificações, sons, temas e janela; nomes
+          das conversas que você silenciou, marcou como prioritárias ou fixou (com o endereço da
+          conversa no Chat); nomes e links das salas do Meet; sons que você importou.
+        </li>
+        <li>
+          <strong>Perfil:</strong> a foto e o nome da sua conta Google (os que o Chat mostra) e a
+          frase do seu status, para aparecerem no app. O e-mail não é lido.
+        </li>
+      </ul>
+
+      <h2>O que o app lê e não guarda</h2>
+      <ul>
+        <li>
+          <strong>Notificações:</strong> para montar o aviso do Windows, o app lê o título e o texto
+          da notificação que o próprio Google Chat cria. As notificações perdidas ficam só na
+          memória e somem ao fechar o app.
+        </li>
+        <li>
+          <strong>Conversas:</strong> para o painel de fixados e para tirar avisos já lidos, o app
+          lê o nome e o identificador das conversas da barra lateral e da conversa aberta. Nunca o
+          conteúdo das mensagens.
+        </li>
+        <li>
+          <strong>Microfone:</strong> usado pelo Google Meet nas chamadas e pelo “Testar microfone”.
+          O supressor de ruído opcional roda no seu computador; o áudio não é enviado a nenhum
+          servidor por causa dele. A gravação do teste fica só na memória.
+        </li>
+      </ul>
+
+      <h2>Serviços de terceiros</h2>
+      <ul>
+        <li>
+          <strong>Google</strong> (Chat e Meet): o app abre os serviços oficiais do Google, que
+          seguem a
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener"
+            >Política de Privacidade do Google</a
+          >.
+        </li>
+        <li>
+          <strong>GitHub</strong>: o app instalado pelo site consulta os Releases do GitHub para
+          procurar atualizações (o GitHub vê o endereço IP da consulta, como em qualquer acesso).
+        </li>
+        <li>
+          <strong>Microsoft Store</strong>: na versão da Store, a instalação e as atualizações são
+          feitas pela Microsoft, conforme a
+          <a
+            href="https://privacy.microsoft.com/pt-br/privacystatement"
+            target="_blank"
+            rel="noopener"
+            >Política de Privacidade da Microsoft</a
+          >. O app não consulta o GitHub nessa versão.
+        </li>
+      </ul>
+
+      <h2>Permissões do Windows</h2>
+      <p>
+        Notificações (para os avisos) e, quando você usa as salas do Meet ou o teste de microfone,
+        microfone, câmera e compartilhamento de tela, sempre pedidos pelo próprio Meet ou por você.
+      </p>
+
+      <h2>Crianças</h2>
+      <p>
+        O app não é direcionado a menores de 13 anos e depende de uma conta Google, que segue as
+        regras de idade do Google.
+      </p>
+
+      <h2>Como apagar seus dados</h2>
+      <p>
+        Saia da conta no app (Configurações → Contas) para apagar a sessão do Google. Ao
+        desinstalar, remova também a pasta <code>%APPDATA%\GChat Desktop+</code> (versão do site);
+        na versão da Microsoft Store, o Windows apaga os dados do app junto com ele.
+      </p>
+
+      <h2>Mudanças e contato</h2>
+      <p>
+        Mudanças nesta política aparecem aqui, com a data de atualização. Dúvidas ou pedidos:
+        <a
+          href="https://github.com/PedroVitor-Dev/GChat_Desktop/issues"
+          target="_blank"
+          rel="noopener"
+          >abra uma issue no GitHub</a
+        >.
+      </p>
+      <p class="fine">
+        Google Chat e Google Meet são marcas do Google LLC. Este projeto é independente e não é
+        afiliado ao Google.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <div class="brand">
+        <img src="assets/logo.png" alt="" width="28" height="28" />
+        <span>GChat Desktop<em>+</em></span>
+      </div>
+      <p><a href="index.html">Voltar ao início</a></p>
+    </footer>
+  </body>
+</html>

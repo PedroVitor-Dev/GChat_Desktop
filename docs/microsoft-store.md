@@ -24,22 +24,20 @@ Windows SDK (ex.: 10.0.26100). Logos e blocos: `resources/appx`, gerados por
 
 A Store assina o pacote no envio; não é preciso certificado.
 
-## Antes de enviar
+## Envio
 
-1. **Identidade do Partner Center** (seu app → Gerenciamento do produto → Identidade do
-   produto) em `electron-builder.yml` → `appx`:
-   - `identityName` = Package/Identity/Name
-   - `publisher` = Package/Identity/Publisher (`CN=…`)
-   - `publisherDisplayName` = Package/Properties/PublisherDisplayName
-
-   Hoje estão com valores `PROVISORIO`: o pacote serve só para teste e a Store recusa.
-
-2. **Versão:** na Store o **primeiro número não pode ser 0** e o quarto é reservado (o
-   pacote já sai com `.0`). Com o app em `0.0.x`, é preciso subir para `1.0.0` (ou
-   maior) antes do primeiro envio.
-3. **Página de privacidade:** a Store pede um link (o app usa internet e o microfone).
-4. **Ficha da loja:** descrição, capturas de tela (mín. 1, ideal 4+ em 1366×768 ou
-   maior), categoria (Produtividade), classificação etária (questionário).
+- **Identidade** (Partner Center → Identidade do produto), já no `electron-builder.yml`:
+  `Pedro-Dev.GChatDesktop` / `CN=E8C5DDC8-B67C-49AA-8DFB-62ADC39FBAB2` / `Pedro-Dev`. Store ID
+  `9NNF2SXFFHL6`. O `displayName` do pacote é **"GChat Desktop +"** (com espaço), igual ao
+  nome reservado; a Store confere.
+- **Versão:** na Store o primeiro número não pode ser 0 e o quarto é reservado (o pacote
+  sai com `.0`). Por isso o app estreou na Store como **1.0.0**.
+- **Política de privacidade:** https://pedrovitor-dev.github.io/GChat_Desktop/privacidade.html
+  (também linkada em Configurações → Privacidade).
+- **Ficha da loja:** textos prontos em [store-listing.md](store-listing.md) (descrição,
+  recursos, palavras-chave, notas para a certificação). Faltam as capturas de tela, com
+  uma conta de teste.
+- **Pacote:** envie o `.appx` de `apps/desktop/release/<versão>/` em Envio → Pacotes.
 
 ## Riscos de aprovação
 
