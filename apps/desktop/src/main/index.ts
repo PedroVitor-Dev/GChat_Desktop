@@ -23,6 +23,8 @@ import { NotificationHistory } from './notifications/history';
 import { AppTray } from './tray/tray';
 
 const APP_ID = 'com.pedrovitor.gchatdesktopplus';
+/** Tempo olhando a conversa no Chat para os avisos dela contarem como vistos. */
+const VIEWED_AFTER_MS = 1500;
 
 // Uma única instância: abrir o atalho de novo só traz a janela para frente.
 if (!app.requestSingleInstanceLock()) {
@@ -92,11 +94,23 @@ if (!app.requestSingleInstanceLock()) {
     });
 
     notifications.on('shown', (n, accountId) => pinsService.onNotification(n, accountId));
+    // Só conta como "visto" quem ficou olhando a conversa por um instante: dar
+    // foco à janela (ex.: clicando no botão da caixa de notificações) não apaga
+    // nada. Se nesse tempo abrir algo por cima, trocar de conversa ou sair, cancela.
+    let viewing: NodeJS.Timeout | null = null;
     readConversation = (accountId) => {
+      if (viewing) clearTimeout(viewing);
+      viewing = null;
       const here = shell.chatLocation(accountId);
       if (!here?.name || !shell.isViewingChat(accountId, here.path)) return;
-      notifications.dismissConversation(accountId, here.name);
-      history.dismissConversation(accountId, here.name);
+      viewing = setTimeout(() => {
+        viewing = null;
+        const still = shell.chatLocation(accountId);
+        if (!still?.name || still.path !== here.path) return;
+        if (!shell.isViewingChat(accountId, still.path)) return;
+        notifications.dismissConversation(accountId, still.name);
+        history.dismissConversation(accountId, still.name);
+      }, VIEWED_AFTER_MS);
     };
 
     tray = new AppTray(settings, {

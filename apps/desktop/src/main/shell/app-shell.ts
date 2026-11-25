@@ -595,6 +595,7 @@ export class AppShell {
   /** O usuário está vendo esta conversa agora (janela em foco, Chat visível)? */
   isViewingChat(accountId: string, path: string): boolean {
     return (
+      this.view === 'chat' &&
       this.isLookingAtChat() &&
       accountId === this.active &&
       this.slots.get(accountId)?.path === path
