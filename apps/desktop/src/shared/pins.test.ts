@@ -6,6 +6,7 @@ import {
   chatPathFromUrl,
   normalizePins,
   parseConversationList,
+  parseOpenConversation,
   pathFromGroupId,
   pinsOf,
   type PinsSettings,
@@ -167,5 +168,20 @@ describe('conversas da barra lateral', () => {
       { path: '/app/chat/vOCMsaAAAAE', name: 'Luana kamila', kind: 'dm' },
     ]);
     expect(parseConversationList('x')).toEqual([]);
+  });
+});
+
+describe('conversa aberta (inclusive no painel dividido)', () => {
+  it('converte o id e limpa o nome', () => {
+    expect(parseOpenConversation({ id: 'dm/vOCMsaAAAAE', name: ' Luana kamila ' })).toEqual({
+      path: '/app/chat/vOCMsaAAAAE',
+      name: 'Luana kamila',
+    });
+    expect(parseOpenConversation({ id: 'space/AAQA7HmCROA', name: '' })).toEqual({
+      path: '/app/chat/AAQA7HmCROA',
+      name: null,
+    });
+    expect(parseOpenConversation(null)).toBeNull();
+    expect(parseOpenConversation({ id: 'x' })).toBeNull();
   });
 });

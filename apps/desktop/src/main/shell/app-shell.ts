@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import {
   BrowserWindow,
   app,
+  ipcMain,
   nativeImage,
   nativeTheme,
   screen,
@@ -16,7 +17,9 @@ import { DND_OFF, type DndStatus } from '../../shared/dnd';
 import { INBOX_EMPTY, type InboxStatus } from '../../shared/inbox';
 import {
   CONVERSATIONS_REQUEST,
+  OPEN_CONVERSATION_CHANNEL,
   chatNameFromTitle,
+  parseOpenConversation,
   chatPathFromUrl,
   isChatPath,
 } from '../../shared/pins';
@@ -93,8 +96,10 @@ interface ChatSlot {
   unread: number;
   loading: boolean;
   title: string;
-  /** Conversa aberta (ex.: "/app/chat/AAAA"); null no início, busca etc. */
+  /** Conversa aberta pelo endereço (ex.: "/app/chat/AAAA"); null no início, busca etc. */
   path: string | null;
+  /** Conversa aberta na área principal (inclui o painel dividido do Início). */
+  pane: { path: string; name: string | null } | null;
   cssKey: string | null;
 }
 
@@ -142,6 +147,20 @@ export class AppShell {
   private miniDismissed = false;
 
   constructor(private readonly options: ShellOptions) {
+    // Conversa aberta na área principal do Chat (vale para o painel dividido).
+    ipcMain.on(OPEN_CONVERSATION_CHANNEL, (event, raw: unknown) => {
+      const frame = event.senderFrame;
+      if (!frame || frame !== event.sender.mainFrame || frame.origin !== 'https://chat.google.com')
+        return;
+      const accountId = this.accountIdFor(event.sender);
+      const slot = accountId ? this.slots.get(accountId) : undefined;
+      if (!slot) return;
+      const pane = parseOpenConversation(raw);
+      if (pane?.path === slot.pane?.path && pane?.name === slot.pane?.name) return;
+      slot.pane = pane;
+      this.options.onChatLocation?.(slot.account.id);
+      this.emitState();
+    });
     this.appearance = options.appearance;
     this.look = this.computeLook(options.appearance);
     this.active = options.accounts.active;
@@ -568,8 +587,11 @@ export class AppShell {
   /** Conversa aberta no Chat de uma conta (endereço + nome da página). */
   chatLocation(accountId: string): { path: string; name: string | null } | null {
     const slot = this.slots.get(accountId);
-    if (!slot?.path) return null;
-    return { path: slot.path, name: chatNameFromTitle(slot.title) };
+    if (!slot) return null;
+    // Conversa em tela cheia (endereço + título) ou no painel dividido do Início.
+    if (slot.path)
+      return { path: slot.path, name: chatNameFromTitle(slot.title) ?? slot.pane?.name ?? null };
+    return slot.pane;
   }
 
   /** Envia uma mensagem às páginas do Meet abertas (chamada e sala espiada). */
@@ -598,7 +620,7 @@ export class AppShell {
       this.view === 'chat' &&
       this.isLookingAtChat() &&
       accountId === this.active &&
-      this.slots.get(accountId)?.path === path
+      this.chatLocation(accountId)?.path === path
     );
   }
 
@@ -696,6 +718,7 @@ export class AppShell {
       loading: true,
       title: 'Google Chat',
       path: null,
+      pane: null,
       cssKey: null,
     };
     this.slots.set(account.id, slot);

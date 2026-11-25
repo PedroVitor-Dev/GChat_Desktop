@@ -59,7 +59,11 @@ foco, Chat visível, nada aberto por cima), os avisos dela saem da caixa e os to
 são fechados, inclusive na central de notificações do Windows. Só dar foco à janela não
 conta: voltar e clicar na caixa de notificações com a conversa aberta não apaga nada
 (antes apagava na hora). Abrir algo por cima, trocar de conversa ou sair nesse tempo
-cancela. Vale ao navegar até a conversa, ao voltar para a
+cancela. Vale também com a conversa aberta no **painel dividido** ao lado do Início, em
+que o endereço continua `/app/home` e o título "Chat": o preload informa a conversa da
+área principal (`[role=main][data-group-id]`, só id e nome; canal
+`chat:open-conversation`). Isso também faz o "Fixar conversa" do painel Fixados
+reconhecer a conversa nesse modo. Vale ao navegar até a conversa, ao voltar para a
 janela olhando para ela, ao fechar as configurações e ao trocar de conta. A conversa é
 reconhecida pelo título da página do Chat ("Luana kamila - Chat"), comparado ao título
 da notificação sem diferenciar maiúsculas e acentos (`sameConversation`).

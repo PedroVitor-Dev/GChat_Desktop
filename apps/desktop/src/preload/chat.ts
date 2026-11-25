@@ -14,7 +14,11 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { NotificationChannel, type CapturedNotification } from '../shared/notifications';
 import { OPEN_STATUS_CHANNEL, PROFILE_CHANNEL, STATUS_CHANNEL } from '../shared/profile';
-import { CONVERSATIONS_REPLY, CONVERSATIONS_REQUEST } from '../shared/pins';
+import {
+  CONVERSATIONS_REPLY,
+  CONVERSATIONS_REQUEST,
+  OPEN_CONVERSATION_CHANNEL,
+} from '../shared/pins';
 
 const CHAT_ORIGIN = 'https://chat.google.com';
 
@@ -124,9 +128,39 @@ function listConversations(): { id: string; name: string }[] {
   return out;
 }
 
+/**
+ * Conversa aberta na área principal do Chat. No painel dividido (conversa ao lado
+ * do Início) o endereço e o título não mudam; a área da conversa tem o id dela
+ * (`[role=main][data-group-id]`). Lê só o id e o nome da conversa (o da barra
+ * lateral ou o do cabeçalho), nunca mensagens.
+ */
+function watchOpenConversation(): void {
+  let last = '';
+  const report = () => {
+    const pane = document.querySelector<HTMLElement>('[role="main"][data-group-id]');
+    const id = pane?.getAttribute('data-group-id') ?? '';
+    let name = '';
+    if (/^(dm|space)\//.test(id)) {
+      const side = document.querySelector<HTMLElement>(
+        `[data-group-id="${CSS.escape(id)}"][role="listitem"] [data-name]`,
+      );
+      name =
+        side?.getAttribute('data-name') ??
+        pane?.querySelector('[role="heading"]')?.textContent?.trim() ??
+        '';
+    }
+    const key = `${id}|${name}`;
+    if (key === last) return;
+    last = key;
+    ipcRenderer.send(OPEN_CONVERSATION_CHANNEL, id ? { id, name } : null);
+  };
+  setInterval(report, 700);
+}
+
 if (location.origin === CHAT_ORIGIN && window === window.top) {
   watchProfile();
   watchStatus();
+  watchOpenConversation();
   ipcRenderer.on(CONVERSATIONS_REQUEST, (_e, requestId: unknown) => {
     if (typeof requestId !== 'string') return;
     ipcRenderer.send(CONVERSATIONS_REPLY, requestId, listConversations());

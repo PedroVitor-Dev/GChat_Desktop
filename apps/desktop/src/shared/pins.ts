@@ -240,3 +240,20 @@ export function parseConversationList(input: unknown): ChatConversation[] {
   }
   return out.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 }
+
+/**
+ * preload do Chat → main: a conversa aberta na área principal (tela cheia ou no
+ * painel dividido ao lado do Início, que não muda o endereço nem o título).
+ */
+export const OPEN_CONVERSATION_CHANNEL = 'chat:open-conversation';
+
+/** Valida o aviso do preload: id do Chat ("dm/…", "space/…") e nome, ou nada aberto. */
+export function parseOpenConversation(
+  input: unknown,
+): { path: string; name: string | null } | null {
+  if (typeof input !== 'object' || input === null) return null;
+  const r = input as Record<string, unknown>;
+  const where = typeof r['id'] === 'string' ? pathFromGroupId(r['id']) : null;
+  if (!where) return null;
+  return { path: where.path, name: cleanText(r['name'], PIN_LIMITS.nameLength) };
+}
