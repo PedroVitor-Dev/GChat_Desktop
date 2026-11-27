@@ -1148,7 +1148,7 @@ details p {
 .store-banner {
   position: relative;
   width: min(1120px, calc(100% - 32px));
-  margin: 8px auto 0;
+  margin: 8px auto 56px;
   display: flex;
   align-items: center;
   gap: 28px;
@@ -1189,7 +1189,7 @@ details p {
   text-transform: uppercase;
 }
 .store-banner h2 {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: clamp(20px, 2.6vw, 28px);
 }
 .store-banner p:last-child {
