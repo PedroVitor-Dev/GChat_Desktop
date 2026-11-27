@@ -1093,3 +1093,146 @@ details p {
   margin-top: 40px;
   font-size: 13px;
 }
+
+/* ── Microsoft Store ── */
+.store-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid rgba(127, 186, 0, 0.35);
+  border-radius: 999px;
+  background: rgba(127, 186, 0, 0.08);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+.store-pill:hover {
+  background: rgba(127, 186, 0, 0.16);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+.store-pill-new {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7fba00, #00a4ef);
+  color: #0e0f12;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.store-badge {
+  display: inline-flex;
+  border-radius: 10px;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+.store-badge:hover {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 10px 24px rgba(0, 164, 239, 0.35));
+}
+.store-badge img {
+  display: block;
+  height: auto;
+}
+.cta .store-badge img {
+  height: 52px;
+  width: auto;
+}
+.store-banner {
+  position: relative;
+  width: min(1120px, calc(100% - 32px));
+  margin: 8px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 28px 32px;
+  border-radius: 28px;
+  border: 1px solid rgba(0, 164, 239, 0.3);
+  background:
+    radial-gradient(520px 220px at 0% 0%, rgba(0, 164, 239, 0.22), transparent 70%),
+    radial-gradient(520px 220px at 100% 100%, rgba(127, 186, 0, 0.16), transparent 70%),
+    rgba(30, 31, 34, 0.72);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+.store-banner-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+}
+.store-banner-icon svg {
+  width: 38px;
+  height: 38px;
+}
+.store-banner-copy {
+  flex: 1;
+  min-width: 0;
+}
+.store-banner-kicker {
+  margin: 0 0 6px;
+  color: #7fba00;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.store-banner h2 {
+  margin: 0 0 8px;
+  font-size: clamp(20px, 2.6vw, 28px);
+}
+.store-banner p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+.install-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 32px auto 0;
+  max-width: 760px;
+}
+.install-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 20px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+.install-option-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+.install-option-text {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.install-option .btn-xl {
+  margin-top: auto;
+}
+@media (max-width: 760px) {
+  .store-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 28px 22px;
+  }
+  .install-options {
+    grid-template-columns: 1fr;
+  }
+}

@@ -52,6 +52,16 @@
       <!-- HERO -->
       <section class="hero">
         <div class="hero-copy reveal">
+          <a
+            class="store-pill"
+            href="https://apps.microsoft.com/detail/9NNF2SXFFHL6?hl=pt-br&amp;gl=BR&amp;referrer=appbadge"
+            target="_blank"
+            rel="noopener"
+          >
+            <span class="store-pill-new">Novo</span>
+            <span>Agora na Microsoft Store</span>
+            <span aria-hidden="true">→</span>
+          </a>
           <p class="eyebrow">
             <span class="dot"></span
             ><span>Versão <span class="js-version">1.0.0</span> · Windows 10 e 11</span>
@@ -76,20 +86,26 @@
               <small class="js-size">~116 MB</small>
             </a>
             <a
-              class="btn btn-ghost"
-              href="https://github.com/PedroVitor-Dev/GChat_Desktop"
+              class="store-badge"
+              href="https://apps.microsoft.com/detail/9NNF2SXFFHL6?hl=pt-br&amp;gl=BR&amp;referrer=appbadge"
               target="_blank"
               rel="noopener"
+              aria-label="Baixar na Microsoft Store"
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.7-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"
-                />
-              </svg>
-              Código aberto
+              <img
+                src="https://get.microsoft.com/images/pt-br%20light.svg"
+                alt="Baixe na Microsoft Store"
+                width="176"
+              />
             </a>
           </div>
-          <p class="fine">Grátis · GPL-3.0 · Não é afiliado ao Google</p>
+          <p class="fine">
+            Grátis ·
+            <a href="https://github.com/PedroVitor-Dev/GChat_Desktop" target="_blank" rel="noopener"
+              >Código aberto</a
+            >
+            · GPL-3.0 · Não é afiliado ao Google
+          </p>
         </div>
 
         <!-- Mock do app -->
@@ -161,6 +177,39 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- MICROSOFT STORE -->
+      <section class="store-banner reveal" aria-labelledby="store-banner-title">
+        <div class="store-banner-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M2 2h9.5v9.5H2z" fill="#f25022" />
+            <path d="M12.5 2H22v9.5h-9.5z" fill="#7fba00" />
+            <path d="M2 12.5h9.5V22H2z" fill="#00a4ef" />
+            <path d="M12.5 12.5H22V22h-9.5z" fill="#ffb900" />
+          </svg>
+        </div>
+        <div class="store-banner-copy">
+          <p class="store-banner-kicker">Novidade · versão 1.0</p>
+          <h2 id="store-banner-title">GChat Desktop+ chegou à Microsoft Store</h2>
+          <p>
+            Instale com um clique, sem o aviso “O Windows protegeu o computador”, e receba as
+            atualizações automaticamente pela Store.
+          </p>
+        </div>
+        <a
+          class="store-badge"
+          href="https://apps.microsoft.com/detail/9NNF2SXFFHL6?hl=pt-br&amp;gl=BR&amp;referrer=appbadge"
+          target="_blank"
+          rel="noopener"
+          aria-label="Baixar na Microsoft Store"
+        >
+          <img
+            src="https://get.microsoft.com/images/pt-br%20light.svg"
+            alt="Baixe na Microsoft Store"
+            width="200"
+          />
+        </a>
       </section>
 
       <!-- MARQUEE -->
@@ -270,12 +319,35 @@
           <img src="assets/logo.png" alt="" width="88" height="88" class="install-logo" />
           <h2>Baixe e comece agora.</h2>
           <p class="muted">Windows 10 ou 11 · 64 bits · instalação sem administrador</p>
-          <a
-            class="btn btn-primary btn-xl js-download"
-            href="https://github.com/PedroVitor-Dev/GChat_Desktop/releases/latest"
-          >
-            Baixar GChat Desktop+ <span class="js-version">1.0.0</span>
-          </a>
+          <div class="install-options">
+            <div class="install-option">
+              <p class="install-option-title">Pela Microsoft Store</p>
+              <p class="install-option-text">Sem aviso de segurança · atualiza pela Store</p>
+              <a
+                class="store-badge"
+                href="https://apps.microsoft.com/detail/9NNF2SXFFHL6?hl=pt-br&amp;gl=BR&amp;referrer=appbadge"
+                target="_blank"
+                rel="noopener"
+                aria-label="Baixar na Microsoft Store"
+              >
+                <img
+                  src="https://get.microsoft.com/images/pt-br%20light.svg"
+                  alt="Baixe na Microsoft Store"
+                  width="200"
+                />
+              </a>
+            </div>
+            <div class="install-option">
+              <p class="install-option-title">Pelo instalador</p>
+              <p class="install-option-text">Atualiza pelo próprio app · abre com o Windows</p>
+              <a
+                class="btn btn-primary btn-xl js-download"
+                href="https://github.com/PedroVitor-Dev/GChat_Desktop/releases/latest"
+              >
+                Baixar GChat Desktop+ <span class="js-version">1.0.0</span>
+              </a>
+            </div>
+          </div>
           <p class="fine">
             Ou veja todas as versões em
             <a
