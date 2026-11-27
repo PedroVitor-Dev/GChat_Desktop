@@ -15,43 +15,70 @@ conversas fixadas, salas de vídeo com miniplayer e supressor de ruído. App ind
 
 ## Descrição
 
-GChat Desktop+ deixa o Google Chat do seu jeito no Windows, com recursos que o navegador
-não tem:
+Texto simples (a Store não usa Markdown); as listas com "•" aparecem como na loja.
 
-🔔 NOTIFICAÇÕES DE VERDADE
-• Avisos nativos do Windows, com "Silenciar conversa" direto no aviso
-• Um som diferente para cada conversa, para menções e para pessoas prioritárias; importe
-os seus (MP3, WAV, OGG)
-• Não perturbe com tempo (30 min, 1 h, 8 h, até amanhã) e horário de silêncio
-• Pessoas prioritárias que sempre avisam, mesmo no Não perturbe
-• Caixa de notificações perdidas: o que chegou enquanto você estava fora
-• Modo streamer automático ao abrir OBS e outros programas de transmissão
+```text
+O Google Chat como ele deveria ser no Windows. ✨
 
-📌 ORGANIZAÇÃO
-• Conversas fixadas em grupos, ao lado do Chat, com contador de novas e Alt + 1…9
-• Até 5 contas Google, cada uma com a sua sessão
-• Status do Chat na sua foto e mudança rápida de status
+GChat Desktop+ coloca o Google Chat num app próprio, leve e bonito, com tudo o que faltava no navegador: avisos que você realmente nota, um som para cada pessoa, silêncio na hora certa e salas de vídeo que funcionam como os canais de voz que você já conhece.
 
-🎧 SALAS DE VÍDEO (Google Meet)
-• Salas permanentes, como canais de voz: crie, compartilhe o link e entre com um clique
-• Cronômetro, miniplayer flutuante, modo foco e tela cheia
-• Espie quem está numa sala antes de trocar
-• Supressor de ruído opcional com IA, rodando no seu computador, e "Testar microfone"
+🔔 NUNCA MAIS PERCA O QUE IMPORTA
+• Notificações nativas do Windows, com "Silenciar conversa" direto no aviso
+• Um som diferente para cada conversa e um som especial para quando mencionam você. Escolha entre os sons incluídos ou importe os seus (MP3, WAV, OGG)
+• Pessoas prioritárias ⭐: quem você escolher sempre avisa, com som próprio, mesmo no Não perturbe
+• Caixa de notificações perdidas: voltou do almoço? Veja tudo o que chegou enquanto você estava fora. Os avisos somem sozinhos quando você lê a conversa
 
-🎨 VISUAL
-• Temas escuro, claro e coloridos, ou crie o seu
-• Janela Mica ou Acrílico no Windows 11
+🌙 SILÊNCIO QUANDO VOCÊ PRECISA
+• Não perturbe com um clique: 30 minutos, 1 hora, 8 horas ou até amanhã, e ele volta sozinho
+• Horário de silêncio para não ser incomodado fora do expediente
+• Modo streamer automático: abriu o OBS, o Streamlabs ou outro programa de transmissão? Os avisos se escondem sozinhos
 
-🔒 PRIVACIDADE
-O login é feito na página oficial do Google; o app nunca vê sua senha. O texto das
-mensagens não é gravado e nada é enviado a servidores do desenvolvedor. Código aberto.
+📌 SUAS CONVERSAS, DO SEU JEITO
+• Conversas fixadas ao lado do Chat, organizadas em grupos, com contador de mensagens novas e atalhos Alt + 1…9
+• Adicione conversas e espaços aos fixados sem precisar abri-los
+• Até 5 contas Google (pessoal e trabalho lado a lado), cada uma com a sua sessão
+• Seu status do Chat na sua foto: mude para Não perturbe, Ausente ou escreva uma frase com emoji em um clique
 
-GChat Desktop+ é um projeto independente e não é afiliado, patrocinado nem aprovado pelo
-Google. Google Chat e Google Meet são marcas do Google LLC.
+🎧 SALAS DE VÍDEO COM O GOOGLE MEET
+• Salas permanentes, como canais de voz: crie, mande o link aos amigos e entre com um clique
+• Cronômetro da chamada e miniplayer flutuante: vá para o Chat e a chamada continua numa janelinha sempre à vista
+• Modo foco e tela cheia, só com o vídeo
+• Espie quem está numa sala antes de trocar, sem sair da chamada atual
+• Supressor de ruído com IA, opcional: tira ventilador, teclado e barulho de fundo do seu microfone. Roda no seu computador, nada é enviado para fora. Teste antes, ouvindo com e sem o filtro
+
+🎨 COM A SUA CARA
+• Temas escuro e claro, temas coloridos com degradê (incluindo o Iron Ball, com bolinhas de metal flutuando) ou crie o seu
+• Janela com efeito Mica ou Acrílico no Windows 11, com transparência ajustável
+• Fica quietinho na bandeja do sistema, avisando sem atrapalhar
+
+🔒 PRIVACIDADE EM PRIMEIRO LUGAR
+• Login só na página oficial do Google: o app nunca vê nem guarda sua senha
+• O texto das mensagens não é gravado em disco nem em logs
+• Nada é enviado a servidores do desenvolvedor (eles nem existem)
+• Código aberto: qualquer pessoa pode conferir o que o app faz
+
+Funciona com contas pessoais do Google e do Google Workspace.
+
+GChat Desktop+ é um projeto independente e não é afiliado, patrocinado nem aprovado pelo Google. Google Chat e Google Meet são marcas do Google LLC.
+```
 
 ## Novidades desta versão
 
-Primeira versão na Microsoft Store. Atualizações chegam automaticamente pela Store.
+```text
+Bem-vindo ao GChat Desktop+ 1.0! 🎉
+
+Esta é a primeira versão na Microsoft Store, com tudo o que o app já faz de melhor:
+
+• Notificações nativas com som por conversa, menções e pessoas prioritárias
+• Não perturbe com tempo e horário de silêncio
+• Caixa de notificações perdidas, que se limpa sozinha quando você lê a conversa
+• Conversas fixadas em grupos ao lado do Chat
+• Salas do Google Meet com miniplayer, modo foco e supressor de ruído com IA no seu computador
+• Temas coloridos, Mica e Acrílico no Windows 11
+• Até 5 contas Google
+
+As próximas atualizações chegam automaticamente pela Microsoft Store. Gostou? Deixe sua avaliação! ⭐
+```
 
 ## Recursos (lista curta, até 20)
 
